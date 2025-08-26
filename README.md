@@ -1,41 +1,264 @@
-# Pile
+# PileBintang - AI Architectural Analysis Prompt
 
-Pile is a desktop app for reflective journaling. It's about simplicity, keeping your data local, and enhancing your journaling experience with AI.
+You are an AI assistant analyzing the PileBintang application, a sophisticated Electron-based desktop journaling app with AI integration. This document serves as a comprehensive architectural guide to help you understand the codebase structure, data flow, and implementation details.
 
 ![Pile app screenshot](./assets/cover.png)
 
-## Getting started
+## Application Architecture Overview
 
-1. Download the latest version of Pile by going to the [Pile releases page](https://github.com/UdaraJay/Pile/releases/).
-2. On macOS Open the `.zip` or `.dmg` file and drag the application to the destination of your choice (_optional_), such as your `Applications/` folder. On Windows, use the `.exe` to install.
-3. Finally open the application, create a `New Pile`, and start your reflective journey.
+**PileBintang** is a cross-platform desktop application built with modern web technologies, following a two-process Electron architecture:
 
-### AI reflections (requires OpenAI API access, or Ollama for local AI)
+### Core Technologies Stack
+- **Runtime**: Electron (v33.2.0) for cross-platform desktop deployment
+- **Frontend**: React 19 with TypeScript/JavaScript for UI components
+- **State Management**: React Context API for application state
+- **Text Editor**: TipTap editor for rich text journaling
+- **AI Integration**: OpenAI GPT-4 API and Ollama for local AI processing
+- **Animation**: Framer Motion for smooth UI transitions
+- **Build System**: Webpack with TypeScript compilation
+- **Data Storage**: File-based markdown storage with frontmatter metadata
 
-Enhance your journaling experience by integrating OpenAI's GPT AI reflections into Pile. If you have access to OpenAI's GPT-4 API, you can use your API key to:
+### Architectural Patterns
+1. **Multi-Process Architecture**: Electron's main process (Node.js) + renderer process (React)
+2. **IPC Communication**: Secure Inter-Process Communication between main and renderer
+3. **Context-Based State Management**: Multiple React contexts for feature isolation
+4. **File-System Based Storage**: Local markdown files with timestamp-based organization
+5. **Component Composition**: Modular React components with clear separation of concerns
 
-- **Reflect on entries:** Click "reflect" on any written entry to get AI-generated insights and thoughts as a reply in the thread.
-- **Search or ask questions:** Click the "reflect" icon on the top-right of the window to search or ask question about your entire journal.
+## Directory Structure and File Functions
 
-**How to setup AI features:** head over to [platform.openai.com/api-keys](https://platform.openai.com/api-keys) and create a new API key. Click the settings icon on the top-right corner of Pile and enter your secret API key into the API key field.
+### `/src/main/` - Main Process (Node.js/Electron Backend)
 
-Before you use the AI-powered features within this app, we strongly recommend that you [configure a spending limit within OpenAI's interface](https://platform.openai.com/account/limits) to prevent unexpected costs.
+#### Core Files:
+- **`main.ts`**: Application entry point
+  - Manages BrowserWindow lifecycle
+  - Handles app events (ready, activate, close)
+  - Sets up window properties (frame, transparency, titlebar)
+  - Registers protocol handlers for local file access
+  - Initializes auto-updater functionality
 
-## Contributing
+- **`preload.ts`**: Security bridge between main and renderer processes
+  - Exposes safe APIs to renderer via `contextBridge`
+  - Provides file system operations (read, write, mkdir, etc.)
+  - Handles path operations and platform detection
+  - Manages electron-store settings integration
 
-If you'd like to contribute to Pile, feel free to fork the repository, make your changes, and submit a pull request. Contributions are welcomed and appreciated, however this is an experimental project, so any changes and new features are merged into this distribution of Pile at my discretion.
+- **`ipc.ts`**: IPC handler registration hub
+  - Imports and registers all feature-specific handlers
+  - Centralizes IPC communication setup
 
-For a detailed guide on contributing, read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
+#### `/src/main/handlers/` - Feature-Specific IPC Handlers:
+- **`file.ts`**: File operations and pile management
+  - Handles file CRUD operations
+  - Manages pile folder creation and organization
+  - Processes file attachments and media uploads
+  - Implements gray-matter parsing for markdown frontmatter
 
-## License
-The software code is licensed under the MIT License. 
-The brand name, and other brand assets are proprietary and not included in the MIT license. 
+- **`keys.ts`**: API key management for AI services
+  - Secure storage/retrieval of OpenAI API keys
+  - Handles encryption/decryption of sensitive data
 
-See the [LICENSE.md](LICENSE.md) file for details.
+- **`store.ts`**: Electron-store integration for persistent settings
+- **`tags.ts`**: Tag system backend operations
+- **`highlights.ts`**: Text highlighting system backend
+- **`index.ts`**: Search indexing and full-text search functionality
+- **`links.ts`**: Link extraction and management
 
-## Special thanks
+#### `/src/main/utils/` - Utility Functions:
+- **`pileHelper.ts`**: Core pile management utilities
+- **`autoUpdates.ts`**: Automatic update functionality
 
-Many thanks and appreciation to all these people and projects for their contributions to Pile.
+### `/src/renderer/` - Renderer Process (React Frontend)
 
-- [Zach Bogart](https://twitter.com/zachbogart): for the icon design.
-- [Electron react boilerplate](https://github.com/electron-react-boilerplate/electron-react-boilerplate): for making it easier to launch desktop apps.
+#### Core Application Files:
+- **`index.tsx`**: Application bootstrap
+  - Creates React root
+  - Sets up MemoryRouter for routing
+  - Handles platform-specific styling
+
+- **`App.jsx`**: Main application component
+  - Defines route structure and navigation
+  - Wraps application in context providers
+  - Manages page transitions with Framer Motion
+
+#### `/src/renderer/pages/` - Application Views:
+
+- **`Home/`**: Landing page and pile selection
+  - Lists existing piles
+  - Provides pile creation interface
+  - Handles pile deletion and management
+
+- **`CreatePile/`**: New pile creation wizard
+  - Directory selection interface
+  - Pile naming and configuration
+
+- **`Pile/`**: Main journaling interface
+  - **`index.tsx`**: Main pile view wrapper
+  - **`Layout.jsx`**: Pile-specific layout with sidebar
+  - **`Posts/`**: Post listing and thread management
+  - **`Editor/`**: Rich text editor component with AI integration
+  - **`Chat/`**: AI chat interface for journal queries
+  - **`Search/`**: Full-text search functionality
+  - **`Settings/`**: Pile-specific settings and AI configuration
+  - **`Sidebar/`**: Navigation and pile information
+  - **`Highlights/`**: Text highlighting system
+  - **`Toasts/`**: Notification system
+
+#### `/src/renderer/context/` - State Management:
+
+- **`PilesContext.js`**: Core pile management state
+  - Manages list of available piles
+  - Handles pile creation, deletion, updates
+  - Provides current pile context
+  - Manages theme system
+
+- **`AIContext.js`**: AI integration state and operations
+  - Manages OpenAI and Ollama connections
+  - Handles API key storage and validation
+  - Provides AI completion functionality
+  - Manages AI model selection and configuration
+
+- **`ToastsContext.js`**: Notification system state
+- **`TagsContext.js`**: Tag management state
+- **`TimelineContext.js`**: Timeline view state
+- **`HighlightsContext.js`**: Text highlighting state
+- **`LinksContext.js`**: Link management state
+- **`IndexContext.js`**: Search index state
+- **`AutoUpdateContext.js`**: Auto-update status management
+
+#### `/src/renderer/utils/` - Frontend Utilities:
+- **`fileOperations.js`**: File system operation helpers
+  - Post format definitions
+  - File path generation utilities
+  - Markdown file operations
+
+- **`debounce.js`**: Performance optimization utilities
+
+## Data Flow and Application Logic
+
+### 1. Application Initialization Flow
+```
+main.ts starts → setupPilesFolder() → createWindow() → 
+App.jsx loads → PilesContext initializes → 
+getConfig() reads piles.json → Home page renders pile list
+```
+
+### 2. Pile Creation Flow
+```
+User clicks "Create new pile" → CreatePile page → 
+Directory selection dialog → Pile name input → 
+createPile() in PilesContext → File system operations → 
+Config update → Navigation to new pile
+```
+
+### 3. Post Creation Flow
+```
+User types in Editor → TipTap editor captures content → 
+handleSubmit() triggers → File path generation → 
+Markdown file creation with frontmatter → 
+Post list refresh → UI update
+```
+
+### 4. AI Integration Flow
+```
+User clicks "reflect" → AI context preparation → 
+Thread context gathering → OpenAI/Ollama API call → 
+Streaming response handling → Token-by-token insertion → 
+AI response saved as new post
+```
+
+### 5. File Storage Organization
+```
+Pile Directory/
+├── YYYY/
+│   ├── MMM/
+│   │   ├── YYMMDD-HHMMSS.md (journal entries)
+│   │   └── media/ (attachments)
+│   └── ...
+└── ...
+```
+
+## Key Components Deep Dive
+
+### TipTap Editor Integration (`/src/renderer/pages/Pile/Editor/`)
+- Rich text editing with markdown serialization
+- Drag-and-drop file upload support
+- Real-time content synchronization
+- AI response streaming integration
+- Custom extensions for submit behavior
+
+### AI Context System (`/src/renderer/context/AIContext.js`)
+- Dual provider support (OpenAI + Ollama)
+- Secure API key management
+- Context preparation for AI conversations
+- Streaming response handling
+- Model selection and configuration
+
+### File Management System
+- Timestamp-based file naming
+- Automatic directory structure creation
+- Markdown frontmatter for metadata
+- Media file organization and linking
+
+### Search and Indexing
+- Full-text search across all posts
+- Tag-based filtering
+- Timeline-based navigation
+- Highlight preservation
+
+## Development Workflow
+
+### Build Commands
+- `npm start`: Development server with hot reload
+- `npm run build`: Production build
+- `npm run package`: Create distributable packages
+- `npm run lint`: Code linting with ESLint
+
+### Testing
+- Jest for unit testing
+- Testing Library for React components
+- Electron-specific testing setup
+
+### Development Environment Setup
+1. Install dependencies: `npm install --legacy-peer-deps`
+2. Start development: `npm start`
+3. The app runs in development mode with hot reload enabled
+
+## Security Considerations
+
+### IPC Security
+- `contextBridge` isolates main and renderer processes
+- No direct Node.js access in renderer
+- Whitelisted APIs only
+
+### Data Security
+- API keys stored in electron-store with encryption
+- Local file system access only
+- No data transmission to external servers (except AI APIs)
+
+## Platform-Specific Features
+
+### macOS
+- Custom titlebar with traffic light positioning
+- Vibrancy effects for window background
+- Native window behavior and dock integration
+
+### Windows
+- Custom window frame handling
+- Windows-specific file system operations
+
+### Linux
+- AppImage distribution format
+- Cross-platform file system compatibility
+
+## Extension Points for AI Assistants
+
+When working with this codebase:
+
+1. **Adding New Features**: Extend existing contexts or create new ones
+2. **AI Improvements**: Modify `AIContext.js` for new AI providers
+3. **UI Components**: Follow the existing component structure in `/pages/`
+4. **File Operations**: Use utilities in `fileOperations.js`
+5. **IPC Communication**: Add handlers in `/main/handlers/`
+
+This architecture provides a solid foundation for a feature-rich journaling application with AI integration while maintaining security, performance, and cross-platform compatibility.
