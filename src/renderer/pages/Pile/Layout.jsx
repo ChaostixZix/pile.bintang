@@ -1,17 +1,17 @@
 import { useParams, Link } from 'react-router-dom';
-import styles from './PileLayout.module.scss';
-import { HomeIcon } from 'renderer/icons';
-import Sidebar from './Sidebar/Timeline/index';
+import { HomeIcon, ChevronLeftIcon, ChevronRightIcon } from 'renderer/icons';
 import { useIndexContext } from 'renderer/context/IndexContext';
 import { useEffect, useState, useMemo } from 'react';
 import { DateTime } from 'luxon';
-import Settings from './Settings';
-import HighlightsDialog from './Highlights';
 import { usePilesContext } from 'renderer/context/PilesContext';
-import Toasts from './Toasts';
-import Search from './Search';
 import { useTimelineContext } from 'renderer/context/TimelineContext';
 import { AnimatePresence, motion } from 'framer-motion';
+import Settings from './Settings';
+import HighlightsDialog from './Highlights';
+import Toasts from './Toasts';
+import Search from './Search';
+import Sidebar from './Sidebar/Timeline/index';
+import styles from './PileLayout.module.scss';
 import InstallUpdate from './InstallUpdate';
 import Chat from './Chat';
 
@@ -22,6 +22,7 @@ export default function PileLayout({ children }) {
   const { currentTheme } = usePilesContext();
 
   const [now, setNow] = useState(DateTime.now().toFormat('cccc, LLL dd, yyyy'));
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     try {
@@ -40,29 +41,41 @@ export default function PileLayout({ children }) {
   }, []);
 
   const themeStyles = useMemo(() => {
-    return currentTheme ? currentTheme + 'Theme' : '';
+    return currentTheme ? `${currentTheme}Theme` : '';
   }, [currentTheme]);
 
   const osStyles = useMemo(
     () => (window.electron.isMac ? styles.mac : styles.win),
-    []
+    [],
   );
 
   return (
     <div className={`${styles.frame} ${themeStyles} ${osStyles}`}>
-      <div className={styles.bg}></div>
+      <div className={styles.bg} />
       <div className={styles.main}>
-        <div className={styles.sidebar}>
+        <div className={`${styles.sidebar} ${sidebarCollapsed ? styles.collapsed : ''}`}>
           <div className={styles.top}>
             <div className={styles.part}>
-              <div className={styles.count}>
-                <span>{index.size}</span> entries
-              </div>
+              <button 
+                className={styles.toggleButton}
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                title={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+              >
+                {sidebarCollapsed ? 
+                  <ChevronRightIcon className={styles.chevron} /> : 
+                  <ChevronLeftIcon className={styles.chevron} />
+                }
+              </button>
+              {!sidebarCollapsed && (
+                <div className={styles.count}>
+                  <span>{index.size}</span> entries
+                </div>
+              )}
             </div>
           </div>
-          <Sidebar />
+          {!sidebarCollapsed && <Sidebar />}
         </div>
-        <div className={styles.content}>
+        <div className={`${styles.content} ${sidebarCollapsed ? styles.contentExpanded : ''}`}>
           <div className={styles.nav}>
             <div className={styles.left}>
               {pileName} <span style={{ padding: '6px' }}>·</span>
@@ -91,8 +104,8 @@ export default function PileLayout({ children }) {
           {children}
         </div>
       </div>
-      <div id="reflections"></div>
-      <div id="dialog"></div>
+      <div id="reflections" />
+      <div id="dialog" />
     </div>
   );
 }

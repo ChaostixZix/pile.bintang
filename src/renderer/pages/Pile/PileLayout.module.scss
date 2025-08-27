@@ -166,6 +166,25 @@
       opacity: 0;
     }
 
+    // Collapsed sidebar styles
+    &.collapsed {
+      width: 50px;
+      
+      .top {
+        justify-content: center;
+        flex: 0 0 50px;
+        
+        .part {
+          width: 50px;
+          justify-content: center;
+          
+          .toggleButton {
+            margin-right: 0;
+          }
+        }
+      }
+    }
+
     .top {
       display: flex;
       justify-content: flex-end;
@@ -182,8 +201,44 @@
       .part {
         display: flex;
         justify-content: flex-end;
+        align-items: center;
         width: 160px;
         text-overflow: ellipsis;
+
+        .toggleButton {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          padding: 6px;
+          margin-right: 8px;
+          border-radius: 6px;
+          transition: all 0.2s ease;
+          -webkit-app-region: none;
+          
+          &:hover {
+            background: var(--bg-secondary);
+          }
+          
+          &:active {
+            background: var(--bg-tertiary);
+          }
+
+          .chevron {
+            width: 16px;
+            height: 16px;
+            color: var(--secondary);
+            opacity: 0.7;
+            transition: all 0.2s ease;
+          }
+
+          &:hover .chevron {
+            opacity: 1;
+            color: var(--primary);
+          }
+        }
 
         .count {
           margin-top: -5px;
@@ -215,10 +270,20 @@
     height: 100vh;
     overflow-y: overlay;
     overflow-x: hidden;
+    transition: margin-left 0.3s ease, flex 0.3s ease;
+
+    &.contentExpanded {
+      margin-left: 50px;
+      flex: 1 0 calc(100vw - 50px);
+    }
 
     @media only screen and (max-width: 909px) {
       margin-left: 0;
       box-shadow: none;
+      
+      &.contentExpanded {
+        margin-left: 0;
+      }
     }
 
     .left {

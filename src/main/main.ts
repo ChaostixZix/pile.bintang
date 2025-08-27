@@ -9,10 +9,10 @@ import {
   nativeTheme,
   session,
 } from 'electron';
-import MenuBuilder from './menu';
-import { resolveHtmlPath } from './util';
 import fs from 'fs';
 import path from 'path';
+import MenuBuilder from './menu';
+import { resolveHtmlPath } from './util';
 import './ipc';
 import AppUpdater from './utils/autoUpdates';
 
@@ -40,7 +40,7 @@ const installExtensions = async () => {
   return installer
     .default(
       extensions.map((name) => installer[name]),
-      forceDownload
+      forceDownload,
     )
     .catch(console.log);
 };
@@ -90,7 +90,7 @@ const createWindow = async () => {
     },
     frame: false,
     titleBarStyle: 'hidden',
-    trafficLightPosition: { x: 18, y: 16 },
+    trafficLightPosition: { x: -100, y: -100 }, // Hide traffic lights by moving them off-screen
     transparent: process.platform === 'darwin',
     vibrancy: 'sidebar',
     titleBarOverlay: {
@@ -147,46 +147,44 @@ app
   .then(() => {
     protocol.handle('local', (request) => {
       const filePath = request.url.slice('local://'.length);
-      return net.fetch('file://' + filePath);
+      return net.fetch(`file://${filePath}`);
     });
 
-  // Configure session-level CSP headers (header-only, dev/prod variants)
-  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    const isDev = isDebug;
+    // Configure session-level CSP headers (header-only, dev/prod variants)
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      const isDev = isDebug;
 
-    const cspDirectives = [
-      "default-src 'self'",
-      // Avoid inline scripts when possible; allow eval only in dev for webpack tooling
-      isDev
-        ? "script-src 'self' 'unsafe-eval'"
-        : "script-src 'self'",
-      // Style-loader injects <style> tags; allow inline styles
-      "style-src 'self' 'unsafe-inline'",
-      // Allow local protocol (for protocol handler), data URIs and blobs for images
-      "img-src 'self' data: blob: local:",
-      "font-src 'self' data:",
-      // Dev server and HMR need localhost + ws; production restricts to Google API only
-      isDev
-        ? "connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* https://generativelanguage.googleapis.com"
-        : "connect-src 'self' https://generativelanguage.googleapis.com",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      // Prevent embedding
-      "frame-ancestors 'none'",
-      // Workers may use blob: URLs
-      "worker-src 'self' blob:"
-    ];
+      const cspDirectives = [
+        "default-src 'self'",
+        // Avoid inline scripts when possible; allow eval only in dev for webpack tooling
+        isDev ? "script-src 'self' 'unsafe-eval'" : "script-src 'self'",
+        // Style-loader injects <style> tags; allow inline styles
+        "style-src 'self' 'unsafe-inline'",
+        // Allow local protocol (for protocol handler), data URIs and blobs for images
+        "img-src 'self' data: blob: local:",
+        "font-src 'self' data:",
+        // Dev server and HMR need localhost + ws; production restricts to Google API only
+        isDev
+          ? "connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* https://generativelanguage.googleapis.com"
+          : "connect-src 'self' https://generativelanguage.googleapis.com",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        // Prevent embedding
+        "frame-ancestors 'none'",
+        // Workers may use blob: URLs
+        "worker-src 'self' blob:",
+      ];
 
-    const csp = cspDirectives.join('; ');
+      const csp = cspDirectives.join('; ');
 
-    callback({
-      responseHeaders: {
-        ...details.responseHeaders,
-        'Content-Security-Policy': [csp],
-      },
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Content-Security-Policy': [csp],
+        },
+      });
     });
-  });
 
     setupPilesFolder();
     createWindow();
