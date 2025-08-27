@@ -396,10 +396,22 @@ const Editor = memo(
             try {
               closeReply?.();
             } catch (_) {}
-            const evt = new CustomEvent('open-user-reply', {
-              detail: { parentPostPath },
-            });
-            document.dispatchEvent(evt);
+            
+            // Prevent duplicate events by checking if one was recently dispatched
+            const eventKey = `open-user-reply-${parentPostPath}`;
+            const lastDispatchTime = window[`${eventKey}_lastDispatch`] || 0;
+            const now = Date.now();
+            
+            if (now - lastDispatchTime > 1000) { // Only allow one event per second per post
+              window[`${eventKey}_lastDispatch`] = now;
+              console.log('Dispatching open-user-reply event for:', parentPostPath);
+              const evt = new CustomEvent('open-user-reply', {
+                detail: { parentPostPath },
+              });
+              document.dispatchEvent(evt);
+            } else {
+              console.log('Skipping duplicate open-user-reply event for:', parentPostPath);
+            }
             try {
               addNotification({
                 type: 'info',

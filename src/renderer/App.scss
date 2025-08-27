@@ -345,6 +345,33 @@ body {
   overflow: hidden;
   font-family: var(--font-sans);
   color: var(--primary);
+  background: #020617; /* base background (slate-950) */
+}
+
+/* Global radial emerald glow background (behind all content) */
+#root {
+  position: relative;
+  min-height: 100vh;
+  width: 100vw;
+}
+
+#root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle 500px at 50% 300px,
+    rgba(16, 185, 129, 0.35),
+    transparent
+  );
+}
+
+/* Ensure app content renders above the glow */
+#root > * {
+  position: relative;
+  z-index: 1;
 }
 
 li {

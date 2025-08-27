@@ -157,31 +157,216 @@ const handleOAuth = async (authUrl: string): Promise<string> => {
     console.log('Loading OAuth URL in popup:', authUrl);
     oauthWindow.loadURL(authUrl);
 
-    // Handle successful callback
+    let resolved = false;
+    let lastAuthUrl: string | null = null;
+
+    // Deep-link callback handler (macOS)
+    const onOpenUrl = (event: Electron.Event, url: string) => {
+      event.preventDefault();
+      if (!resolved) {
+        console.log('Received deep link OAuth callback:', url);
+        resolved = true;
+        try {
+          oauthWindow.close();
+        } catch {}
+        cleanup();
+        resolve(url);
+      }
+    };
+
+    const cleanup = () => {
+      try {
+        app.removeListener('open-url', onOpenUrl as any);
+      } catch {}
+    };
+
+    // Register deep link handler (works on macOS)
+    app.on('open-url', onOpenUrl as any);
+
+    const maybeHandleCallback = (
+      event: Electron.Event | null,
+      navigationUrl: string,
+    ) => {
+      try {
+        const parsedUrl = new URL(navigationUrl);
+
+        const isCallbackPath = parsedUrl.pathname === '/auth/callback';
+        const isCustomScheme = parsedUrl.protocol === 'pilebintang:'; // deep link support
+        const hasAccessToken =
+          parsedUrl.hash.includes('access_token') ||
+          parsedUrl.search.includes('access_token=');
+        const hasCode = parsedUrl.search.includes('code=');
+
+        if (isCallbackPath || isCustomScheme || hasAccessToken || hasCode) {
+          console.log('OAuth callback detected, closing popup');
+          if (hasAccessToken || hasCode) {
+            lastAuthUrl = navigationUrl;
+          }
+          if (event && typeof (event as any).preventDefault === 'function') {
+            (event as any).preventDefault();
+          }
+          if (!resolved) {
+            resolved = true;
+            try {
+              oauthWindow.close();
+            } catch {}
+            cleanup();
+            resolve(navigationUrl);
+          }
+        }
+      } catch (err) {
+        // Ignore URL parse errors
+      }
+    };
+
+    // Handle successful callback across multiple navigation events
     oauthWindow.webContents.on('will-navigate', (event, navigationUrl) => {
       console.log('OAuth navigation to:', navigationUrl);
-      const parsedUrl = new URL(navigationUrl);
-      
-      if (parsedUrl.pathname === '/auth/callback' || 
-          parsedUrl.hash.includes('access_token') ||
-          parsedUrl.search.includes('code=')) {
-        console.log('OAuth callback detected, closing popup');
-        event.preventDefault();
-        oauthWindow.close();
-        resolve(navigationUrl);
+      maybeHandleCallback(event, navigationUrl);
+    });
+
+    oauthWindow.webContents.on('will-redirect', (event, navigationUrl) => {
+      console.log('OAuth redirect to:', navigationUrl);
+      maybeHandleCallback(event, navigationUrl);
+    });
+
+    oauthWindow.webContents.on('did-redirect-navigation', (_event, navigationUrl) => {
+      console.log('OAuth did-redirect to:', navigationUrl);
+      maybeHandleCallback(null, navigationUrl);
+    });
+
+    oauthWindow.webContents.on('did-navigate', (_event, navigationUrl) => {
+      // As a safety net: if we end up navigating to the app origin (home) inside the popup,
+      // close and return the last known auth URL (with code/tokens) if we captured it.
+      try {
+        const parsedUrl = new URL(navigationUrl);
+        const isAppOrigin =
+          parsedUrl.protocol === 'file:' ||
+          parsedUrl.protocol === 'local:' ||
+          (parsedUrl.hostname === 'localhost' || parsedUrl.hostname === '127.0.0.1');
+
+        if (isAppOrigin && !resolved) {
+          console.log('Navigated to app origin in OAuth window; closing popup');
+          resolved = true;
+          try {
+            oauthWindow.close();
+          } catch {}
+          cleanup();
+          resolve(lastAuthUrl || navigationUrl);
+        }
+      } catch {}
+    });
+
+    // Catch provisional load failures (often triggered by custom schemes)
+    oauthWindow.webContents.on(
+      'did-fail-provisional-load',
+      (
+        _event,
+        errorCode,
+        errorDescription,
+        validatedURL,
+        isMainFrame,
+      ) => {
+        console.log(
+          'OAuth did-fail-provisional-load:',
+          errorCode,
+          errorDescription,
+          validatedURL,
+        );
+        if (validatedURL && validatedURL.startsWith('pilebintang://')) {
+          if (!resolved) {
+            console.log('Handling custom scheme on provisional fail, resolving');
+            resolved = true;
+            try {
+              oauthWindow.close();
+            } catch {}
+            cleanup();
+            resolve(validatedURL);
+            return;
+          }
+        }
+        // Otherwise ignore; Chromium may emit provisional failures during redirects.
+      },
+    );
+
+    // Intercept attempts to open new windows for the deep link
+    oauthWindow.webContents.setWindowOpenHandler(({ url }) => {
+      if (url.startsWith('pilebintang://')) {
+        console.log('OAuth setWindowOpenHandler caught deep link:', url);
+        if (!resolved) {
+          resolved = true;
+          try {
+            oauthWindow.close();
+          } catch {}
+          cleanup();
+          resolve(url);
+        }
+        return { action: 'deny' };
       }
+      return { action: 'allow' };
     });
 
     // Handle window closed
     oauthWindow.on('closed', () => {
-      reject(new Error('OAuth window was closed by user'));
+      if (!resolved) {
+        reject(new Error('OAuth window was closed by user'));
+      }
     });
 
+    // Hard timeout as a final fallback to avoid hanging the flow
+    const timeoutId = setTimeout(() => {
+      if (!resolved) {
+        console.warn('OAuth flow timed out, rejecting');
+        try {
+          oauthWindow.close();
+        } catch {}
+        cleanup();
+        reject(new Error('OAuth timeout'));
+      }
+    }, 2 * 60 * 1000);
+
+    // Ensure timeout is cleared on resolve
+    const originalResolve = resolve;
+    resolve = (url: string) => {
+      clearTimeout(timeoutId);
+      originalResolve(url);
+    };
+
     // Handle navigation errors
-    oauthWindow.webContents.on('did-fail-load', (_, __, errorDescription) => {
-      oauthWindow.close();
-      reject(new Error(`OAuth failed to load: ${errorDescription}`));
-    });
+    oauthWindow.webContents.on(
+      'did-fail-load',
+      (
+        _event,
+        errorCode,
+        errorDescription,
+        validatedURL,
+      ) => {
+        // If the failure was caused by our custom scheme, resolve.
+        if (validatedURL && validatedURL.startsWith('pilebintang://')) {
+          console.log(
+            'OAuth did-fail-load on custom scheme; resolving via deep link:',
+            validatedURL,
+          );
+          if (!resolved) {
+            resolved = true;
+            try {
+              oauthWindow.close();
+            } catch {}
+            cleanup();
+            resolve(validatedURL);
+          }
+          return;
+        }
+
+        // Otherwise, ignore load failures; OAuth flows can trigger benign errors.
+        console.warn(
+          'Ignoring did-fail-load during OAuth:',
+          errorCode,
+          errorDescription,
+          validatedURL,
+        );
+      },
+    );
   });
 };
 

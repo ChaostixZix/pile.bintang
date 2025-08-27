@@ -118,4 +118,124 @@ export const getProfile = async (userId = null) => {
   return { data, error };
 };
 
+// Real-time subscriptions management
+let activeChannels = new Map();
+
+// Helper function to create a real-time channel for posts
+export const subscribeToPostChanges = (pileId, callbacks) => {
+  const channelName = `posts_${pileId}`;
+  
+  // Unsubscribe from existing channel if any
+  if (activeChannels.has(channelName)) {
+    activeChannels.get(channelName).unsubscribe();
+  }
+
+  const channel = supabase
+    .channel(channelName)
+    .on(
+      'postgres_changes',
+      {
+        event: '*', // Listen to all changes (INSERT, UPDATE, DELETE)
+        schema: 'public',
+        table: 'posts',
+        filter: `pile_id=eq.${pileId}`,
+      },
+      (payload) => {
+        console.log('Post change received:', payload);
+        callbacks.onPostChange?.(payload);
+      }
+    )
+    .subscribe();
+
+  activeChannels.set(channelName, channel);
+  return channel;
+};
+
+// Helper function to create a presence channel for collaborative editing
+export const subscribeToPresence = (pileId, userId, callbacks) => {
+  const channelName = `presence_${pileId}`;
+  
+  // Unsubscribe from existing presence channel if any
+  if (activeChannels.has(channelName)) {
+    activeChannels.get(channelName).unsubscribe();
+  }
+
+  const channel = supabase
+    .channel(channelName, {
+      config: {
+        presence: {
+          key: userId,
+        },
+      },
+    })
+    .on('presence', { event: 'sync' }, () => {
+      const newState = channel.presenceState();
+      callbacks.onPresenceSync?.(newState);
+    })
+    .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+      callbacks.onPresenceJoin?.(key, newPresences);
+    })
+    .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+      callbacks.onPresenceLeave?.(key, leftPresences);
+    })
+    .subscribe(async (status) => {
+      if (status !== 'SUBSCRIBED') { 
+        return;
+      }
+
+      // Track presence with user info
+      const trackingData = {
+        user_id: userId,
+        online_at: new Date().toISOString(),
+        pile_id: pileId,
+      };
+
+      await channel.track(trackingData);
+    });
+
+  activeChannels.set(channelName, channel);
+  return channel;
+};
+
+// Helper function to broadcast cursor position updates
+export const broadcastCursorPosition = (pileId, cursorData) => {
+  const channelName = `presence_${pileId}`;
+  const channel = activeChannels.get(channelName);
+  
+  if (channel) {
+    channel.send({
+      type: 'broadcast',
+      event: 'cursor_move',
+      payload: cursorData,
+    });
+  }
+};
+
+// Helper function to listen for cursor broadcasts
+export const subscribeToCursorUpdates = (pileId, callback) => {
+  const channelName = `presence_${pileId}`;
+  const channel = activeChannels.get(channelName);
+  
+  if (channel) {
+    channel.on('broadcast', { event: 'cursor_move' }, callback);
+  }
+};
+
+// Helper function to unsubscribe from a specific channel
+export const unsubscribeFromChannel = (channelId) => {
+  if (activeChannels.has(channelId)) {
+    const channel = activeChannels.get(channelId);
+    channel.unsubscribe();
+    activeChannels.delete(channelId);
+  }
+};
+
+// Helper function to unsubscribe from all channels
+export const unsubscribeFromAllChannels = () => {
+  activeChannels.forEach((channel) => {
+    channel.unsubscribe();
+  });
+  activeChannels.clear();
+};
+
 export default supabase;

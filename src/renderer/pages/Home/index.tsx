@@ -7,6 +7,7 @@ import DeletePile from './DeletePile';
 import { TrashIcon } from 'renderer/icons';
 import Logo from './logo';
 import OpenPileFolder from './OpenPileFolder';
+import SyncStatus from '../../components/SyncStatus';
 
 const quotes = [
   'One moment at a time',
@@ -138,6 +139,9 @@ export default function Home() {
 
         {/* Main content - centered */}
         <div className={styles.content}>
+          <div className={styles.syncStatusContainer}>
+            <SyncStatus compact={true} showDetails={false} />
+          </div>
           <div className={styles.header}>
             <div className={styles.holder}>
               <div className={styles.iconHolder}>

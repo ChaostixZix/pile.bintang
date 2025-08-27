@@ -70,6 +70,12 @@
   border-radius: 12px;
 }
 
+/* Ensure tags are clickable and not overlapped by post actions */
+.tags {
+  position: relative;
+  z-index: 20; /* above .actions (z-index 11) */
+}
+
 // Dark theme support
 @media (prefers-color-scheme: dark) {
   .editor {

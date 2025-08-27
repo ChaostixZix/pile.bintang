@@ -5,6 +5,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { DateTime } from 'luxon';
 import { usePilesContext } from 'renderer/context/PilesContext';
 import { useTimelineContext } from 'renderer/context/TimelineContext';
+import { useCloudPostsContext } from 'renderer/context/CloudPostsContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import Settings from './Settings';
 import HighlightsDialog from './Highlights';
@@ -12,6 +13,7 @@ import Toasts from './Toasts';
 import Search from './Search';
 import Sidebar from './Sidebar/Timeline/index';
 import SyncStatus from '../../components/Sync/SyncStatus';
+import PresenceIndicator from '../../components/PresenceIndicator';
 import styles from './PileLayout.module.scss';
 import InstallUpdate from './InstallUpdate';
 import Chat from './Chat';
@@ -21,6 +23,13 @@ export default function PileLayout({ children }) {
   const { index, refreshIndex } = useIndexContext();
   const { visibleIndex, closestDate } = useTimelineContext();
   const { currentTheme } = usePilesContext();
+  
+  // Real-time presence data
+  const { 
+    isCloudPile, 
+    isRealtimeConnected, 
+    activeUsers 
+  } = useCloudPostsContext();
 
   const [now, setNow] = useState(DateTime.now().toFormat('cccc, LLL dd, yyyy'));
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -98,6 +107,15 @@ export default function PileLayout({ children }) {
             <div className={styles.right}>
               <Toasts />
               <InstallUpdate />
+              {isCloudPile && (
+                <PresenceIndicator
+                  activeUsers={activeUsers}
+                  isConnected={isRealtimeConnected}
+                  showUsernames={true}
+                  maxVisible={3}
+                  size="small"
+                />
+              )}
               <Chat />
               <Search />
               <Settings />

@@ -8,6 +8,7 @@ import React, {
 import { useAuth } from './AuthContext';
 import { usePilesContext } from './PilesContext';
 import { supabase } from '../lib/supabase';
+import { useRealtimePost } from '../hooks/useRealtimePost';
 
 const CloudPostsContext = createContext({});
 
@@ -28,6 +29,67 @@ export function CloudPostsProvider({ children }) {
   const [cloudPosts, setCloudPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Real-time post synchronization handler
+  const handleRealtimePostUpdate = useCallback((update) => {
+    console.log('Processing realtime post update:', update);
+    
+    switch (update.type) {
+      case 'created':
+        // Transform new post and add to local state
+        const newPost = {
+          ...update.post,
+          path: `cloud://${update.post.id}`,
+          hash: update.post.id,
+          isCloudPost: true,
+          created: update.post.created_at,
+          lastModified: update.post.updated_at,
+          metadata: update.post.metadata || {},
+        };
+        
+        setCloudPosts(prev => {
+          // Avoid duplicates
+          const exists = prev.some(post => post.id === newPost.id);
+          return exists ? prev : [newPost, ...prev];
+        });
+        break;
+        
+      case 'updated':
+        // Update existing post in local state
+        setCloudPosts(prev => 
+          prev.map(post => 
+            post.id === update.post.id
+              ? {
+                  ...update.post,
+                  path: `cloud://${update.post.id}`,
+                  hash: update.post.id,
+                  isCloudPost: true,
+                  created: update.post.created_at,
+                  lastModified: update.post.updated_at,
+                  metadata: update.post.metadata || {},
+                }
+              : post
+          )
+        );
+        break;
+        
+      case 'deleted':
+        // Remove deleted post from local state
+        setCloudPosts(prev => 
+          prev.filter(post => post.id !== update.post.id)
+        );
+        break;
+        
+      default:
+        console.warn('Unknown realtime update type:', update.type);
+    }
+  }, []);
+
+  // Set up real-time subscriptions for current pile
+  const realtimeData = useRealtimePost(
+    currentPile?.isCloudPile ? currentPile.id : null,
+    handleRealtimePostUpdate
+  );
 
   // Load posts when pile changes
   useEffect(() => {
@@ -267,6 +329,12 @@ export function CloudPostsProvider({ children }) {
     // Utils
     getCloudPostsAsIndex,
     isCloudPile: currentPile?.isCloudPile || false,
+
+    // Real-time data
+    isRealtimeConnected: realtimeData.isConnected,
+    activeUsers: realtimeData.activeUsers,
+    cursorPositions: realtimeData.cursorPositions,
+    broadcastCursor: realtimeData.broadcastCursor,
   };
 
   return (

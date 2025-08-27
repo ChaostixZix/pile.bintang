@@ -16,12 +16,14 @@ import { ToastsContextProvider } from './context/ToastsContext';
 import { AutoUpdateContextProvider } from './context/AutoUpdateContext';
 import { AuthProvider } from './context/AuthContext';
 import { SyncProvider } from './context/SyncContext';
+import { SyncInfraContextProvider } from './context/SyncInfraContext';
 import { CloudPostsProvider } from './context/CloudPostsContext';
 import { DebugProvider } from './context/DebugContext';
 import DebugNotifications from './components/DebugNotifications';
 import AuthForm from './components/Auth/AuthForm';
 import OAuthCallback from './pages/Auth/OAuthCallback';
 import Profile from './pages/Profile';
+import './lib/syncTest.js'; // Make test functions available globally
 
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
@@ -55,9 +57,10 @@ export default function App() {
     <AuthProvider>
       <PilesContextProvider>
         <SyncProvider>
-          <CloudPostsProvider>
-            <ToastsContextProvider>
-              <AutoUpdateContextProvider>
+          <SyncInfraContextProvider>
+            <CloudPostsProvider>
+              <ToastsContextProvider>
+                <AutoUpdateContextProvider>
                 <AIContextProvider>
                   <DebugProvider>
                     <IndexContextProvider>
@@ -138,9 +141,10 @@ export default function App() {
                     </IndexContextProvider>
                   </DebugProvider>
                 </AIContextProvider>
-              </AutoUpdateContextProvider>
-            </ToastsContextProvider>
-          </CloudPostsProvider>
+                </AutoUpdateContextProvider>
+              </ToastsContextProvider>
+            </CloudPostsProvider>
+          </SyncInfraContextProvider>
         </SyncProvider>
       </PilesContextProvider>
     </AuthProvider>

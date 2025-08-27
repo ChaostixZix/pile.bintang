@@ -12,6 +12,8 @@ import { useParams } from 'react-router-dom';
 import useCloudPost from 'renderer/hooks/useCloudPost';
 import { useToastsContext } from 'renderer/context/ToastsContext';
 import { useSyncContext } from 'renderer/context/SyncContext';
+import { useCloudPostsContext } from 'renderer/context/CloudPostsContext';
+import CursorOverlay from 'renderer/components/CursorOverlay';
 import styles from '../Editor/Editor.module.scss';
 import cloudStyles from './CloudEditor.module.scss';
 
@@ -38,6 +40,7 @@ const CloudEditor = memo(
     } = useCloudPost(postId);
 
     const { addNotification, removeNotification } = useToastsContext();
+    const { cursorPositions, broadcastCursor, isRealtimeConnected } = useCloudPostsContext();
 
     const [editor, setEditor] = useState(null);
     const [focused, setFocused] = useState(false);
@@ -45,6 +48,7 @@ const CloudEditor = memo(
     const [tagInput, setTagInput] = useState('');
     const [showTagInput, setShowTagInput] = useState(false);
     const tagInputRef = useRef(null);
+    const editorContainerRef = useRef(null);
 
     const EnterSubmitExtension = Extension.create({
       name: 'EnterSubmitExtension',
@@ -217,10 +221,67 @@ const CloudEditor = memo(
       );
     }
 
+    // Cursor tracking functionality
+    const handleCursorMove = useCallback((event) => {
+      if (!isRealtimeConnected || !broadcastCursor || !editorContainerRef.current) {
+        return;
+      }
+
+      const rect = editorContainerRef.current.getBoundingClientRect();
+      const position = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      };
+
+      // Get selection if available
+      let selection = null;
+      if (editor && editor.state.selection) {
+        const { from, to } = editor.state.selection;
+        if (from !== to) {
+          // There's a text selection
+          selection = {
+            from,
+            to,
+            text: editor.state.doc.textBetween(from, to)
+          };
+        }
+      }
+
+      // Throttled cursor broadcasting
+      clearTimeout(window.cursorBroadcastTimeout);
+      window.cursorBroadcastTimeout = setTimeout(() => {
+        broadcastCursor(position, selection);
+      }, 50); // 50ms throttle
+    }, [isRealtimeConnected, broadcastCursor, editor]);
+
+    // Add cursor tracking to editor
+    useEffect(() => {
+      const container = editorContainerRef.current;
+      if (container && isRealtimeConnected) {
+        container.addEventListener('mousemove', handleCursorMove);
+        container.addEventListener('click', handleCursorMove);
+        
+        return () => {
+          container.removeEventListener('mousemove', handleCursorMove);
+          container.removeEventListener('click', handleCursorMove);
+          clearTimeout(window.cursorBroadcastTimeout);
+        };
+      }
+    }, [handleCursorMove, isRealtimeConnected]);
+
     return (
       <div className={`${styles.editor} ${focused ? styles.focused : ''}`}>
-        <div className={styles.content}>
+        <div 
+          ref={editorContainerRef}
+          className={styles.content}
+          style={{ position: 'relative' }}
+        >
           <EditorContent editor={editor} />
+
+          {/* Cursor overlay for collaborative editing */}
+          {isRealtimeConnected && (
+            <CursorOverlay cursorPositions={cursorPositions} />
+          )}
 
           {/* Character count for new posts */}
           {editable && editor && (

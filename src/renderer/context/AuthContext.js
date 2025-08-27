@@ -163,13 +163,21 @@ export function AuthProvider({ children }) {
     console.log('signInWithGoogle called');
     try {
       setLoading(true);
+      // Choose redirect based on environment. In dev (http/https origin), use in-app callback.
+      // In production (file://), use the custom deep link.
+      const isHttpOrigin = typeof window !== 'undefined' && /^https?:$/.test(window.location.protocol);
+      const redirectTarget = isHttpOrigin
+        ? window.location.origin + '/auth/callback'
+        : 'pilebintang://auth-callback';
       
       // Get OAuth URL from Supabase
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/auth/callback',
+          redirectTo: redirectTarget,
           skipBrowserRedirect: true, // Don't redirect automatically
+          // Prefer PKCE to receive an authorization code we can exchange
+          flowType: 'pkce',
         },
       });
 
@@ -195,6 +203,7 @@ export function AuthProvider({ children }) {
           // Check for tokens in hash or search params
           const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
           const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
+          const authCode = searchParams.get('code');
           
           if (accessToken) {
             // Set the session using the tokens
@@ -208,6 +217,17 @@ export function AuthProvider({ children }) {
             }
             
             return { data: sessionData, error: null };
+          } else if (authCode && typeof supabase?.auth?.exchangeCodeForSession === 'function') {
+            // PKCE code flow: exchange authorization code for a session
+            try {
+              const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode);
+
+              if (exchangeError) throw exchangeError;
+              return { data: sessionData, error: null };
+            } catch (ex) {
+              console.error('Exchange code for session failed:', ex);
+              throw ex;
+            }
           }
         } else if (result.error) {
           throw new Error(result.error);

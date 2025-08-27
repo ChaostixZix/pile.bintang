@@ -34,7 +34,7 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
     usePost(postPath);
   const [hovering, setHover] = useState(false);
   const [replying, setReplying] = useState(false);
-  const [isAIResplying, setIsAiReplying] = useState(false);
+  const [isAiReplying, setIsAiReplying] = useState(false);
   const [editable, setEditable] = useState(false);
   const [aiApiKeyValid, setAiApiKeyValid] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -73,13 +73,20 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
       const { parentPostPath: target } = e.detail || {};
       if (!target) return;
       if (target === postPath) {
+        console.log('open-user-reply event received for:', target);
         setIsAiReplying(false);
-        setReplying(true);
+        // Only open reply if not already replying to prevent duplicates
+        if (!replying) {
+          setReplying(true);
+          console.log('Opening user reply after AI completion');
+        } else {
+          console.log('Reply already open, ignoring duplicate event');
+        }
       }
     };
     document.addEventListener('open-user-reply', handler);
     return () => document.removeEventListener('open-user-reply', handler);
-  }, [postPath]);
+  }, [postPath, replying]);
 
   const handleDelete = useCallback(async () => {
     if (!deleteConfirm) {
@@ -117,7 +124,7 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
 
       return (
         <Reply
-          key={reply}
+          key={`${reply}-${i}`}
           postPath={reply}
           isLast={isLast}
           isFirst={isFirst}
@@ -138,7 +145,7 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
     <div
       ref={containerRef}
       className={`${styles.root} ${
-        (replying || isAIResplying) && styles.focused
+        (replying || isAiReplying) && styles.focused
       }`}
       tabIndex="0"
       onMouseEnter={handleRootMouseEnter}
@@ -203,8 +210,9 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
                 <div className={styles.sep}>/</div>
                 <button
                   className={styles.openReply}
-                  disabled={!aiApiKeyValid}
+                  disabled={!aiApiKeyValid || isAiReplying}
                   onClick={() => {
+                    if (isAiReplying) return; // Prevent double-clicks
                     setIsAiReplying(true);
                     toggleReplying();
                   }}
@@ -250,12 +258,12 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
                   }}
                 />
                 <div
-                  className={`${styles.ball} ${isAIResplying && styles.ai}`}
+                  className={`${styles.ball} ${isAiReplying && styles.ai}`}
                   style={{
                     backgroundColor: highlightColor,
                   }}
                 >
-                  {isAIResplying && (
+                  {isAiReplying && (
                     <AIIcon className={`${styles.iconAI} ${styles.replying}`} />
                   )}
                 </div>
@@ -263,15 +271,15 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
               <div className={styles.right}>
                 <div className={styles.editor}>
                   <Editor
-                    key={`reply-${isAIResplying ? 'ai' : 'user'}`}
+                    key={`reply-${isAiReplying ? 'ai' : 'user'}`}
                     parentPostPath={postPath}
                     reloadParentPost={refreshPost}
                     setEditable={setEditable}
                     editable
                     isReply
                     closeReply={closeReply}
-                    isAI={isAIResplying}
-                    isThinkDeeper={isAIResplying}
+                    isAI={isAiReplying}
+                    isThinkDeeper={isAiReplying}
                   />
                 </div>
               </div>
