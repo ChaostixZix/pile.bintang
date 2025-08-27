@@ -1,5 +1,4 @@
-import styles from './Settings.module.scss';
-import { SettingsIcon, CrossIcon, OllamaIcon } from 'renderer/icons';
+import { SettingsIcon, CrossIcon } from 'renderer/icons';
 import { useEffect, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useAIContext } from 'renderer/context/AIContext';
@@ -7,8 +6,9 @@ import {
   availableThemes,
   usePilesContext,
 } from 'renderer/context/PilesContext';
-import AISettingTabs from './AISettingsTabs';
 import { useIndexContext } from 'renderer/context/IndexContext';
+import AISettingTabs from './AISettingsTabs';
+import styles from './Settings.module.scss';
 
 export default function Settings() {
   const { regenerateEmbeddings } = useIndexContext();
@@ -17,14 +17,11 @@ export default function Settings() {
     prompt,
     setPrompt,
     updateSettings,
-    setBaseUrl,
     getKey,
     setKey,
     deleteKey,
     model,
     setModel,
-    ollama,
-    baseUrl,
   } = useAIContext();
   const [APIkey, setCurrentKey] = useState('');
   const { currentTheme, setTheme } = usePilesContext();
@@ -37,10 +34,6 @@ export default function Settings() {
   useEffect(() => {
     retrieveKey();
   }, []);
-
-  const handleOnChangeBaseUrl = (e) => {
-    setBaseUrl(e.target.value);
-  };
 
   const handleOnChangeModel = (e) => {
     setModel(e.target.value);
@@ -83,7 +76,7 @@ export default function Settings() {
           <div
             className={styles.color1}
             style={{ background: colors.primary }}
-          ></div>
+          />
         </button>
       );
     });

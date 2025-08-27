@@ -1,8 +1,8 @@
 import { ipcMain, app, dialog } from 'electron';
 import fs from 'fs';
 import path from 'path';
-import pileHelper from '../utils/pileHelper';
 import matter from 'gray-matter';
+import pileHelper from '../utils/pileHelper';
 
 ipcMain.on('update-file', (event, { path, content }) => {
   pileHelper.updateFile(path, content);
@@ -64,14 +64,14 @@ ipcMain.handle(
       const seconds = String(currentDate.getSeconds()).padStart(2, '0');
       const milliseconds = String(currentDate.getMilliseconds()).padStart(
         3,
-        '0'
+        '0',
       );
       const fileName = `${year}${month}${day}-${hours}${minutes}${seconds}${milliseconds}.${fileExtension}`;
       const fullStorePath = path.join(
         storePath,
         String(currentDate.getFullYear()),
         currentDate.toLocaleString('default', { month: 'short' }),
-        'media'
+        'media',
       );
       const newFilePath = path.join(fullStorePath, fileName);
 
@@ -85,12 +85,12 @@ ipcMain.handle(
     } catch (error) {
       console.error('Failed to save the file:', error);
     }
-  }
+  },
 );
 
 ipcMain.handle('open-file', async (event, data) => {
-  let attachments: string[] = [];
-  const storePath = data.storePath;
+  const attachments: string[] = [];
+  const { storePath } = data;
   const selected = await dialog.showOpenDialog({
     properties: ['openFile', 'multiSelections'],
     filters: [
@@ -123,7 +123,7 @@ ipcMain.handle('open-file', async (event, data) => {
       storePath,
       String(currentDate.getFullYear()),
       currentDate.toLocaleString('default', { month: 'short' }),
-      'media'
+      'media',
     );
     const newFilePath = path.join(fullStorePath, fileName);
 

@@ -1,10 +1,11 @@
-import styles from './InstallUpdate.module.scss';
 import { RefreshIcon } from 'renderer/icons';
 import { useEffect, useState, useMemo } from 'react';
 import { useAutoUpdateContext } from 'renderer/context/AutoUpdateContext';
+import styles from './InstallUpdate.module.scss';
 
 export default function InstallUpdate() {
-  const { updateDownloaded,updateError, restartAndUpdate } = useAutoUpdateContext();
+  const { updateDownloaded, updateError, restartAndUpdate } =
+    useAutoUpdateContext();
 
   if (updateError) return;
   if (updateDownloaded !== true) return;

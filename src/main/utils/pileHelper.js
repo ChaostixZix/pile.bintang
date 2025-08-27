@@ -15,7 +15,7 @@ class PileHelper {
       (eventType, filename) => {
         // When a file changes, emit a message with the file's name and the event type
         ipcMain.emit('file-updated', { eventType, filename });
-      }
+      },
     );
   }
 
@@ -50,15 +50,15 @@ class PileHelper {
       return [];
     }
 
-    let entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
+    const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
     let files = entries
       .filter((file) => !file.isDirectory())
       .map((file) => path.join(dirPath, file.name));
-    let folders = entries.filter((folder) => folder.isDirectory());
+    const folders = entries.filter((folder) => folder.isDirectory());
 
-    for (let folder of folders) {
+    for (const folder of folders) {
       files = files.concat(
-        await this.getFilesInFolder(path.join(dirPath, folder.name))
+        await this.getFilesInFolder(path.join(dirPath, folder.name)),
       );
     }
 

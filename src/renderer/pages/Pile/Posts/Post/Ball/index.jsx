@@ -1,14 +1,14 @@
 import React from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import styles from './Ball.module.scss';
 import { useHighlightsContext } from 'renderer/context/HighlightsContext';
+import styles from './Ball.module.scss';
 
-const Ball = ({
+function Ball({
   isAI,
   highlightColor,
   cycleColor = () => {},
   setHighlight = () => {},
-}) => {
+}) {
   const { openHighlights, highlights } = useHighlightsContext();
 
   const [bookmarksChecked, setBookmarksChecked] = React.useState(true);
@@ -23,10 +23,7 @@ const Ball = ({
           className={styles.DropdownMenuItem}
           onSelect={() => setHighlight(highlight)}
         >
-          <div
-            className={styles.menuBall}
-            style={{ background: data.color }}
-          ></div>
+          <div className={styles.menuBall} style={{ background: data.color }} />
           {highlight}
         </DropdownMenu.Item>
       );
@@ -43,7 +40,7 @@ const Ball = ({
             backgroundColor: highlightColor,
           }}
           aria-label="Change highlight"
-        ></button>
+        />
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Portal>
@@ -60,7 +57,7 @@ const Ball = ({
             <div
               className={styles.menuBall}
               style={{ background: 'var(--border)' }}
-            ></div>
+            />
             None
           </DropdownMenu.Item>
           {renderHightlights()}
@@ -80,6 +77,6 @@ const Ball = ({
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
   );
-};
+}
 
 export default Ball;

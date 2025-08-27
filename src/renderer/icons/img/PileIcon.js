@@ -1,4 +1,4 @@
-export const PileIcon = (props) => {
+export function PileIcon(props) {
   return (
     <svg
       {...props}
@@ -106,4 +106,4 @@ export const PileIcon = (props) => {
       />
     </svg>
   );
-};
+}

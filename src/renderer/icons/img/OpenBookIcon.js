@@ -1,4 +1,4 @@
-export const OpenBookIcon = (props) => {
+export function OpenBookIcon(props) {
   return (
     <svg
       {...props}
@@ -34,4 +34,4 @@ export const OpenBookIcon = (props) => {
       />
     </svg>
   );
-};
+}

@@ -1,4 +1,4 @@
-export const HighlightIcon = (props) => {
+export function HighlightIcon(props) {
   return (
     <svg
       width="800"
@@ -14,4 +14,4 @@ export const HighlightIcon = (props) => {
       />
     </svg>
   );
-};
+}

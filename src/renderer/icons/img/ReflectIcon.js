@@ -1,4 +1,4 @@
-export const ReflectIcon = (props) => {
+export function ReflectIcon(props) {
   return (
     <svg
       {...props}
@@ -17,4 +17,4 @@ export const ReflectIcon = (props) => {
       </g>
     </svg>
   );
-};
+}

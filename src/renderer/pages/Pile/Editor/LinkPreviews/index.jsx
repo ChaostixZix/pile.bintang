@@ -1,7 +1,7 @@
-import styles from './LinkPreviews.module.scss';
 import { useCallback, useState, useEffect, memo } from 'react';
 import { DiscIcon, PhotoIcon, TrashIcon, TagIcon } from 'renderer/icons';
 import { motion, AnimatePresence } from 'framer-motion';
+import styles from './LinkPreviews.module.scss';
 import LinkPreview from './LinkPreview';
 
 const extractLinks = (htmlString) => {

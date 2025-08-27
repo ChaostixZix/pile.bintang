@@ -10,53 +10,59 @@
  * @param {Function} onError - Callback for error notifications (optional)
  * @returns {Promise<Object>} Parsed JSON response with error handling
  */
-export async function generateStructuredResponse(prompt, template = 'summary', onError = null) {
+export async function generateStructuredResponse(
+  prompt,
+  template = 'summary',
+  onError = null,
+) {
   try {
-    const response = await window.electron.gemini.generateJson(prompt, template);
-    
+    const response = await window.electron.gemini.generateJson(
+      prompt,
+      template,
+    );
+
     if (response.success) {
       return {
         success: true,
         data: response.data,
-        timestamp: response.timestamp
-      };
-    } else {
-      // Handle API-level errors
-      const errorMessage = `AI request failed: ${response.error}`;
-      console.error(errorMessage);
-      
-      if (onError) {
-        onError({
-          type: 'api-error',
-          message: errorMessage,
-          details: response.error
-        });
-      }
-      
-      // Return fallback data based on template
-      return {
-        success: false,
-        data: getDefaultResponse(template),
-        error: response.error
+        timestamp: response.timestamp,
       };
     }
+    // Handle API-level errors
+    const errorMessage = `AI request failed: ${response.error}`;
+    console.error(errorMessage);
+
+    if (onError) {
+      onError({
+        type: 'api-error',
+        message: errorMessage,
+        details: response.error,
+      });
+    }
+
+    // Return fallback data based on template
+    return {
+      success: false,
+      data: getDefaultResponse(template),
+      error: response.error,
+    };
   } catch (error) {
     // Handle network/IPC errors
     const errorMessage = `Connection error: ${error.message}`;
     console.error(errorMessage, error);
-    
+
     if (onError) {
       onError({
         type: 'network-error',
         message: errorMessage,
-        details: error.message
+        details: error.message,
       });
     }
-    
+
     return {
       success: false,
       data: getDefaultResponse(template),
-      error: error.message
+      error: error.message,
     };
   }
 }
@@ -73,16 +79,16 @@ function getDefaultResponse(template) {
       summary: 'AI response processing failed. Please try again.',
       keyThemes: ['error', 'retry-needed'],
       mood: 'neutral',
-      confidence: 0
+      confidence: 0,
     },
     metadata: {
       tags: ['error'],
       category: 'uncategorized',
       importance: 'low',
-      actionItems: ['Retry the request']
-    }
+      actionItems: ['Retry the request'],
+    },
   };
-  
+
   return defaults[template] || defaults.summary;
 }
 
@@ -114,26 +120,27 @@ export function formatErrorMessage(error) {
  */
 export function validateResponseCompleteness(data, template) {
   if (!data || typeof data !== 'object') return false;
-  
+
   if (template === 'summary') {
     return !!(
-      data.title && 
-      data.summary && 
-      data.keyThemes && 
+      data.title &&
+      data.summary &&
+      data.keyThemes &&
       data.keyThemes.length > 0 &&
       data.mood &&
       typeof data.confidence === 'number'
     );
-  } else if (template === 'metadata') {
+  }
+  if (template === 'metadata') {
     return !!(
-      data.tags && 
+      data.tags &&
       data.tags.length > 0 &&
       data.category &&
       data.importance &&
       Array.isArray(data.actionItems)
     );
   }
-  
+
   return false;
 }
 
@@ -148,6 +155,6 @@ export function createErrorToast(error) {
     type: 'warning',
     message: formatErrorMessage(error),
     dismissTime: 8000,
-    details: error.details
+    details: error.details,
   };
 }

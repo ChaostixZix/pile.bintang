@@ -279,5 +279,63 @@
       fill: currentColor;
       transition: all ease-in-out 120ms;
     }
+
+    &.confirmDelete {
+      background: var(--base-red);
+      color: white;
+      
+      &:hover {
+        background: var(--base-red);
+        filter: brightness(1.1);
+        color: white;
+      }
+      
+      &:focus {
+        background: var(--base-red);
+        filter: brightness(1.1);
+        color: white;
+      }
+    }
+  }
+}
+
+// Delete button for individual replies
+.deleteReply {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--secondary);
+  transition: all ease-in-out 120ms;
+  margin-left: 8px;
+  
+  &:hover {
+    background: var(--bg-secondary);
+    color: var(--base);
+    cursor: pointer;
+  }
+  
+  &:active {
+    transform: scale(0.9);
+  }
+  
+  &.confirmDelete {
+    background: var(--base-red);
+    color: white;
+    
+    &:hover {
+      background: var(--base-red);
+      filter: brightness(1.1);
+      color: white;
+    }
+  }
+  
+  .deleteIcon {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
   }
 }

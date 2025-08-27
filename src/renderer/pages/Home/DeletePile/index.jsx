@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import styles from './DeletePile.module.scss';
 import { TrashIcon } from 'renderer/icons';
 import { Link } from 'react-router-dom';
-import { usePilesContext } from '../../../context/PilesContext';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
+import { usePilesContext } from '../../../context/PilesContext';
+import styles from './DeletePile.module.scss';
 
 export default function DeletePile({ pile }) {
   const { deletePile } = usePilesContext();

@@ -1,20 +1,20 @@
-import styles from './Blobs.module.scss';
 import { AnimatePresence, motion } from 'framer-motion';
+import styles from './Blobs.module.scss';
 
-const Blobs = ({ show }) => {
+function Blobs({ show }) {
   return (
     <AnimatePresence>
       {show && (
         <motion.div
           key="blobs"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1}}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
           <div className={styles.blobCont}>
-            <div className={`${styles.green} ${styles.blob}`}></div>
-            <div className={`${styles.purple} ${styles.blob}`}></div>
-            <div className={`${styles.black} ${styles.blob}`}></div>
+            <div className={`${styles.green} ${styles.blob}`} />
+            <div className={`${styles.purple} ${styles.blob}`} />
+            <div className={`${styles.black} ${styles.blob}`} />
             <svg>
               <filter id="noiseFilter">
                 <feTurbulence
@@ -35,6 +35,6 @@ const Blobs = ({ show }) => {
       )}
     </AnimatePresence>
   );
-};
+}
 
 export default Blobs;

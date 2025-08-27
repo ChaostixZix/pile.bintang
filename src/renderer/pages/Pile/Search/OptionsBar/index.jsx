@@ -12,8 +12,8 @@ import {
   HighlightIcon,
   RelevantIcon,
 } from 'renderer/icons';
-import styles from './OptionsBar.module.scss';
 import * as Switch from '@radix-ui/react-switch';
+import styles from './OptionsBar.module.scss';
 
 export default function OptionsBar({ options, setOptions, onSubmit }) {
   const flipValue = (e) => {
@@ -36,7 +36,7 @@ export default function OptionsBar({ options, setOptions, onSubmit }) {
           className={`${styles.button} ${
             options.sortOrder === 'relevance' && styles.active
           }`}
-          name={'relevance'}
+          name="relevance"
           onClick={toggleRecent}
         >
           <RelevantIcon className={styles.icon} /> Relevance
@@ -45,7 +45,7 @@ export default function OptionsBar({ options, setOptions, onSubmit }) {
           className={`${styles.button} ${
             options.sortOrder === 'mostRecent' && styles.active
           }`}
-          name={'mostRecent'}
+          name="mostRecent"
           onClick={toggleRecent}
         >
           ↑ Recent
@@ -54,7 +54,7 @@ export default function OptionsBar({ options, setOptions, onSubmit }) {
           className={`${styles.button} ${
             options.sortOrder === 'oldest' && styles.active
           }`}
-          name={'oldest'}
+          name="oldest"
           onClick={toggleRecent}
         >
           ↓ Oldest
@@ -64,7 +64,7 @@ export default function OptionsBar({ options, setOptions, onSubmit }) {
           className={`${styles.button} ${
             options.onlyHighlighted && styles.active
           }`}
-          name={'onlyHighlighted'}
+          name="onlyHighlighted"
           onClick={flipValue}
         >
           <HighlightIcon className={styles.icon} />
@@ -74,7 +74,7 @@ export default function OptionsBar({ options, setOptions, onSubmit }) {
           className={`${styles.button} ${
             options.hasAttachments && styles.active
           }`}
-          name={'hasAttachments'}
+          name="hasAttachments"
           onClick={flipValue}
         >
           <PaperclipIcon className={styles.icon} /> Attachments
@@ -86,7 +86,7 @@ export default function OptionsBar({ options, setOptions, onSubmit }) {
             Semantic
           </label>
           <Switch.Root
-            id={'semantic-search'}
+            id="semantic-search"
             className={styles.SwitchRoot}
             checked={options.semanticSearch}
             onCheckedChange={toggleSearchMode}

@@ -1,14 +1,8 @@
-import {
-  useState,
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-} from 'react';
+import { useState, createContext, useContext, useEffect, useRef } from 'react';
 
 export const ToastsContext = createContext();
 
-export const ToastsContextProvider = ({ children }) => {
+export function ToastsContextProvider({ children }) {
   const [notificationsQueue, setNotificationsQueue] = useState([]);
 
   const notificationTimeoutRef = useRef();
@@ -18,7 +12,7 @@ export const ToastsContextProvider = ({ children }) => {
       // Set a timeout to dismiss the first notification
       notificationTimeoutRef.current = setTimeout(() => {
         setNotificationsQueue((currentQueue) => {
-          const rest = currentQueue.slice(1)
+          const rest = currentQueue.slice(1);
 
           if (rest.length !== 0) {
             const next = rest[0];
@@ -57,7 +51,9 @@ export const ToastsContextProvider = ({ children }) => {
     onEnter = null,
   }) => {
     const newNotification = { id, type, message, dismissTime, onEnter };
-    setNotificationsQueue((currentQueue) => immediate ? [newNotification] : [...currentQueue, newNotification]);
+    setNotificationsQueue((currentQueue) =>
+      immediate ? [newNotification] : [...currentQueue, newNotification],
+    );
   };
 
   const updateNotification = (targetId, newType, newMessage) => {
@@ -65,14 +61,14 @@ export const ToastsContextProvider = ({ children }) => {
       currentQueue.map((notification) =>
         notification.id === targetId
           ? { ...notification, type: newType, message: newMessage }
-          : notification
-      )
+          : notification,
+      ),
     );
   };
 
   const removeNotification = (targetId) => {
     setNotificationsQueue((currentQueue) =>
-      currentQueue.filter((notification) => notification.id !== targetId)
+      currentQueue.filter((notification) => notification.id !== targetId),
     );
 
     // If the notification being removed is the first in the queue, we need to clear the timeout
@@ -99,6 +95,6 @@ export const ToastsContextProvider = ({ children }) => {
       {children}
     </ToastsContext.Provider>
   );
-};
+}
 
 export const useToastsContext = () => useContext(ToastsContext);

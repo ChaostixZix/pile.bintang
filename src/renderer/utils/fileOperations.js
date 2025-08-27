@@ -19,7 +19,7 @@ const getDirectoryPath = (filePath) => {
   let directoryPath = window.electron.joinPath(...pathArr);
 
   if (isAbsolute && !directoryPath.startsWith('/')) {
-    directoryPath = '/' + directoryPath;
+    directoryPath = `/${directoryPath}`;
   }
 
   return directoryPath;

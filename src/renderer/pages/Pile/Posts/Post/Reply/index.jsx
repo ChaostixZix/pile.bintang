@@ -1,17 +1,17 @@
 import { useParams } from 'react-router-dom';
-import styles from '../Post.module.scss';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { DateTime } from 'luxon';
 import { postFormat } from 'renderer/utils/fileOperations';
-import Editor from '../../../Editor';
 import * as fileOperations from 'renderer/utils/fileOperations';
 import { usePilesContext } from 'renderer/context/PilesContext';
 import usePost from 'renderer/hooks/usePost';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AIIcon } from 'renderer/icons';
+import { AIIcon, TrashIcon } from 'renderer/icons';
+import Editor from '../../../Editor';
+import styles from '../Post.module.scss';
 
 export default function Reply({
   postPath,
@@ -24,10 +24,36 @@ export default function Reply({
   searchTerm = { searchTerm },
 }) {
   const { currentPile } = usePilesContext();
-  const { post, cycleColor } = usePost(postPath);
+  const { post, cycleColor, deletePost } = usePost(postPath, { 
+    isReply: true, 
+    parentPostPath,
+    reloadParentPost 
+  });
   const [editable, setEditable] = useState(false);
+  const [hovering, setHovering] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const toggleEditable = () => setEditable(!editable);
+  
+  const handleMouseEnter = () => setHovering(true);
+  const handleMouseLeave = () => setHovering(false);
+
+  const handleDeleteReply = useCallback(async () => {
+    if (!deleteConfirm) {
+      setDeleteConfirm(true);
+      // Auto-reset confirmation after 3 seconds
+      setTimeout(() => setDeleteConfirm(false), 3000);
+      return;
+    }
+    
+    try {
+      await deletePost();
+      setDeleteConfirm(false);
+    } catch (error) {
+      console.error('Failed to delete reply:', error);
+      setDeleteConfirm(false);
+    }
+  }, [deleteConfirm, deletePost]);
 
   if (!post) return;
 
@@ -37,12 +63,14 @@ export default function Reply({
   const isAI = post?.data?.isAI || false;
 
   return (
-    <div>
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      style={{ position: 'relative' }}
+    >
       <div className={styles.post}>
         <div className={styles.left}>
-          <div
-            className={`${styles.connector} ${isFirst && styles.first}`}
-          ></div>
+          <div className={`${styles.connector} ${isFirst && styles.first}`} />
 
           <div
             className={`${styles.ball} ${isAI && styles.ai}`}
@@ -60,7 +88,7 @@ export default function Reply({
             style={{
               borderColor: highlightColor ?? 'var(--border)',
             }}
-          ></div>
+          />
         </div>
         <div className={styles.right}>
           <div className={styles.header}>
@@ -69,6 +97,21 @@ export default function Reply({
               <div className={styles.time} onClick={toggleEditable}>
                 {created.toRelative()}
               </div>
+              <AnimatePresence>
+                {hovering && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.15 }}
+                    className={`${styles.deleteReply} ${deleteConfirm ? styles.confirmDelete : ''}`}
+                    onClick={handleDeleteReply}
+                    title={deleteConfirm ? "Click again to confirm deletion" : "Delete this reply"}
+                  >
+                    <TrashIcon className={styles.deleteIcon} />
+                  </motion.button>
+                )}
+              </AnimatePresence>
             </div>
           </div>
           <div className={`${styles.editor} ${isAI && styles.ai}`}>

@@ -4,10 +4,13 @@
  */
 
 import React, { useState } from 'react';
-import { generateStructuredResponse, createErrorToast } from '../utils/jsonHelper';
+import {
+  generateStructuredResponse,
+  createErrorToast,
+} from '../utils/jsonHelper';
 import { useToastsContext } from '../context/ToastsContext';
 
-const JsonExample = () => {
+function JsonExample() {
   const [prompt, setPrompt] = useState('');
   const [template, setTemplate] = useState('summary');
   const [result, setResult] = useState(null);
@@ -28,7 +31,7 @@ const JsonExample = () => {
           // Show error toast notification
           const toast = createErrorToast(error);
           addNotification(toast);
-        }
+        },
       );
 
       setResult(response);
@@ -39,7 +42,7 @@ const JsonExample = () => {
           id: `parse-warning-${Date.now()}`,
           type: 'warning',
           message: 'AI response was incomplete, some default values were used',
-          dismissTime: 6000
+          dismissTime: 6000,
         });
       }
     } catch (error) {
@@ -48,7 +51,7 @@ const JsonExample = () => {
         id: `json-error-${Date.now()}`,
         type: 'error',
         message: 'Failed to generate structured response',
-        dismissTime: 5000
+        dismissTime: 5000,
       });
     } finally {
       setLoading(false);
@@ -58,12 +61,12 @@ const JsonExample = () => {
   return (
     <div style={{ padding: '20px', maxWidth: '600px' }}>
       <h3>Gemini JSON API Example</h3>
-      
+
       <div style={{ marginBottom: '20px' }}>
         <label>
           Template:
-          <select 
-            value={template} 
+          <select
+            value={template}
             onChange={(e) => setTemplate(e.target.value)}
             style={{ marginLeft: '10px' }}
           >
@@ -80,18 +83,18 @@ const JsonExample = () => {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Enter text to analyze..."
-            style={{ 
-              width: '100%', 
-              height: '100px', 
+            style={{
+              width: '100%',
+              height: '100px',
               marginTop: '10px',
-              padding: '10px' 
+              padding: '10px',
             }}
           />
         </label>
       </div>
 
-      <button 
-        onClick={handleGenerate} 
+      <button
+        onClick={handleGenerate}
         disabled={loading || !prompt.trim()}
         style={{
           padding: '10px 20px',
@@ -99,7 +102,7 @@ const JsonExample = () => {
           color: 'white',
           border: 'none',
           borderRadius: '4px',
-          cursor: loading ? 'not-allowed' : 'pointer'
+          cursor: loading ? 'not-allowed' : 'pointer',
         }}
       >
         {loading ? 'Generating...' : 'Generate JSON'}
@@ -108,31 +111,35 @@ const JsonExample = () => {
       {result && (
         <div style={{ marginTop: '20px' }}>
           <h4>Result:</h4>
-          <div style={{
-            backgroundColor: result.success ? '#f8f9fa' : '#ffe6e6',
-            padding: '15px',
-            borderRadius: '4px',
-            border: `1px solid ${result.success ? '#dee2e6' : '#ffcccc'}`
-          }}>
+          <div
+            style={{
+              backgroundColor: result.success ? '#f8f9fa' : '#ffe6e6',
+              padding: '15px',
+              borderRadius: '4px',
+              border: `1px solid ${result.success ? '#dee2e6' : '#ffcccc'}`,
+            }}
+          >
             <div>
               <strong>Success:</strong> {result.success ? 'Yes' : 'No'}
             </div>
-            
+
             {result.parseWarning && (
               <div style={{ color: '#ff6600', marginTop: '5px' }}>
                 <strong>Warning:</strong> {result.parseWarning.message}
               </div>
             )}
-            
+
             <div style={{ marginTop: '10px' }}>
               <strong>Data:</strong>
-              <pre style={{ 
-                backgroundColor: '#f1f3f4', 
-                padding: '10px', 
-                borderRadius: '4px',
-                overflow: 'auto',
-                fontSize: '12px'
-              }}>
+              <pre
+                style={{
+                  backgroundColor: '#f1f3f4',
+                  padding: '10px',
+                  borderRadius: '4px',
+                  overflow: 'auto',
+                  fontSize: '12px',
+                }}
+              >
                 {JSON.stringify(result.data, null, 2)}
               </pre>
             </div>
@@ -141,6 +148,6 @@ const JsonExample = () => {
       )}
     </div>
   );
-};
+}
 
 export default JsonExample;

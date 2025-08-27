@@ -1,4 +1,4 @@
-export const FolderIcon = (props) => {
+export function FolderIcon(props) {
   return (
     <svg
       {...props}
@@ -20,4 +20,4 @@ export const FolderIcon = (props) => {
       </g>
     </svg>
   );
-};
+}

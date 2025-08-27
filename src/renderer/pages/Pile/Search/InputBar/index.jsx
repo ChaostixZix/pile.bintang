@@ -1,4 +1,3 @@
-import styles from './InputBar.module.scss';
 import {
   SettingsIcon,
   CrossIcon,
@@ -20,6 +19,7 @@ import {
 } from 'renderer/context/PilesContext';
 import TextareaAutosize from 'react-textarea-autosize';
 import useIPCListener from 'renderer/hooks/useIPCListener';
+import styles from './InputBar.module.scss';
 import Waiting from '../../Toasts/Toast/Loaders/Waiting';
 import Thinking from '../../Toasts/Toast/Loaders/Thinking';
 
@@ -28,7 +28,7 @@ const prompts = [
   'You may consult this mind on any matter, mysterious or mundane',
 ];
 
-let randomPrompt = () => prompts[Math.floor(Math.random() * prompts.length)];
+const randomPrompt = () => prompts[Math.floor(Math.random() * prompts.length)];
 
 export default function InputBar({
   value,
@@ -107,7 +107,7 @@ export default function InputBar({
             onChange={onChange}
             className={styles.textarea}
             onKeyDown={handleKeyPress}
-            placeholder={'What are you looking for?'}
+            placeholder="What are you looking for?"
           />
         </div>
         <div className={styles.buttons}>

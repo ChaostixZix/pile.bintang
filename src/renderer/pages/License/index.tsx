@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import styles from './License.module.scss';
 import { TrashIcon } from 'renderer/icons';
 import { Link } from 'react-router-dom';
+import styles from './License.module.scss';
 import { usePilesContext } from '../../context/PilesContext';
 
 const pilesList = ['Users/uj/Personal', 'Users/uj/Startup', 'Users/uj/School'];

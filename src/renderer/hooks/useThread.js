@@ -9,7 +9,7 @@ function useThread() {
   const getThread = useCallback(
     async (parentPostPath) => {
       if (!parentPostPath) return;
-      let _thread = [];
+      const _thread = [];
       const fullPath = getCurrentPilePath(parentPostPath);
       const freshPost = await getPost(fullPath);
       const replies = freshPost?.data?.replies || [];
@@ -23,7 +23,7 @@ function useThread() {
 
       return _thread;
     },
-    [getCurrentPilePath]
+    [getCurrentPilePath],
   );
 
   return {

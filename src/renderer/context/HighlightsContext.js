@@ -10,7 +10,7 @@ import { usePilesContext } from './PilesContext';
 
 export const HighlightsContext = createContext();
 
-export const HighlightsContextProvider = ({ children }) => {
+export function HighlightsContextProvider({ children }) {
   const { currentPile, getCurrentPilePath } = usePilesContext();
   const [open, setOpen] = useState(false);
   const [highlights, setHighlights] = useState(new Map());
@@ -32,7 +32,7 @@ export const HighlightsContextProvider = ({ children }) => {
   const loadHighlights = useCallback(async (pilePath) => {
     const newHighlights = await window.electron.ipc.invoke(
       'highlights-load',
-      pilePath
+      pilePath,
     );
     const newMap = new Map(newHighlights);
     setHighlights(newMap);
@@ -77,6 +77,6 @@ export const HighlightsContextProvider = ({ children }) => {
       {children}
     </HighlightsContext.Provider>
   );
-};
+}
 
 export const useHighlightsContext = () => useContext(HighlightsContext);

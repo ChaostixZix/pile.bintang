@@ -1,4 +1,4 @@
-export const PaperclipIcon = (props) => {
+export function PaperclipIcon(props) {
   return (
     <svg
       width="1600"
@@ -16,4 +16,4 @@ export const PaperclipIcon = (props) => {
       />
     </svg>
   );
-};
+}

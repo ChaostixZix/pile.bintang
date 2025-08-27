@@ -1,13 +1,13 @@
 import { useParams } from 'react-router-dom';
-import styles from './NewPost.module.scss';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { DiscIcon, PaperclipIcon } from 'renderer/icons';
 import { useState, memo } from 'react';
-import Editor from '../Editor';
 import { usePilesContext } from 'renderer/context/PilesContext';
 import usePost from 'renderer/hooks/usePost';
+import Editor from '../Editor';
+import styles from './NewPost.module.scss';
 
 const NewPost = memo(() => {
   const { currentPile, getCurrentPilePath } = usePilesContext();

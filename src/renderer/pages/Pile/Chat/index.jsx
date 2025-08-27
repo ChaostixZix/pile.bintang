@@ -1,4 +1,3 @@
-import styles from './Chat.module.scss';
 import {
   SettingsIcon,
   CrossIcon,
@@ -17,15 +16,16 @@ import {
   usePilesContext,
 } from 'renderer/context/PilesContext';
 import { useIndexContext } from 'renderer/context/IndexContext';
-import Post from '../Posts/Post';
 import TextareaAutosize from 'react-textarea-autosize';
+import { AnimatePresence, motion } from 'framer-motion';
+import useChat from 'renderer/hooks/useChat';
+import Post from '../Posts/Post';
 import Waiting from '../Toasts/Toast/Loaders/Waiting';
 import Thinking from '../Toasts/Toast/Loaders/Thinking';
 import Status from './Status';
-import { AnimatePresence, motion } from 'framer-motion';
 import VirtualList from './VirtualList';
 import Blobs from './Blobs';
-import useChat from 'renderer/hooks/useChat';
+import styles from './Chat.module.scss';
 
 export default function Chat() {
   const { validKey } = useAIContext();
@@ -82,26 +82,29 @@ export default function Chat() {
 
   const onSubmit = async () => {
     if (text === '') return;
-    
+
     try {
       setQuerying(true);
       setCanCancel(true);
       setError(null);
-      
+
       const message = `${text}`;
       setText('');
       setHistory((history) => [...history, { role: 'user', content: message }]);
       const messages = await addMessage(message);
       setHistory((history) => [...history, { role: 'system', content: '' }]);
-      
+
       await getAIResponse(messages, appendToLastSystemMessage);
     } catch (error) {
       console.error('AI request failed:', error);
       setError(error.message || 'AI request failed. Please try again.');
       // Remove the empty system message if there was an error
       setHistory((history) => {
-        if (history.length > 0 && history[history.length - 1].role === 'system' && 
-            history[history.length - 1].content === '') {
+        if (
+          history.length > 0 &&
+          history[history.length - 1].role === 'system' &&
+          history[history.length - 1].content === ''
+        ) {
           return history.slice(0, -1);
         }
         return history;
@@ -126,7 +129,7 @@ export default function Chat() {
 
   const osStyles = useMemo(
     () => (window.electron.isMac ? styles.mac : styles.win),
-    []
+    [],
   );
 
   return (
@@ -153,10 +156,7 @@ export default function Chat() {
                     </Dialog.Title>
                     <div className={styles.buttons}>
                       {canCancel ? (
-                        <div
-                          className={styles.button}
-                          onClick={onCancelAI}
-                        >
+                        <div className={styles.button} onClick={onCancelAI}>
                           <CrossIcon className={styles.icon} />
                           Cancel AI
                         </div>
@@ -190,7 +190,7 @@ export default function Chat() {
                 <div className={styles.errorMessage}>
                   <div className={styles.error}>
                     ⚠️ {error}
-                    <button 
+                    <button
                       className={styles.dismissError}
                       onClick={() => setError(null)}
                     >
@@ -203,7 +203,7 @@ export default function Chat() {
               <div className={styles.inputBar}>
                 <AnimatePresence>
                   <div className={styles.holder}>
-                    <div className={styles.inputbaroverlay}></div>
+                    <div className={styles.inputbaroverlay} />
                     <div className={styles.bar}>
                       <TextareaAutosize
                         value={text}

@@ -1,4 +1,4 @@
-export const PhotoIcon = (props) => {
+export function PhotoIcon(props) {
   return (
     <svg
       {...props}
@@ -14,4 +14,4 @@ export const PhotoIcon = (props) => {
       </g>
     </svg>
   );
-};
+}

@@ -1,8 +1,8 @@
-import styles from './Attachments.module.scss';
 import { useCallback, useState, useEffect } from 'react';
 import { DiscIcon, PhotoIcon, TrashIcon, TagIcon } from 'renderer/icons';
 import { motion } from 'framer-motion';
 import { usePilesContext } from 'renderer/context/PilesContext';
+import styles from './Attachments.module.scss';
 
 const Attachments = ({
   post,
@@ -17,8 +17,7 @@ const Attachments = ({
     const image_exts = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
     const extension = attachment.split('.').pop();
     const sep = window.electron.pathSeparator;
-    const imgPath =
-      'local:' + sep + sep + getCurrentPilePath() + sep + attachment;
+    const imgPath = `local:${sep}${sep}${getCurrentPilePath()}${sep}${attachment}`;
 
     if (image_exts.includes(extension)) {
       return (

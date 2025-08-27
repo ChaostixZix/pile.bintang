@@ -15,7 +15,7 @@ export function useElectronStore(key, initialValue) {
       setStoredValue(newValue);
       window.electron.settingsSet(key, newValue);
     },
-    [key, storedValue]
+    [key, storedValue],
   );
 
   return [storedValue, setValue];

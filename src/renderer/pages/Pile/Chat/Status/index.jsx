@@ -1,4 +1,3 @@
-import styles from './Status.module.scss';
 import {
   SettingsIcon,
   CrossIcon,
@@ -19,6 +18,7 @@ import {
 } from 'renderer/context/PilesContext';
 import TextareaAutosize from 'react-textarea-autosize';
 import useIPCListener from 'renderer/hooks/useIPCListener';
+import styles from './Status.module.scss';
 import Waiting from '../../Toasts/Toast/Loaders/Waiting';
 
 export default function Status() {

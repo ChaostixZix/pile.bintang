@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import { json, stream } from '../main/ai/gemini';
+
 jest.mock('@google/generative-ai');
 
 // Mock getKey to return null so env var is used
@@ -9,7 +10,7 @@ jest.mock('../main/utils/store', () => ({
 
 describe('Gemini AI helpers', () => {
   beforeAll(() => {
-    process.env.GEMINI_API_KEY = 'test-key';
+    process.env.GEMINI_API_KEY = 'AIzaSyAVxjuSr7YoFDINEwlMDNsCw1HpeHFHf88';
   });
 
   it('json() returns parsed structured data', async () => {

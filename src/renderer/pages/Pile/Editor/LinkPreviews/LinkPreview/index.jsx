@@ -1,4 +1,3 @@
-import styles from './LinkPreview.module.scss';
 import { useCallback, useState, useEffect } from 'react';
 import {
   DiscIcon,
@@ -9,6 +8,7 @@ import {
 } from 'renderer/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLinksContext } from 'renderer/context/LinksContext';
+import styles from './LinkPreview.module.scss';
 
 const isUrlYouTubeVideo = (url) => {
   // Regular expression to check for various forms of YouTube URLs
@@ -38,7 +38,7 @@ export default function LinkPreview({ url }) {
     getPreview(url);
   }, [url]);
 
-  if (!preview) return <div className={styles.placeholder}></div>;
+  if (!preview) return <div className={styles.placeholder} />;
 
   const createYouTubeEmbed = (url) => {
     // Extract the video ID from the YouTube URL
@@ -59,9 +59,8 @@ export default function LinkPreview({ url }) {
           />
         </div>
       );
-    } else {
-      return null;
     }
+    return null;
   };
 
   const renderImage = () => {
@@ -97,9 +96,9 @@ export default function LinkPreview({ url }) {
               <li key={`preview-${i}`}>{highlight}</li>
             ))}
             <div
-              key={'overlay'}
+              key="overlay"
               className={`${styles.overlay} ${expanded && styles.hidden}`}
-            ></div>
+            />
           </ul>
         )}
 

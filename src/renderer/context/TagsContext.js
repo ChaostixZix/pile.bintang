@@ -10,7 +10,7 @@ import { usePilesContext } from './PilesContext';
 
 export const TagsContext = createContext();
 
-export const TagsContextProvider = ({ children }) => {
+export function TagsContextProvider({ children }) {
   const { currentPile, getCurrentPilePath } = usePilesContext();
   const [tags, setTags] = useState(new Map());
 
@@ -59,6 +59,6 @@ export const TagsContextProvider = ({ children }) => {
       {children}
     </TagsContext.Provider>
   );
-};
+}
 
 export const useTagsContext = () => useContext(TagsContext);

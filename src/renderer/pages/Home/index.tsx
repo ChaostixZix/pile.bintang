@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import styles from './Home.module.scss';
 import { Link } from 'react-router-dom';
+import styles from './Home.module.scss';
 import { usePilesContext } from '../../context/PilesContext';
 import DeletePile from './DeletePile';
 import Logo from './logo';
@@ -40,7 +40,7 @@ export default function Home() {
     return piles.map((pile: any) => {
       return (
         <div
-          className={`${pile.theme && pile.theme + 'Theme'} ${styles.pile}`}
+          className={`${pile.theme && `${pile.theme}Theme`} ${styles.pile}`}
           key={pile.path}
         >
           <div className={styles.left}>
@@ -80,8 +80,8 @@ export default function Home() {
         <div className={styles.piles}>{renderPiles()}</div>
 
         <div className={styles.footer}>
-          <a href="https://udara.io/pile" target="_blank">
-            <div className={styles.unms}></div>
+          <a href="https://udara.io/pile" target="_blank" rel="noreferrer">
+            <div className={styles.unms} />
             {quote}
           </a>
 
@@ -93,6 +93,7 @@ export default function Home() {
               href="https://udara.io/pile"
               target="_blank"
               className={styles.link}
+              rel="noreferrer"
             >
               Tutorial
             </a>
@@ -100,6 +101,7 @@ export default function Home() {
               href="https://github.com/udarajay/pile"
               target="_blank"
               className={styles.link}
+              rel="noreferrer"
             >
               GitHub
             </a>

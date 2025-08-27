@@ -1,4 +1,4 @@
-export const SettingsIcon = (props) => {
+export function SettingsIcon(props) {
   return (
     <svg
       {...props}
@@ -14,4 +14,4 @@ export const SettingsIcon = (props) => {
       />
     </svg>
   );
-};
+}

@@ -1,5 +1,4 @@
 import { useParams } from 'react-router-dom';
-import styles from './Timeline.module.scss';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -15,6 +14,7 @@ import {
 import { DateTime } from 'luxon';
 import { useTimelineContext } from 'renderer/context/TimelineContext';
 import { useIndexContext } from 'renderer/context/IndexContext';
+import styles from './Timeline.module.scss';
 
 function isToday(date) {
   const today = new Date();
@@ -35,7 +35,7 @@ const countEntriesByDate = (map, targetDate) => {
       const localDateString = new Date(
         createdAtDate.getFullYear(),
         createdAtDate.getMonth(),
-        createdAtDate.getDate()
+        createdAtDate.getDate(),
       )
         .toISOString()
         .substring(0, 10);
@@ -52,7 +52,7 @@ const renderCount = (count) => {
   return (
     <div className={styles.counts}>
       {Array.from({ length: maxDots }, (_, i) => i).map((_, i) => (
-        <div className={styles.count} key={i}></div>
+        <div className={styles.count} key={i} />
       ))}
     </div>
   );
@@ -75,7 +75,7 @@ const DayComponent = memo(({ date, scrollToDate }) => {
       }`}
     >
       {renderCount(count)}
-      <div className={styles.dayLine}></div>
+      <div className={styles.dayLine} />
       <div className={styles.dayName}>{dayName}</div>
       <div className={styles.dayNumber}>{dayNumber}</div>
     </div>
@@ -100,7 +100,7 @@ const WeekComponent = memo(({ startDate, endDate, scrollToDate }) => {
   ];
   const monthName = monthNames[startDate.getMonth()];
   const year = startDate.getFullYear();
-  let days = [];
+  const days = [];
   for (
     let date = new Date(startDate);
     date <= endDate;
@@ -111,7 +111,7 @@ const WeekComponent = memo(({ startDate, endDate, scrollToDate }) => {
         key={date.toString()}
         date={new Date(date)}
         scrollToDate={scrollToDate}
-      />
+      />,
     );
   }
 
@@ -140,7 +140,7 @@ const WeekComponent = memo(({ startDate, endDate, scrollToDate }) => {
         {monthName.substring(0, 3)} {year}
       </div>
       {days.reverse()}
-      <div className={styles.line}></div>
+      <div className={styles.line} />
     </div>
   );
 });
@@ -158,7 +158,7 @@ const Timeline = memo(() => {
   useEffect(() => {
     if (!index) return;
     const onlyParentEntries = Array.from(index).filter(
-      ([key, metadata]) => !metadata.isReply
+      ([key, metadata]) => !metadata.isReply,
     );
 
     const lastEntry = onlyParentEntries[onlyParentEntries.length - 1];
@@ -180,7 +180,7 @@ const Timeline = memo(() => {
       current = parentEntries[visibleIndex - 1][1];
     }
     if (!current) return;
-    const createdAt = current.createdAt;
+    const { createdAt } = current;
     setClosestDate(createdAt);
   }, [visibleIndex, parentEntries]);
 
@@ -191,8 +191,8 @@ const Timeline = memo(() => {
         let smallestDiff = Infinity;
 
         parentEntries.forEach((post, index) => {
-          let postDate = new Date(post[1].createdAt);
-          let diff = Math.abs(targetDate - postDate);
+          const postDate = new Date(post[1].createdAt);
+          const diff = Math.abs(targetDate - postDate);
           if (diff < smallestDiff) {
             smallestDiff = diff;
             closestIndex = index;
@@ -203,12 +203,12 @@ const Timeline = memo(() => {
         console.error('Failed to scroll to entry', error);
       }
     },
-    [parentEntries]
+    [parentEntries],
   );
 
   const getWeeks = useCallback(() => {
-    let weeks = [];
-    let now = new Date();
+    const weeks = [];
+    const now = new Date();
     now.setHours(0, 0, 0, 0);
 
     let weekEnd = new Date(now);
@@ -221,7 +221,7 @@ const Timeline = memo(() => {
     weeks.push({ start: weekStart, end: weekEnd });
 
     // Adding empty days to
-    let oldestDatePadded = new Date(oldestDate);
+    const oldestDatePadded = new Date(oldestDate);
     oldestDatePadded.setDate(oldestDatePadded.getDate() - 40);
 
     while (weekStart > oldestDatePadded) {
@@ -245,16 +245,16 @@ const Timeline = memo(() => {
       />
     ));
 
-  let weeks = useMemo(createWeeks, [parentEntries.length]);
+  const weeks = useMemo(createWeeks, [parentEntries.length]);
 
   useEffect(() => {
     if (!scrubRef.current) return;
     if (!scrollRef.current) return;
-    let oneDay = 24 * 60 * 60 * 1000;
+    const oneDay = 24 * 60 * 60 * 1000;
     const now = new Date();
     const past = new Date(closestDate);
-    let diffInMilliSeconds = Math.abs(now - past);
-    let diffInDays = Math.round(diffInMilliSeconds / oneDay);
+    const diffInMilliSeconds = Math.abs(now - past);
+    const diffInDays = Math.round(diffInMilliSeconds / oneDay);
 
     let scrollOffset = 0;
     const distanceFromTop = 22 * diffInDays + 10;
@@ -270,13 +270,13 @@ const Timeline = memo(() => {
       behavior: 'smooth',
     });
 
-    scrubRef.current.style.top = distanceFromTop + 'px';
+    scrubRef.current.style.top = `${distanceFromTop}px`;
   }, [closestDate]);
 
   return (
     <div ref={scrollRef} className={styles.timeline}>
       {weeks}
-      <div ref={scrubRef} className={styles.scrubber}></div>
+      <div ref={scrubRef} className={styles.scrubber} />
     </div>
   );
 });

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import styles from './CreatePile.module.scss';
 import { TrashIcon } from 'renderer/icons';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { usePilesContext } from 'renderer/context/PilesContext';
-import { useNavigate } from 'react-router-dom';
-import icon from '../../../../assets/logo.png';
 import { motion } from 'framer-motion';
+import icon from '../../../../assets/logo.png';
+import styles from './CreatePile.module.scss';
+
 const pilesList = ['Users/uj/Personal', 'Users/uj/Startup', 'Users/uj/School'];
 
 export default function CreatePile() {
@@ -38,7 +38,7 @@ export default function CreatePile() {
     if (!name) return;
 
     createPile(name, path);
-    navigate('/pile/' + name);
+    navigate(`/pile/${name}`);
   };
 
   const renderPiles = () => {
@@ -87,7 +87,7 @@ export default function CreatePile() {
             </div>
 
             <button placeholder="Location" onClick={handleClick}>
-              {path ? path : 'Choose a location'}
+              {path || 'Choose a location'}
             </button>
           </div>
         </div>

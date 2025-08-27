@@ -1,5 +1,4 @@
 import { useParams } from 'react-router-dom';
-import styles from './Chat.module.scss';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -19,6 +18,7 @@ import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual';
 import { useWindowResize } from 'renderer/hooks/useWindowResize';
 import { Virtuoso } from 'react-virtuoso';
 import { useTimelineContext } from 'renderer/context/TimelineContext';
+import styles from './Chat.module.scss';
 import Scrollbar from './Scrollbar';
 import Intro from './Intro';
 import Message from './Message';
@@ -45,7 +45,7 @@ const VirtualList = memo(({ data }) => {
         scrollToBottom={scrollToBottom}
       />
     ),
-    [data]
+    [data],
   );
 
   const getKey = useCallback((index) => `${index}-item`, [data]);
@@ -58,7 +58,7 @@ const VirtualList = memo(({ data }) => {
       computeItemKey={getKey}
       overscan={500}
       initialTopMostItemIndex={data.length - 1}
-      followOutput={'smooth'}
+      followOutput="smooth"
       components={{
         Header: Intro,
         Footer: () => (
@@ -66,7 +66,7 @@ const VirtualList = memo(({ data }) => {
             style={{
               paddingTop: '140px',
             }}
-          ></div>
+          />
         ),
         Scroller: Scrollbar,
       }}

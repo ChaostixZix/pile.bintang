@@ -17,8 +17,8 @@ class PileHighlights {
   }
 
   sortMap(map) {
-    let sortedMap = new Map(
-      [...map.entries()].sort((a, b) => a[1].posts.length - b[1].posts.length)
+    const sortedMap = new Map(
+      [...map.entries()].sort((a, b) => a[1].posts.length - b[1].posts.length),
     );
 
     return sortedMap;
@@ -37,12 +37,11 @@ class PileHighlights {
       this.highlights = sortedHighlights;
 
       return this.highlights;
-    } else {
-      // save to initialize an empty index
-      this.highlights = defaultHighlights;
-      this.save();
-      return this.highlights;
     }
+    // save to initialize an empty index
+    this.highlights = defaultHighlights;
+    this.save();
+    return this.highlights;
   }
 
   get() {
@@ -77,7 +76,7 @@ class PileHighlights {
 
   delete(highlight) {
     if (this.highlights.has(highlight)) {
-      let updatedHighlight = this.highlights.get(highlight);
+      const updatedHighlight = this.highlights.get(highlight);
       this.highlights.set(highlight, updatedHighlight);
 
       // Todo: delete this tag from all the posts before
@@ -103,7 +102,7 @@ class PileHighlights {
 
     if (!entries) return;
 
-    let strMap = JSON.stringify(Array.from(entries));
+    const strMap = JSON.stringify(Array.from(entries));
 
     fs.writeFileSync(highlightsFilePath, strMap);
   }
