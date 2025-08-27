@@ -303,6 +303,334 @@ const aiContext = {
 - **Backlinks**: Show which entries link to current entry
 - **Link Graph**: Visual representation of entry connections
 
+## Detailed Technical Implementation Flow
+
+### Application Bootstrap & Initialization Flow
+
+This section provides the detailed technical implementation flow that developers need to understand to recreate PileBintang. Each flow diagram shows the exact component interactions, data flow, and system integrations.
+
+```mermaid
+flowchart TD
+    A[Electron App Launch] --> B[main.ts Initialization]
+    B --> C[Setup Piles Folder ~/Piles]
+    C --> D[Register IPC Handlers]
+    D --> E[Create Browser Window]
+    E --> F[Load preload.ts]
+    F --> G[Setup contextBridge APIs]
+    G --> H[Load React Renderer]
+    
+    H --> I[App.jsx Route Setup]
+    I --> J[Initialize Context Providers]
+    J --> K{Context Provider Chain}
+    
+    K --> L[PilesContextProvider]
+    K --> M[ToastsContextProvider]
+    K --> N[IndexContextProvider]
+    K --> O[TimelineContextProvider]
+    K --> P[AIContextProvider]
+    K --> Q[TagsContextProvider]
+    K --> R[HighlightsContextProvider]
+    K --> S[LinksContextProvider]
+    
+    L --> T[Load piles.json config]
+    T --> U[Parse existing piles]
+    U --> V[Router Navigation]
+    
+    V --> W{Route Decision}
+    W -->|/| X[Home Page]
+    W -->|/pile/:name| Y[Pile Interface]
+    W -->|/create-pile| Z[Create Pile Wizard]
+    
+    subgraph "IPC Handlers Registration"
+        D --> D1[file.ts - File Operations]
+        D --> D2[keys.ts - API Key Management]
+        D --> D3[store.ts - Settings Storage]
+        D --> D4[gemini.ts - AI Integration]
+        D --> D5[tags.ts - Tag Management]
+        D --> D6[highlights.ts - Highlight System]
+        D --> D7[links.ts - Link Management]
+        D --> D8[index.ts - Search Indexing]
+    end
+    
+    subgraph "Security Model"
+        F --> F1[Context Isolation: ON]
+        F --> F2[Node Integration: OFF]
+        F --> F3[Preload Script Only]
+        G --> G1[window.electron APIs]
+        G --> G2[IPC Communication Only]
+    end
+```
+
+### Component Hierarchy & Data Flow
+
+```mermaid
+flowchart TD
+    A[App.jsx - Root Router] --> B[Context Provider Stack]
+    
+    B --> C[PilesContextProvider]
+    C --> C1[currentPile state]
+    C --> C2[piles array]
+    C --> C3[theme management]
+    
+    B --> D[AIContextProvider]
+    D --> D1[AI provider selection]
+    D --> D2[API key handling]
+    D --> D3[completion streaming]
+    
+    B --> E[IndexContextProvider]
+    E --> E1[Lunr.js search index]
+    E --> E2[file watching]
+    E --> E3[index rebuilding]
+    
+    C --> F{Route Components}
+    F --> G[Home Component]
+    F --> H[Pile Component]
+    F --> I[CreatePile Component]
+    
+    G --> G1[Pile List Display]
+    G --> G2[Delete Pile Actions]
+    G --> G3[Open Pile Folder]
+    
+    H --> J[PileLayout Component]
+    J --> K[Layout Structure]
+    K --> L[Header with Navigation]
+    K --> M[Sidebar with Timeline]
+    K --> N[Main Content Area]
+    K --> O[Settings Modal]
+    K --> P[Search Interface]
+    K --> Q[Chat Interface]
+    
+    M --> M1[Timeline/Sidebar Component]
+    M1 --> M2[Virtualized Post List]
+    M1 --> M3[Date Navigation]
+    M1 --> M4[Filter Controls]
+    
+    N --> N1[Posts Component]
+    N1 --> N2[Editor Component]
+    N2 --> N3[TipTap Rich Text Editor]
+    N3 --> N4[AI Integration]
+    N3 --> N5[File Attachments]
+    N3 --> N6[Tag System]
+    N3 --> N7[Auto-save]
+    
+    subgraph "Data Sources"
+        C2 --> DS1[piles.json config file]
+        E1 --> DS2[Markdown files in ~/Piles]
+        D2 --> DS3[Encrypted electron-store]
+        N7 --> DS4[File system writes via IPC]
+    end
+```
+
+### File System & IPC Communication Flow
+
+```mermaid
+flowchart TD
+    A[Renderer Process Action] --> B[window.electron API Call]
+    B --> C[preload.ts contextBridge]
+    C --> D[IPC Message to Main Process]
+    D --> E[Handler Registration in ipc.ts]
+    E --> F{Handler Router}
+    
+    F --> G[file.ts Handler]
+    F --> H[store.ts Handler]
+    F --> I[gemini.ts Handler]
+    F --> J[Other Handlers...]
+    
+    G --> G1[File Operations]
+    G1 --> G2[Read Markdown Files]
+    G1 --> G3[Write Journal Entries]
+    G1 --> G4[Create Directories]
+    G1 --> G5[File Watching]
+    
+    H --> H1[Settings Management]
+    H1 --> H2[Read electron-store]
+    H1 --> H3[Write encrypted data]
+    H1 --> H4[API key storage]
+    
+    I --> I1[AI Integration]
+    I1 --> I2[Gemini API calls]
+    I1 --> I3[Stream responses]
+    I1 --> I4[Context building]
+    
+    subgraph "File Structure Operations"
+        G2 --> FS1[~/Piles/YYYY/MMM/YYMMDD-HHMMSS.md]
+        G3 --> FS2[Gray-matter frontmatter]
+        G3 --> FS3[Markdown content]
+        G4 --> FS4[Media attachments folder]
+    end
+    
+    subgraph "Security Boundaries"
+        A --> SEC1[Renderer: No file access]
+        D --> SEC2[IPC: Validated messages only]
+        G1 --> SEC3[Main: Full file system access]
+    end
+    
+    G1 --> K[Return to Renderer]
+    H1 --> K
+    I1 --> K
+    K --> L[Update React State]
+    L --> M[Re-render Components]
+```
+
+### Editor & AI Integration Technical Flow
+
+```mermaid
+flowchart TD
+    A[User Opens Editor] --> B[TipTap Editor Initialize]
+    B --> C[Load Extensions]
+    C --> D[Editor Extensions Setup]
+    
+    D --> D1[StarterKit - Basic rich text]
+    D --> D2[Typography - Smart quotes]
+    D --> D3[Link - URL handling]
+    D --> D4[Character Count]
+    D --> D5[Custom Submit Extension]
+    
+    B --> E[Load Existing Content]
+    E --> F[Parse Markdown via gray-matter]
+    F --> G[Extract frontmatter]
+    F --> H[Render content in editor]
+    
+    G --> G1[title, date, tags]
+    G --> G2[Custom metadata]
+    
+    I[User Types Content] --> J[Auto-save Timer]
+    J --> K[Serialize to Markdown]
+    K --> L[IPC: Save File]
+    L --> M[Write to File System]
+    
+    N[User Triggers AI] --> O[Build Context]
+    O --> P[Collect Recent Entries]
+    P --> Q[Format Prompt]
+    Q --> R[IPC: AI Request]
+    R --> S[Gemini API Call]
+    S --> T[Stream Response]
+    T --> U[Update Editor]
+    
+    subgraph "AI Context Building"
+        P --> P1[Get last 5 entries]
+        P --> P2[Extract text content]
+        P --> P3[Add current entry]
+        P --> P4[Apply AI prompt template]
+    end
+    
+    subgraph "Auto-save Process"
+        J --> AS1[Debounced save - 1 second]
+        AS1 --> AS2[Serialize editor content]
+        AS2 --> AS3[Generate timestamp filename]
+        AS3 --> AS4[Write via file.ts handler]
+    end
+    
+    subgraph "File Attachments"
+        V[Drag & Drop Files] --> W[File Upload Handler]
+        W --> X[Copy to media folder]
+        X --> Y[Insert markdown link]
+        Y --> Z[Update editor content]
+    end
+```
+
+### Search & Indexing System Flow
+
+```mermaid
+flowchart TD
+    A[App Initialization] --> B[IndexContext Setup]
+    B --> C[Initialize Lunr.js]
+    C --> D[Scan Pile Directory]
+    D --> E[Read All Markdown Files]
+    E --> F[Parse Content & Metadata]
+    F --> G[Build Search Index]
+    
+    G --> G1[Index title field]
+    G --> G2[Index content field]
+    G --> G3[Index tags field]
+    G --> G4[Index date field]
+    
+    H[File Watcher Events] --> I{File Change Type}
+    I -->|Created| J[Add to Index]
+    I -->|Modified| K[Update Index Entry]
+    I -->|Deleted| L[Remove from Index]
+    
+    M[User Search Query] --> N[Search Interface]
+    N --> O[Query Lunr Index]
+    O --> P[Score & Rank Results]
+    P --> Q[Filter by Date/Tags]
+    Q --> R[Display Results]
+    
+    R --> S[Result Click]
+    S --> T[Navigate to Entry]
+    T --> U[Highlight Search Terms]
+    
+    subgraph "Index Structure"
+        G --> IDX1[Document ID: file path]
+        G --> IDX2[Fields: title, content, tags, date]
+        G --> IDX3[Stemming & Stop Words]
+        G --> IDX4[Boost title field 10x]
+    end
+    
+    subgraph "Advanced Search"
+        N --> ADV1[Tag Filters]
+        N --> ADV2[Date Range]
+        N --> ADV3[Full Text Query]
+        ADV1 --> O
+        ADV2 --> Q
+        ADV3 --> O
+    end
+```
+
+### Theme & Settings Management Flow
+
+```mermaid
+flowchart TD
+    A[Settings Access] --> B[Settings Modal Open]
+    B --> C[Load Current Settings]
+    C --> D[electron-store Read]
+    D --> E[Display Settings UI]
+    
+    E --> F{Setting Category}
+    F --> G[AI Configuration]
+    F --> H[Pile Settings]
+    F --> I[Editor Preferences]
+    F --> J[Theme Selection]
+    
+    G --> G1[Provider Selection: Gemini/Ollama]
+    G --> G2[API Key Input]
+    G --> G3[Model Selection]
+    G --> G4[Custom Prompt]
+    
+    H --> H1[Pile Name]
+    H --> H2[Default Theme]
+    H --> H3[Auto-save Settings]
+    
+    I --> I1[Font Size]
+    I --> I2[Editor Width]
+    I --> I3[Typing Sounds]
+    
+    J --> J1[Theme Selection]
+    J1 --> J2[light, blue, purple, yellow, green]
+    J2 --> J3[Apply CSS Variables]
+    J3 --> J4[Update Component Styles]
+    
+    K[Save Settings] --> L[Validate Input]
+    L --> M[IPC: Store Settings]
+    M --> N[electron-store Write]
+    N --> O[Update Context State]
+    O --> P[Re-render UI]
+    
+    subgraph "Theme System"
+        J3 --> TH1[CSS Custom Properties]
+        TH1 --> TH2[--primary-color]
+        TH1 --> TH3[--secondary-color]
+        J4 --> TH4[Component className]
+        TH4 --> TH5[{theme}Theme CSS class]
+    end
+    
+    subgraph "Security"
+        G2 --> SEC1[Encrypt API Keys]
+        SEC1 --> SEC2[electron-store encryption]
+        M --> SEC3[Secure IPC channel]
+    end
+```
+
 ## User Flow Diagrams
 
 ### 1. Application Launch & Pile Selection
@@ -328,6 +656,172 @@ flowchart TD
     M --> G
     
     G --> N[Journal Writing Interface]
+```
+
+### Chat System Implementation Flow
+
+```mermaid
+flowchart TD
+    A[Click Chat Tab] --> B[Chat Component Mount]
+    B --> C[Load Chat Context]
+    C --> D[Initialize Conversation]
+    D --> E[Load Recent Entries for Context]
+    
+    E --> F[Format Entry Context]
+    F --> G[Display Chat Interface]
+    G --> H[User Input Message]
+    H --> I[Send Message to AI]
+    
+    I --> J[Build Full Context]
+    J --> K[Recent entries + chat history + new message]
+    K --> L[IPC: AI Chat Request]
+    L --> M[Gemini Stream API]
+    M --> N[Receive Streamed Response]
+    N --> O[Token-by-token Display]
+    O --> P[Complete Response]
+    P --> Q[Save Chat History]
+    
+    subgraph "Context Building for Chat"
+        J --> CB1[Last 5 journal entries]
+        J --> CB2[Previous chat messages]
+        J --> CB3[Current user message]
+        J --> CB4[AI system prompt]
+        CB1 --> CB5[Formatted context string]
+        CB2 --> CB5
+        CB3 --> CB5
+        CB4 --> CB5
+    end
+    
+    subgraph "Streaming Implementation"
+        M --> ST1[Server-Sent Events]
+        ST1 --> ST2[Token chunks]
+        ST2 --> ST3[React state updates]
+        ST3 --> ST4[Smooth text animation]
+    end
+```
+
+### Real-time Features & File Watching
+
+```mermaid
+flowchart TD
+    A[App Startup] --> B[Setup File Watchers]
+    B --> C[Watch Pile Directory]
+    C --> D[fs.watch on ~/Piles/**/*.md]
+    
+    D --> E{File System Event}
+    E -->|File Created| F[New Entry Detected]
+    E -->|File Modified| G[Entry Updated]
+    E -->|File Deleted| H[Entry Removed]
+    
+    F --> I[Re-scan Directory]
+    G --> I
+    H --> I
+    
+    I --> J[Update Search Index]
+    J --> K[Update Timeline Context]
+    K --> L[Refresh UI Components]
+    
+    L --> M[Timeline Sidebar Update]
+    L --> N[Posts List Refresh]
+    L --> O[Search Results Update]
+    
+    subgraph "Concurrent Access Handling"
+        I --> CA1[File Lock Checking]
+        CA1 --> CA2[Retry on Lock]
+        CA2 --> CA3[Debounced Updates]
+    end
+    
+    subgraph "Performance Optimization"
+        J --> PO1[Incremental Index Updates]
+        K --> PO2[Virtual List Re-render]
+        L --> PO3[React.memo Components]
+    end
+```
+
+### Authentication & API Key Management
+
+```mermaid
+flowchart TD
+    A[First App Launch] --> B[Check Stored Keys]
+    B --> C{Keys Exist?}
+    C -->|No| D[Show Setup Wizard]
+    C -->|Yes| E[Decrypt Keys]
+    
+    D --> F[API Key Input Form]
+    F --> G[Key Validation]
+    G --> H{Valid Key?}
+    H -->|No| I[Show Error Message]
+    H -->|Yes| J[Encrypt & Store Key]
+    
+    I --> F
+    J --> K[Initialize AI Provider]
+    E --> K
+    
+    K --> L[Test API Connection]
+    L --> M{Connection OK?}
+    M -->|No| N[Fallback to Mock AI]
+    M -->|Yes| O[Enable AI Features]
+    
+    subgraph "Encryption Process"
+        J --> EN1[Generate Encryption Key]
+        EN1 --> EN2[Encrypt API Key]
+        EN2 --> EN3[Store in electron-store]
+        EN3 --> EN4[Clear Memory]
+    end
+    
+    subgraph "Security Measures"
+        EN2 --> SEC1[AES-256 Encryption]
+        EN4 --> SEC2[No Plain Text Storage]
+        K --> SEC3[Keys Never in Renderer]
+        SEC3 --> SEC4[IPC Only Communication]
+    end
+```
+
+### Database-less Architecture Implementation
+
+```mermaid
+flowchart TD
+    A[File-based Storage] --> B[Directory Structure]
+    B --> C[~/Piles/YYYY/MMM/]
+    C --> D[Timestamp-based Files]
+    D --> E[YYMMDD-HHMMSS.md]
+    
+    E --> F[Gray-matter Format]
+    F --> G[Frontmatter Section]
+    F --> H[Markdown Content]
+    
+    G --> G1[title: "Entry Title"]
+    G --> G2[date: "2024-01-15T10:30:00"]
+    G --> G3[tags: ["work", "reflection"]]
+    G --> G4[Custom metadata...]
+    
+    H --> H1[# Markdown Content]
+    H --> H2[Rich text with links]
+    H --> H3[![Image](path/to/image)]
+    
+    I[Read Operations] --> J[Glob Pattern Matching]
+    J --> K[**/*.md file discovery]
+    K --> L[Parallel File Reading]
+    L --> M[Gray-matter Parsing]
+    M --> N[In-memory Object]
+    
+    O[Write Operations] --> P[Generate Filename]
+    P --> Q[Serialize to Gray-matter]
+    Q --> R[Atomic File Write]
+    R --> S[Trigger File Watcher]
+    
+    subgraph "Performance Strategies"
+        L --> PS1[Stream Processing]
+        M --> PS2[LRU Cache for Parsed Files]
+        N --> PS3[Lazy Loading]
+        J --> PS4[Directory-level Indexing]
+    end
+    
+    subgraph "Data Consistency"
+        R --> DC1[Temporary File Write]
+        DC1 --> DC2[Atomic Rename]
+        DC2 --> DC3[Backup on Conflicts]
+    end
 ```
 
 ### 2. Journal Writing & AI Interaction Flow
