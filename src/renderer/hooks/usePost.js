@@ -128,9 +128,22 @@ function usePost(
     const fullParentPostPath = getCurrentPilePath(parentPostPath);
     const parentPost = await getPost(fullParentPostPath);
     const { content } = parentPost;
+    // Prevent duplicate replies
+    const existingReplies = parentPost.data.replies || [];
+    const newReplies = existingReplies.includes(relativeReplyPath) 
+      ? existingReplies 
+      : [...existingReplies, relativeReplyPath];
+      
+    console.log('Adding reply to parent:', {
+      parentPostPath,
+      relativeReplyPath,
+      existingReplies,
+      isDuplicate: existingReplies.includes(relativeReplyPath)
+    });
+    
     const data = {
       ...parentPost.data,
-      replies: [...parentPost.data.replies, relativeReplyPath],
+      replies: newReplies,
     };
     const fileContents = await fileOperations.generateMarkdown(content, data);
     await fileOperations.saveFile(fullParentPostPath, fileContents);

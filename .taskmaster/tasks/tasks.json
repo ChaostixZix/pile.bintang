@@ -1364,7 +1364,7 @@
           11,
           12
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1372,7 +1372,7 @@
             "description": "Design and implement the client-side local data cache to mirror Supabase data, providing basic CRUD operations for local storage.",
             "dependencies": [],
             "details": "Choose a local storage solution (e.g., SQLite for Electron/mobile, IndexedDB for web). Define the schema for `posts` and `piles` tables locally, mirroring their Supabase structure. Implement methods for creating, reading, updating, and deleting records within this local cache.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify local CRUD operations function correctly. Ensure data persistence across application restarts and that the local cache accurately reflects the intended schema."
           },
           {
@@ -1383,7 +1383,7 @@
               "13.1"
             ],
             "details": "Design a dedicated structure (e.g., a table within the local data cache) to store pending CUD operations. Each queued item should include the operation type (Create, Update, Delete), target table, relevant data/payload, a unique identifier, and a timestamp. Implement an interception layer for application CUD calls to push operations to this queue when offline.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Simulate offline mode. Perform various CUD operations (create, edit, delete) and verify they are correctly stored in the offline queue. Check queue content for accuracy and completeness of operation details."
           },
           {
@@ -1392,7 +1392,7 @@
             "description": "Develop a robust mechanism to detect changes in network connectivity status (online/offline) to trigger appropriate sync behaviors.",
             "dependencies": [],
             "details": "Implement listeners for browser `online`/`offline` events or use a more sophisticated method (e.g., periodic pings to a known endpoint) to determine actual connectivity. Provide a clear API or event system to notify other parts of the application about connectivity status changes.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Toggle network connectivity (Wi-Fi, airplane mode, disconnect/reconnect Ethernet) and verify the application accurately detects and reports online/offline status changes in real-time."
           },
           {
@@ -1405,7 +1405,7 @@
               "13.3"
             ],
             "details": "Upon detecting an 'online' state, iterate through the offline queue. For each queued operation, execute the corresponding CUD operation against Supabase. Handle successful operations by removing them from the queue. Implement basic error handling for failed operations during replay (e.g., retry mechanism, marking as failed). Ensure operations are replayed in a logical order (e.g., creation before updates/deletions on the same entity).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Simulate offline mode, perform multiple CUD operations (create, update, delete across different entities). Go online and verify all queued operations are successfully replayed to Supabase and removed from the queue. Check Supabase for data consistency and accuracy."
           },
           {
@@ -1416,7 +1416,7 @@
               "13.4"
             ],
             "details": "Implement a 'last-write-wins' strategy for conflicts that may arise when replaying queued operations. This involves ensuring that the most recent change (based on a `last_modified_at` timestamp or version) takes precedence. For the initial implementation, this means the replayed local change will overwrite the server's state if a conflict occurs on the same record during replay.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Simulate a conflict scenario: go offline, modify a record. While offline, modify the *same* record directly in Supabase (e.g., via another client or direct DB access). Go online and verify the 'last-write-wins' strategy correctly resolves the conflict, with the expected change (local or remote, based on timestamp) persisting."
           }
         ]
@@ -1705,7 +1705,7 @@
         "dependencies": [
           15
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -2025,18 +2025,82 @@
         "description": "Address critical UX issues in Google OAuth, ensuring the popup window closes automatically and the authentication state is correctly transferred to the main window for a seamless user experience.",
         "details": "The current Google OAuth flow successfully authenticates users but fails to provide a smooth UX due to the popup window not closing automatically and the main window not reflecting the authenticated state. The fix will involve:\n1.  **Popup Window Management**:\n    *   Modify the OAuth initiation to open the Google sign-in flow in a new `BrowserWindow` managed by the Electron main process.\n    *   In the main process, attach a `webContents.on('did-navigate')` or `webContents.on('will-redirect')` listener to the popup `BrowserWindow`.\n    *   Upon detection of the Supabase OAuth callback URL (containing `access_token`, `refresh_token`, etc.), capture the full URL.\n    *   Parse the URL to extract the session tokens.\n    *   Immediately close the popup `BrowserWindow` using `popupWindow.close()`.\n2.  **Authentication State Transfer**:\n    *   After extracting the session tokens in the main process, use `supabase.auth.setSession({ access_token, refresh_token })` if the Supabase client is managed in the main process.\n    *   Alternatively, send the extracted `access_token` and `refresh_token` to the main window's renderer process via IPC (e.g., `ipcMain.send(mainWindow.webContents, 'auth:session-update', { accessToken, refreshToken })`).\n    *   In the main window's renderer process, listen for the `auth:session-update` IPC message.\n    *   Upon receiving the message, update the Supabase client's session using `supabase.auth.setSession()` or trigger a manual session refresh (`supabase.auth.refreshSession()`) to ensure the `onAuthStateChange` listener is triggered.\n    *   Ensure the UI components in the main window (e.g., sign-in button, user profile, piles list) react to the updated authentication state.\n    *   Consider using `localStorage` directly if `supabase.auth.setSession` is not directly available or if the `onAuthStateChange` listener is expected to pick up changes from `localStorage` automatically.",
         "testStrategy": "1. Initiate the Google OAuth sign-in process from the main application window.\n2. Verify that a new popup window appears for Google authentication.\n3. Complete the Google authentication successfully.\n4. Observe that the popup window automatically closes immediately after successful authentication, without displaying the app's home page.\n5. Verify that the main application window instantly transitions from showing the sign-in button to displaying the authenticated user's profile and 'piles' list.\n6. Log out from the application and repeat the entire process to ensure consistent behavior.\n7. Test scenarios where the user closes the popup manually before completing authentication (main window should remain unauthenticated).\n8. Verify error handling if session transfer fails (e.g., tokens are invalid or missing).",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           3,
           8
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Verify deep link registration (macOS) and add success/error logging",
+            "description": "Confirm `app.setAsDefaultProtocolClient('pilebintang')` succeeds at runtime on macOS. Add explicit logs for registration result and add `app.on('open-url')` diagnostics to confirm the callback is received. Ensure logs are concise and gated behind a debug flag.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 26
+          },
+          {
+            "id": 2,
+            "title": "Implement deep-link handling for Windows/Linux via `second-instance` argv",
+            "description": "Use `app.requestSingleInstanceLock()` and the `second-instance` event to parse argv for `pilebintang://auth-callback?...`, route to the same resolver (close popup, resolve callback URL), and add diagnostics. Document the expected argv format for different shells.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 26
+          },
+          {
+            "id": 3,
+            "title": "Add comprehensive OAuth popup logging across all navigation events",
+            "description": "Instrument the OAuth popup with debug logs for `will-navigate`, `will-redirect`, `did-redirect-navigation`, `did-navigate`, `did-fail-load`, `did-fail-provisional-load`, and `setWindowOpenHandler`. Each log should include the event name, URL, and whether the flow resolved or was ignored.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 26
+          },
+          {
+            "id": 4,
+            "title": "Harden dev HTTP callback close conditions for app origin and /auth/callback",
+            "description": "Expand app-origin detection to include http/https with dev host/port and path, and intercept navigation to `/auth/callback` immediately. Ensure the popup closes before the SPA renders and starts API calls inside the popup.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 26
+          },
+          {
+            "id": 5,
+            "title": "Update Supabase Allowed Redirect URLs and verify PKCE compatibility",
+            "description": "In the Supabase dashboard, add both `pilebintang://auth-callback` and your dev URL (e.g., `http://localhost:1212/auth/callback`) to Allowed Redirect URLs. Confirm the supabase-js version supports `auth.exchangeCodeForSession(authCode)`; adjust to `getSessionFromUrl` if needed.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 26
+          },
+          {
+            "id": 6,
+            "title": "Enhance renderer diagnostics and manual callback URL exchange helper",
+            "description": "Add logs for `OAuth result` including whether `callbackUrl` is present (mask sensitive params). Show user-friendly error if `success === false`. Optionally add a debug input to paste a callback URL and trigger `exchangeCodeForSession` manually to recover.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 26
+          },
+          {
+            "id": 7,
+            "title": "Prepare production packaging and docs for deep link OAuth",
+            "description": "Document deep link registration and expected behavior in packaged builds. Verify the installer/packager registers `pilebintang://` and test the OAuth flow end-to-end in a packaged app. Include troubleshooting tips for users.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 26
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-08-26T16:05:18.194Z",
-      "updated": "2025-08-27T15:57:30.206Z",
+      "updated": "2025-08-27T17:59:30.569Z",
       "description": "Tasks for research context",
       "renamed": {
         "from": "research",
