@@ -30,7 +30,8 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
   const { highlights } = useHighlightsContext();
   const { validKey } = useAIContext();
   // const { setClosestDate } = useTimelineContext();
-  const { post, cycleColor, refreshPost, setHighlight, deletePost } = usePost(postPath);
+  const { post, cycleColor, refreshPost, setHighlight, deletePost } =
+    usePost(postPath);
   const [hovering, setHover] = useState(false);
   const [replying, setReplying] = useState(false);
   const [isAIResplying, setIsAiReplying] = useState(false);
@@ -66,6 +67,20 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
   const handleRootMouseLeave = () => setHover(false);
   const containerRef = useRef();
 
+  // Listen for a request to open a user reply after AI completes (Think Deeper flow)
+  useEffect(() => {
+    const handler = (e) => {
+      const { parentPostPath: target } = e.detail || {};
+      if (!target) return;
+      if (target === postPath) {
+        setIsAiReplying(false);
+        setReplying(true);
+      }
+    };
+    document.addEventListener('open-user-reply', handler);
+    return () => document.removeEventListener('open-user-reply', handler);
+  }, [postPath]);
+
   const handleDelete = useCallback(async () => {
     if (!deleteConfirm) {
       setDeleteConfirm(true);
@@ -73,7 +88,7 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
       setTimeout(() => setDeleteConfirm(false), 3000);
       return;
     }
-    
+
     try {
       await deletePost();
       setDeleteConfirm(false);
@@ -201,7 +216,11 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
                 <button
                   className={`${styles.openReply} ${deleteConfirm ? styles.confirmDelete : ''}`}
                   onClick={handleDelete}
-                  title={deleteConfirm ? "Click again to confirm deletion of entire thread" : "Delete entire thread (including all replies)"}
+                  title={
+                    deleteConfirm
+                      ? 'Click again to confirm deletion of entire thread'
+                      : 'Delete entire thread (including all replies)'
+                  }
                 >
                   <TrashIcon className={styles.icon2} />
                   {deleteConfirm ? 'Confirm Delete Thread' : 'Delete Thread'}
@@ -244,6 +263,7 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
               <div className={styles.right}>
                 <div className={styles.editor}>
                   <Editor
+                    key={`reply-${isAIResplying ? 'ai' : 'user'}`}
                     parentPostPath={postPath}
                     reloadParentPost={refreshPost}
                     setEditable={setEditable}
