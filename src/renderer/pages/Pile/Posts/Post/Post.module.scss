@@ -203,6 +203,7 @@
   min-height: 40px;
   margin-top: -10px;
   position: relative;
+  z-index: 10; // Ensure actions are above other elements
 }
 
 .actions {
@@ -211,6 +212,8 @@
   vertical-align: middle;
   padding: 0 16px 0 51px;
   margin: 0 -5px;
+  position: relative;
+  z-index: 11; // Higher than parent to ensure clickability
 
   .sep {
     margin: 0 5px 0 4px;

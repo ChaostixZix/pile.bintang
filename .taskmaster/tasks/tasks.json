@@ -534,12 +534,448 @@
         ],
         "priority": "low",
         "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Supabase Project Setup & Database Schema Implementation",
+        "description": "Initialize the Supabase project, configure the database, and implement all core tables as defined in the PRD.",
+        "details": "Create the Supabase project. Implement `users`, `user_profiles`, `piles`, `pile_members`, `posts`, `post_replies`, `post_tags`, `post_highlights`, and `attachments` tables. Ensure `id`, `created_at`, `updated_at` columns are present where applicable. Add initial indexes for common query patterns (e.g., `user_id` on `piles`, `pile_id` on `posts`).",
+        "testStrategy": "Verify all tables are created with correct schemas and column types. Insert sample data and confirm data integrity. Check that initial indexes are applied.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initialize Supabase Project",
+            "description": "Create a new Supabase project instance and obtain necessary API keys and configuration details.",
+            "dependencies": [],
+            "details": "Log in to the Supabase dashboard, create a new project, and note down the project URL and `anon` public key. This establishes the foundational environment for the database and other services.",
+            "status": "pending",
+            "testStrategy": "Verify the project is accessible via the Supabase dashboard and API keys are available in the project settings."
+          },
+          {
+            "id": 2,
+            "title": "Implement Core Tables with Base Columns",
+            "description": "Create the initial set of core database tables as defined, ensuring `id`, `created_at`, and `updated_at` columns are present where applicable.",
+            "dependencies": [
+              "11.1"
+            ],
+            "details": "Create `users`, `user_profiles`, `piles`, `pile_members`, `posts`, `post_replies`, `post_tags`, `post_highlights`, and `attachments` tables. For each, include an `id` column (UUID primary key), `created_at` (timestamp with default now()), and `updated_at` (timestamp with update trigger) columns where appropriate.",
+            "status": "pending",
+            "testStrategy": "Verify all specified tables exist in the Supabase database schema with the correct base columns and data types. Insert a sample row into each table to confirm column functionality."
+          },
+          {
+            "id": 3,
+            "title": "Define Table Relationships and Foreign Keys",
+            "description": "Establish the relationships between the core tables by adding foreign key constraints to ensure data integrity and referential consistency.",
+            "dependencies": [
+              "11.2"
+            ],
+            "details": "Add foreign key constraints, for example: `user_profiles.user_id` to `users.id`, `piles.user_id` to `users.id`, `pile_members.user_id` to `users.id` and `pile_members.pile_id` to `piles.id`, `posts.user_id` to `users.id` and `posts.pile_id` to `piles.id`, `post_replies.user_id` to `users.id` and `post_replies.post_id` to `posts.id`, `post_tags.post_id` to `posts.id`, `post_highlights.post_id` to `posts.id`, and `attachments.post_id` to `posts.id`.",
+            "status": "pending",
+            "testStrategy": "Attempt to insert data that violates foreign key constraints (e.g., a post with a non-existent user_id) to confirm they are correctly enforced. Verify relationships are visible and correct in the Supabase schema visualizer."
+          },
+          {
+            "id": 4,
+            "title": "Implement Database Row Level Security (RLS) Policies",
+            "description": "Configure Row Level Security policies for all core tables to control data access based on user roles and ownership, ensuring data privacy and security.",
+            "dependencies": [
+              "11.3"
+            ],
+            "details": "Enable RLS for `users`, `user_profiles`, `piles`, `pile_members`, `posts`, `post_replies`, `post_tags`, `post_highlights`, and `attachments`. Define policies that allow users to read/write their own data, and access data within piles they are members of, as appropriate for each table's context.",
+            "status": "pending",
+            "testStrategy": "Test data access from different authenticated users (e.g., user A trying to read user B's private profile or a post in a pile they are not a member of) and unauthenticated users to ensure RLS policies are correctly applied and prevent unauthorized access."
+          },
+          {
+            "id": 5,
+            "title": "Add Initial Database Indexes",
+            "description": "Create initial indexes on frequently queried columns to optimize database performance for common access patterns.",
+            "dependencies": [
+              "11.3"
+            ],
+            "details": "Add indexes for common query patterns as specified: `user_id` on `piles` and `pile_id` on `posts`. Additionally, consider adding indexes on other foreign key columns like `user_id` on `user_profiles`, `post_id` on `post_replies`, etc., to improve join performance.",
+            "status": "pending",
+            "testStrategy": "Verify that the specified indexes are present in the database schema. Run simple queries that utilize these indexed columns and, if possible, analyze query plans to confirm index usage and performance improvement."
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Implement Supabase Authentication (Email/Password & Google OAuth)",
+        "description": "Integrate Supabase Auth for user sign-up, sign-in, and session management using email/password and Google OAuth.",
+        "details": "Configure Supabase Auth in the project. Enable Email/Password and Google OAuth providers. Implement client-side logic using `supabase-js` for user registration, login, logout, and session persistence. Securely store authentication tokens within the Electron application.",
+        "testStrategy": "Test user registration, login, and logout with both email/password and Google accounts. Verify session persistence across app restarts. Confirm secure token storage.",
+        "priority": "high",
+        "dependencies": [
+          11
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configure Supabase Project & Client",
+            "description": "Set up the Supabase project, enable Email/Password and Google OAuth providers in the Supabase dashboard, and initialize the `supabase-js` client in the Electron application.",
+            "dependencies": [],
+            "details": "Obtain Supabase URL and Anon Key. Configure these in the Electron app's environment or configuration files. Enable Email/Password and Google OAuth in the Supabase Auth settings within the Supabase dashboard.",
+            "status": "pending",
+            "testStrategy": "Verify Supabase client initializes without errors in the Electron app's console. Confirm Email/Password and Google OAuth providers are visibly enabled in the Supabase dashboard's authentication settings."
+          },
+          {
+            "id": 2,
+            "title": "Implement Email/Password Sign-up, Sign-in, and Logout",
+            "description": "Develop the client-side logic using `supabase-js` for user registration, login, and logout specifically for email/password authentication.",
+            "dependencies": [
+              "12.1"
+            ],
+            "details": "Implement functions for `supabase.auth.signUp({ email, password })`, `supabase.auth.signInWithPassword({ email, password })`, and `supabase.auth.signOut()`. Design and integrate basic UI components (forms, buttons) for these authentication actions within the Electron application.",
+            "status": "pending",
+            "testStrategy": "Test user registration with a new email and password. Verify successful login and logout. Attempt login with incorrect credentials (wrong email, wrong password) and verify error handling. Confirm user data appears in Supabase Auth users table."
+          },
+          {
+            "id": 3,
+            "title": "Integrate Google OAuth Sign-in",
+            "description": "Implement the client-side logic to allow users to sign in using their Google accounts via Supabase OAuth.",
+            "dependencies": [
+              "12.1"
+            ],
+            "details": "Implement `supabase.auth.signInWithOAuth({ provider: 'google' })`. Handle the OAuth redirect flow appropriate for an Electron application, which may involve using a custom protocol handler or an in-app browser window for the authentication process and capturing the callback.",
+            "status": "pending",
+            "testStrategy": "Test sign-in with a valid Google account. Verify successful authentication and the creation of a user session. Confirm the user's Google profile information is correctly retrieved and associated with the Supabase user."
+          },
+          {
+            "id": 4,
+            "title": "Implement Session Management and Persistence",
+            "description": "Develop the logic to manage user sessions, including refreshing tokens and ensuring session persistence across application restarts.",
+            "dependencies": [
+              "12.2",
+              "12.3"
+            ],
+            "details": "Utilize `supabase-js`'s built-in session management capabilities. Implement mechanisms to listen for authentication state changes (`supabase.auth.onAuthStateChange`). Ensure the user's session is re-established automatically when the Electron application restarts, relying on `supabase-js`'s internal storage or a custom secure storage solution.",
+            "status": "pending",
+            "testStrategy": "Log in using both Email/Password and Google OAuth. Close and reopen the Electron application and verify the user remains logged in without needing to re-authenticate. Test session refresh after a period of inactivity or token expiration."
+          },
+          {
+            "id": 5,
+            "title": "Securely Store Authentication Tokens",
+            "description": "Implement a secure method for storing authentication tokens within the Electron application to prevent unauthorized access.",
+            "dependencies": [
+              "12.4"
+            ],
+            "details": "Research and implement a secure storage solution for Electron, such as `electron-store` with encryption, `keytar` (for OS-level keychain/credential manager integration), or a custom encrypted file storage mechanism. Ensure that access tokens, refresh tokens, and other sensitive session data are not stored in plain text.",
+            "status": "pending",
+            "testStrategy": "Verify that authentication tokens are stored securely (e.g., not readable in plain text from the file system or developer tools). Test that tokens can be retrieved correctly for session persistence. Attempt to manually tamper with stored tokens and verify the application handles it gracefully (e.g., forces re-login or invalidates the session)."
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Develop Core Sync Infrastructure & Offline Queue",
+        "description": "Establish the foundational client-side sync mechanism and an offline queue for pending operations to support offline-first functionality.",
+        "details": "Design and implement a local data cache (e.g., SQLite or IndexedDB) to mirror Supabase data. Create an 'offline queue' to store all CUD (Create, Update, Delete) operations when the application is offline. Implement a mechanism to detect network connectivity changes and automatically replay queued operations to Supabase upon reconnection.",
+        "testStrategy": "Simulate offline mode: create/edit/delete entries, then go online and verify successful sync. Test with multiple operations queued. Ensure data consistency after sync.",
+        "priority": "high",
+        "dependencies": [
+          11,
+          12
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Local Data Cache",
+            "description": "Design and implement the client-side local data cache to mirror Supabase data, providing basic CRUD operations for local storage.",
+            "dependencies": [],
+            "details": "Choose a local storage solution (e.g., SQLite for Electron/mobile, IndexedDB for web). Define the schema for `posts` and `piles` tables locally, mirroring their Supabase structure. Implement methods for creating, reading, updating, and deleting records within this local cache.",
+            "status": "pending",
+            "testStrategy": "Verify local CRUD operations function correctly. Ensure data persistence across application restarts and that the local cache accurately reflects the intended schema."
+          },
+          {
+            "id": 2,
+            "title": "Develop Offline Operations Queue",
+            "description": "Create a mechanism to capture and store all CUD (Create, Update, Delete) operations when the application is offline, preparing them for later synchronization.",
+            "dependencies": [
+              "13.1"
+            ],
+            "details": "Design a dedicated structure (e.g., a table within the local data cache) to store pending CUD operations. Each queued item should include the operation type (Create, Update, Delete), target table, relevant data/payload, a unique identifier, and a timestamp. Implement an interception layer for application CUD calls to push operations to this queue when offline.",
+            "status": "pending",
+            "testStrategy": "Simulate offline mode. Perform various CUD operations (create, edit, delete) and verify they are correctly stored in the offline queue. Check queue content for accuracy and completeness of operation details."
+          },
+          {
+            "id": 3,
+            "title": "Implement Network Connectivity Detection",
+            "description": "Develop a robust mechanism to detect changes in network connectivity status (online/offline) to trigger appropriate sync behaviors.",
+            "dependencies": [],
+            "details": "Implement listeners for browser `online`/`offline` events or use a more sophisticated method (e.g., periodic pings to a known endpoint) to determine actual connectivity. Provide a clear API or event system to notify other parts of the application about connectivity status changes.",
+            "status": "pending",
+            "testStrategy": "Toggle network connectivity (Wi-Fi, airplane mode, disconnect/reconnect Ethernet) and verify the application accurately detects and reports online/offline status changes in real-time."
+          },
+          {
+            "id": 4,
+            "title": "Develop Queued Operations Replay Logic",
+            "description": "Implement the core logic to automatically replay all stored offline CUD operations to Supabase upon network reconnection.",
+            "dependencies": [
+              "13.1",
+              "13.2",
+              "13.3"
+            ],
+            "details": "Upon detecting an 'online' state, iterate through the offline queue. For each queued operation, execute the corresponding CUD operation against Supabase. Handle successful operations by removing them from the queue. Implement basic error handling for failed operations during replay (e.g., retry mechanism, marking as failed). Ensure operations are replayed in a logical order (e.g., creation before updates/deletions on the same entity).",
+            "status": "pending",
+            "testStrategy": "Simulate offline mode, perform multiple CUD operations (create, update, delete across different entities). Go online and verify all queued operations are successfully replayed to Supabase and removed from the queue. Check Supabase for data consistency and accuracy."
+          },
+          {
+            "id": 5,
+            "title": "Implement Initial Conflict Resolution Strategy",
+            "description": "Establish a basic conflict resolution strategy for replayed operations to ensure data consistency during sync, specifically 'last-write-wins'.",
+            "dependencies": [
+              "13.4"
+            ],
+            "details": "Implement a 'last-write-wins' strategy for conflicts that may arise when replaying queued operations. This involves ensuring that the most recent change (based on a `last_modified_at` timestamp or version) takes precedence. For the initial implementation, this means the replayed local change will overwrite the server's state if a conflict occurs on the same record during replay.",
+            "status": "pending",
+            "testStrategy": "Simulate a conflict scenario: go offline, modify a record. While offline, modify the *same* record directly in Supabase (e.g., via another client or direct DB access). Go online and verify the 'last-write-wins' strategy correctly resolves the conflict, with the expected change (local or remote, based on timestamp) persisting."
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "title": "Implement Row Level Security (RLS) Policies",
+        "description": "Define and apply Row Level Security policies to all relevant tables to ensure user data isolation and secure access.",
+        "details": "Enable RLS on `piles`, `pile_members`, `posts`, `post_replies`, `post_tags`, `post_highlights`, and `attachments` tables. Write policies to ensure users can only access their own data or data from piles they are explicitly members of. Test policies rigorously to prevent unauthorized data access.",
+        "testStrategy": "Attempt to access data belonging to other users or unshared piles from a logged-in user. Verify that RLS correctly denies access. Test various user roles and permissions.",
+        "priority": "high",
+        "dependencies": [
+          11,
+          12
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Enable RLS on all specified tables",
+            "description": "Activate Row Level Security for `piles`, `pile_members`, `posts`, `post_replies`, `post_tags`, `post_highlights`, and `attachments` tables in the database.",
+            "dependencies": [],
+            "details": "Execute `ALTER TABLE <table_name> ENABLE ROW LEVEL SECURITY;` for each of the seven specified tables: `piles`, `pile_members`, `posts`, `post_replies`, `post_tags`, `post_highlights`, and `attachments`.",
+            "status": "pending",
+            "testStrategy": "Verify that RLS is enabled for each table by querying `pg_policies` or `information_schema.tables` in the database."
+          },
+          {
+            "id": 2,
+            "title": "Implement RLS policies for direct user ownership",
+            "description": "Create RLS policies that allow users to access rows where they are the direct owner (e.g., `user_id = auth.uid()`).",
+            "dependencies": [
+              "14.1"
+            ],
+            "details": "Create `CREATE POLICY` statements for `SELECT`, `INSERT`, `UPDATE`, `DELETE` operations on tables where data is directly owned by a user (e.g., `posts`, `attachments`, `piles` if a user owns a pile directly) using `auth.uid() = user_id` or similar conditions.",
+            "status": "pending",
+            "testStrategy": "As user A, create data. Log in as user B and attempt to read/update/delete user A's data. Verify access is denied. Log in as user A and verify full access to own data."
+          },
+          {
+            "id": 3,
+            "title": "Implement RLS policies for pile membership",
+            "description": "Develop RLS policies that grant access to data associated with piles where the current user is an explicit member.",
+            "dependencies": [
+              "14.1"
+            ],
+            "details": "Develop `CREATE POLICY` statements for `SELECT`, `INSERT`, `UPDATE`, `DELETE` operations on tables associated with piles (e.g., `posts`, `post_replies`, `post_tags`, `post_highlights`, `attachments`, `pile_members`) that check if `auth.uid()` is a member of the relevant `pile_id` using subqueries or `EXISTS` clauses against the `pile_members` table.",
+            "status": "pending",
+            "testStrategy": "Create a pile and add user A and user B as members. User A creates a post in that pile. Log in as user B and verify access to user A's post within the shared pile. Log in as user C (not a member) and verify access is denied."
+          },
+          {
+            "id": 4,
+            "title": "Consolidate and apply all RLS policies to target tables",
+            "description": "Combine and apply all defined RLS policies (user ownership and pile membership) to ensure comprehensive and correct access control across all specified tables.",
+            "dependencies": [
+              "14.2",
+              "14.3"
+            ],
+            "details": "Review and combine the user ownership and pile membership policies. For tables requiring both access types, merge conditions using `OR`. Apply these final, comprehensive policies to all seven specified tables: `piles`, `pile_members`, `posts`, `post_replies`, `post_tags`, `post_highlights`, and `attachments`.",
+            "status": "pending",
+            "testStrategy": "Perform a final review of all `CREATE POLICY` statements for syntax, logical correctness, and complete coverage across all specified tables and operations."
+          },
+          {
+            "id": 5,
+            "title": "Conduct comprehensive RLS policy testing and validation",
+            "description": "Execute a thorough testing strategy to verify that all RLS policies correctly enforce data isolation and secure access, covering various user roles and access scenarios.",
+            "dependencies": [
+              "14.4"
+            ],
+            "details": "Execute the parent task's test strategy: 'Attempt to access data belonging to other users or unshared piles from a logged-in user. Verify that RLS correctly denies access. Test various user roles and permissions.' This involves developing and running a suite of test cases for `SELECT`, `INSERT`, `UPDATE`, `DELETE` operations across all tables under different user contexts (owner, pile member, non-member).",
+            "status": "pending",
+            "testStrategy": "Develop and execute a comprehensive test plan including: 1. Verifying successful access for owners and pile members. 2. Confirming denial of access for unauthorized users (other users' private data, unshared piles). 3. Testing edge cases, such as data without a direct `user_id` or `pile_id` if applicable, and different user roles."
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "title": "Implement Post & Pile Data Synchronization",
+        "description": "Develop the core logic for synchronizing `posts` and `piles` data between the local cache and Supabase, including initial fetch and incremental updates.",
+        "details": "Implement CRUD operations for `posts` and `piles` that interact with both the local cache and Supabase. Handle the initial data fetch from Supabase to populate the local cache. Implement incremental updates for new, modified, or deleted entries. Initially, use a 'last-write-wins' strategy for conflict resolution.",
+        "testStrategy": "Create, update, and delete posts/piles on one device and verify immediate sync to another. Test with large number of entries. Verify data consistency across devices after sync.",
+        "priority": "high",
+        "dependencies": [
+          13,
+          14
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Develop 'Enable Cloud Sync' UI & Migration Wizard",
+        "description": "Create the user interface for enabling cloud sync and a guided migration wizard for existing local data.",
+        "details": "Design and implement a 'Cloud Sync' section in the application settings. Include an 'Enable Supabase Sync' toggle. Develop a multi-step migration wizard for existing users to upload their local piles to Supabase, including pile selection, estimated size, a progress bar, and a verification step comparing local vs. cloud data.",
+        "testStrategy": "Test the entire migration flow with various local data sizes. Verify progress bar accuracy and data integrity post-migration. Ensure rollback capabilities function correctly if issues arise.",
+        "priority": "high",
+        "dependencies": [
+          15
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Implement Conflict Resolution Strategy",
+        "description": "Refine the conflict resolution mechanism for simultaneous edits or offline changes, providing user-friendly options.",
+        "details": "Enhance the 'last-write-wins' strategy with more sophisticated conflict detection. Design and implement a UI/UX for users to be notified of conflicts and potentially choose between conflicting versions or merge changes, especially for collaborative editing scenarios.",
+        "testStrategy": "Simulate simultaneous edits on the same post from different devices. Test offline edits followed by online edits. Verify the conflict resolution UI is clear and functional.",
+        "priority": "medium",
+        "dependencies": [
+          15
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Implement Real-time Post Editing & Presence",
+        "description": "Integrate Supabase Realtime for live synchronization of post content, live cursor positions, and user presence within shared piles.",
+        "details": "Utilize `supabase.channel` to subscribe to `posts` changes within a specific pile for real-time content updates. Implement a mechanism for live cursor positions (e.g., using a dedicated presence channel or a temporary table). Develop UI to display presence indicators (who is currently online and viewing/editing a pile).",
+        "testStrategy": "Test real-time editing from multiple clients simultaneously. Verify cursor positions update accurately. Confirm presence indicators reflect active users in a pile.",
+        "priority": "high",
+        "dependencies": [
+          15
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "Develop Pile Sharing & Member Management UI",
+        "description": "Create the user interface and backend logic for sharing piles with other users and managing collaborators' permissions.",
+        "details": "Implement functionality to generate shareable links for piles, allowing users to invite others. Develop a UI for managing pile members, including inviting, removing, and assigning roles/permissions (e.g., read-only, editor) using the `pile_members` table. Ensure RLS policies are respected.",
+        "testStrategy": "Test sharing a pile with different permission levels. Verify invited users can access/edit based on their role. Confirm the owner can remove members and revoke access.",
+        "priority": "high",
+        "dependencies": [
+          14,
+          18
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "Integrate Supabase Storage for Attachments",
+        "description": "Implement secure file upload, download, and management for attachments using Supabase Storage buckets.",
+        "details": "Create `pile-attachments` and `user-avatars` storage buckets in Supabase. Implement client-side logic for securely uploading images and other files, associating them with `posts` via the `attachments` table. Develop functionality to download and display these attachments. Configure RLS for storage buckets to ensure only authorized users can access files.",
+        "testStrategy": "Upload various file types and sizes. Verify successful upload, secure storage, and correct display/download. Test RLS by attempting to access unauthorized files.",
+        "priority": "high",
+        "dependencies": [
+          11,
+          14,
+          15
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 21,
+        "title": "Implement Full-Text Search on Post Content",
+        "description": "Add efficient full-text search capabilities across all user's journal entries using PostgreSQL's built-in features.",
+        "details": "Configure a `tsvector` column on the `posts` table, automatically updating it on content changes using a trigger. Implement a search API endpoint that utilizes `to_tsquery` for fast and relevant full-text search across all posts accessible to the user. Optimize search queries for performance.",
+        "testStrategy": "Perform searches with various keywords, phrases, and special characters. Verify search results are accurate and returned within the performance requirements (<1 second). Test search across large datasets.",
+        "priority": "medium",
+        "dependencies": [
+          11,
+          15
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 22,
+        "title": "Develop Sync Status Indicators & Error Handling UI",
+        "description": "Create clear visual indicators for sync status, connection status, and user-friendly error messages for sync-related issues.",
+        "details": "Implement UI elements (e.g., sidebar icons, status bar indicators) to visually communicate 'synced', 'syncing', 'offline', and 'conflict' states. Design and implement clear, actionable error messages and recovery options for network issues, sync failures, or data conflicts.",
+        "testStrategy": "Simulate various network conditions (offline, slow, intermittent). Verify UI indicators accurately reflect status. Trigger sync errors and confirm user-friendly error messages are displayed with guidance.",
+        "priority": "medium",
+        "dependencies": [
+          13,
+          15
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 23,
+        "title": "Implement Data Export Functionality",
+        "description": "Allow users to export their complete journal data from Supabase in a common, accessible format.",
+        "details": "Develop a feature that enables users to export their entire journal data (posts, attachments metadata, pile structure) in a user-friendly format such as JSON or a collection of Markdown files. Consider using Supabase Functions to generate the export file server-side and store it temporarily in an `exports` storage bucket for download.",
+        "testStrategy": "Export data for users with varying amounts of content and attachments. Verify the exported data is complete, correctly formatted, and easily importable/readable. Test the download process.",
+        "priority": "low",
+        "dependencies": [
+          15,
+          20
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 24,
+        "title": "Performance Optimization & Load Testing",
+        "description": "Conduct comprehensive performance testing, identify bottlenecks, and optimize database queries, real-time subscriptions, and sync logic.",
+        "details": "Perform load testing for concurrent users and large datasets to identify performance bottlenecks. Optimize SQL queries by adding necessary composite indexes and refining existing ones. Fine-tune real-time subscriptions and client-side sync logic to meet performance requirements (e.g., <2s sync latency, <500ms query response, <100ms real-time latency).",
+        "testStrategy": "Use profiling tools to identify slow queries. Conduct stress tests with simulated users. Monitor Supabase metrics for database performance. Verify all performance requirements are met under load.",
+        "priority": "high",
+        "dependencies": [
+          15,
+          18,
+          20,
+          21
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "Comprehensive End-to-End Testing & Documentation",
+        "description": "Conduct final end-to-end testing, user acceptance testing (UAT), and create user documentation for all new cloud features.",
+        "details": "Develop and execute comprehensive end-to-end test plans covering all user stories, technical requirements, and edge cases. Organize beta testing with a group of users to gather feedback. Create clear and concise user documentation, including guides for cloud sync, collaboration, data migration, and troubleshooting common issues.",
+        "testStrategy": "Execute full regression test suite. Conduct UAT sessions and collect feedback. Review all documentation for accuracy, clarity, and completeness. Verify all success criteria from the PRD are met.",
+        "priority": "high",
+        "dependencies": [
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24
+        ],
+        "status": "pending",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-08-26T16:05:18.194Z",
-      "updated": "2025-08-26T19:17:46.258Z",
-      "description": "Research-driven Gemini migration plan"
+      "updated": "2025-08-27T08:41:53.121Z",
+      "description": "Tasks for research context"
     }
   }
 }

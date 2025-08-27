@@ -39,6 +39,7 @@ const Editor = memo(
     editable = false,
     parentPostPath = null,
     isAI = false,
+    isThinkDeeper = false,
     isReply = false,
     closeReply = () => {},
     setEditable = () => {},
@@ -255,8 +256,8 @@ const Editor = memo(
         const thread = await getThread(parentPostPath);
         console.log('📝 [Editor] Thread retrieved:', thread?.length, 'posts');
         
-        const context = prepareCompletionContext(thread);
-        console.log('📝 [Editor] Context prepared:', context?.length, 'messages');
+        const context = prepareCompletionContext(thread, isThinkDeeper);
+        console.log('📝 [Editor] Context prepared:', context?.length, 'messages', isThinkDeeper ? '(Think Deeper mode)' : '');
 
         if (context.length === 0) {
           throw new Error('No context available for AI response');

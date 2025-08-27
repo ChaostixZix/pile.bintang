@@ -195,7 +195,7 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
                   }}
                 >
                   <ReflectIcon className={styles.icon2} />
-                  Reflect
+                  Think Deeper
                 </button>
                 <div className={styles.sep}>/</div>
                 <button
@@ -251,6 +251,7 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
                     isReply
                     closeReply={closeReply}
                     isAI={isAIResplying}
+                    isThinkDeeper={isAIResplying}
                   />
                 </div>
               </div>

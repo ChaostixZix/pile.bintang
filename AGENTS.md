@@ -1,7 +1,5 @@
 # Task Master AI - Agent Integration Guide
 
-Note: This project uses Google Gemini 2.5 Pro as the default cloud AI provider. Examples and references assume Gemini unless stated otherwise.
-
 ## Essential Commands
 
 ### Core Workflow Commands
