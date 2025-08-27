@@ -1,0 +1,25 @@
+# Task ID: 5
+# Title: JSON mode: structured summaries and parsing
+# Status: pending
+# Dependencies: 2
+# Priority: medium
+# Description: Add generationConfig.responseMimeType='application/json' for summary endpoints; robust JSON parse with fallback and user feedback.
+# Details:
+Create helper `generateJson(prompt)` with schema-in-prompt; surface parse errors with toasts; add typing to parsed objects.
+
+# Test Strategy:
+Unit: valid/invalid JSON responses; UI: shows error toast when invalid.
+
+# Subtasks:
+## 1. Define JSON prompt templates [pending]
+### Dependencies: None
+### Description: Create strict, minimal JSON schemas and prompts for summaries and metadata.
+### Details:
+
+
+## 2. Add parse utility with safe fallback [pending]
+### Dependencies: None
+### Description: Gracefully handle invalid JSON; provide error messages and default values.
+### Details:
+
+

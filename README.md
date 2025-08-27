@@ -13,7 +13,7 @@ You are an AI assistant analyzing the PileBintang application, a sophisticated E
 - **Frontend**: React 19 with TypeScript/JavaScript for UI components
 - **State Management**: React Context API for application state
 - **Text Editor**: TipTap editor for rich text journaling
-- **AI Integration**: OpenAI GPT-4 API and Ollama for local AI processing
+- **AI Integration**: Google Gemini 2.5 Pro (via @google/generative-ai) and Ollama for local AI processing
 - **Animation**: Framer Motion for smooth UI transitions
 - **Build System**: Webpack with TypeScript compilation
 - **Data Storage**: File-based markdown storage with frontmatter metadata
@@ -55,7 +55,7 @@ You are an AI assistant analyzing the PileBintang application, a sophisticated E
   - Implements gray-matter parsing for markdown frontmatter
 
 - **`keys.ts`**: API key management for AI services
-  - Secure storage/retrieval of OpenAI API keys
+  - Secure storage/retrieval of Gemini API keys
   - Handles encryption/decryption of sensitive data
 
 - **`store.ts`**: Electron-store integration for persistent settings
@@ -113,7 +113,7 @@ You are an AI assistant analyzing the PileBintang application, a sophisticated E
   - Manages theme system
 
 - **`AIContext.js`**: AI integration state and operations
-  - Manages OpenAI and Ollama connections
+  - Manages Gemini and Ollama connections
   - Handles API key storage and validation
   - Provides AI completion functionality
   - Manages AI model selection and configuration
@@ -162,7 +162,7 @@ Post list refresh → UI update
 ### 4. AI Integration Flow
 ```
 User clicks "reflect" → AI context preparation → 
-Thread context gathering → OpenAI/Ollama API call → 
+Thread context gathering → Gemini/Ollama API call → 
 Streaming response handling → Token-by-token insertion → 
 AI response saved as new post
 ```
@@ -188,7 +188,7 @@ Pile Directory/
 - Custom extensions for submit behavior
 
 ### AI Context System (`/src/renderer/context/AIContext.js`)
-- Dual provider support (OpenAI + Ollama)
+- Dual provider support (Gemini + Ollama)
 - Secure API key management
 - Context preparation for AI conversations
 - Streaming response handling

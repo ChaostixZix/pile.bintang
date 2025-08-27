@@ -1,0 +1,25 @@
+# Task ID: 6
+# Title: Settings: Gemini API key input + validation
+# Status: pending
+# Dependencies: 2
+# Priority: medium
+# Description: Add UI to store/validate GEMINI_API_KEY (main process storage) and block AI actions when missing/invalid.
+# Details:
+Reword settings from OpenAI to Gemini; add key test ping; never expose key to renderer logs; update README copy.
+
+# Test Strategy:
+Unit: validation logic; UI: disables actions without key; e2e: happy path store + use.
+
+# Subtasks:
+## 1. Settings UI updates and copy [pending]
+### Dependencies: None
+### Description: Rename OpenAI references to Gemini; adjust help text and validation messages.
+### Details:
+
+
+## 2. Key storage and validation flow [pending]
+### Dependencies: None
+### Description: Store key in main process; add a test request; block actions when invalid/missing.
+### Details:
+
+

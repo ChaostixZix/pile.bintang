@@ -5,12 +5,10 @@ import {
   useEffect,
   useCallback,
 } from 'react';
-import OpenAI from 'openai';
 import { usePilesContext } from './PilesContext';
 import { useElectronStore } from 'renderer/hooks/useElectronStore';
 
 const OLLAMA_URL = 'http://localhost:11434/api';
-const OPENAI_URL = 'https://api.openai.com/v1';
 const DEFAULT_PROMPT =
   'You are an AI within a journaling app. Your job is to help the user reflect on their thoughts in a thoughtful and kind manner. The user can never directly address you or directly respond to you. Try not to repeat what the user said, instead try to seed new ideas, encourage or debate. Keep your responses concise, but meaningful.';
 
@@ -22,30 +20,28 @@ export const AIContextProvider = ({ children }) => {
   const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
   const [pileAIProvider, setPileAIProvider] = useElectronStore(
     'pileAIProvider',
-    'openai'
+    'gemini'
   );
-  const [model, setModel] = useElectronStore('model', 'gpt-4o');
+  const [model, setModel] = useElectronStore('model', 'gemini-2.5-pro');
   const [embeddingModel, setEmbeddingModel] = useElectronStore(
     'embeddingModel',
     'mxbai-embed-large'
   );
-  const [baseUrl, setBaseUrl] = useElectronStore('baseUrl', OPENAI_URL);
+  // Base URL no longer used for Gemini; kept for Ollama only
 
   const setupAi = useCallback(async () => {
     const key = await window.electron.ipc.invoke('get-ai-key');
-    if (!key && pileAIProvider !== 'ollama') return;
-
-    if (pileAIProvider === 'ollama') {
+    
+    if (pileAIProvider === 'gemini') {
+      // Gemini integration is handled through IPC, no need for API key validation here
+      setAi({ type: 'gemini' });
+    } else if (pileAIProvider === 'ollama') {
       setAi({ type: 'ollama' });
     } else {
-      const openaiInstance = new OpenAI({
-        baseURL: baseUrl,
-        apiKey: key,
-        dangerouslyAllowBrowser: true,
-      });
-      setAi({ type: 'openai', instance: openaiInstance });
+      // Disable legacy OpenAI fallback
+      setAi(null);
     }
-  }, [pileAIProvider, baseUrl]);
+  }, [pileAIProvider]);
 
   useEffect(() => {
     if (currentPile) {
@@ -60,7 +56,25 @@ export const AIContextProvider = ({ children }) => {
       if (!ai) return;
 
       try {
-        if (ai.type === 'ollama') {
+        if (ai.type === 'gemini') {
+          // Convert context to a single prompt for Gemini
+          const prompt = context.map(msg => `${msg.role}: ${msg.content}`).join('\n\n');
+          
+          // Set up stream listener
+          const cleanup = window.electron.gemini.onGeminiResponse((data) => {
+            if (data.type === 'chunk' && data.data) {
+              callback(data.data);
+            }
+          });
+
+          try {
+            // Start the stream
+            await window.electron.gemini.startStream(prompt);
+          } finally {
+            // Clean up the listener
+            cleanup();
+          }
+        } else if (ai.type === 'ollama') {
           const response = await fetch(`${OLLAMA_URL}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -89,17 +103,6 @@ export const AIContextProvider = ({ children }) => {
               }
             }
           }
-        } else {
-          const stream = await ai.instance.chat.completions.create({
-            model,
-            stream: true,
-            max_tokens: 500,
-            messages: context,
-          });
-
-          for await (const part of stream) {
-            callback(part.choices[0].delta.content);
-          }
         }
       } catch (error) {
         console.error('AI request failed:', error);
@@ -124,20 +127,24 @@ export const AIContextProvider = ({ children }) => {
   );
 
   const checkApiKeyValidity = async () => {
-    // TODO: Add regex for OpenAPI and Ollama API keys
-    const key = await window.electron.ipc.invoke('get-ai-key');
-    
-    if (key !== null) {
+    if (pileAIProvider === 'gemini') {
+      // For Gemini, API key validation is handled by the main process
+      // We can test this by making a simple completion request
+      try {
+        const response = await window.electron.gemini.invokeGemini('Hello');
+        return response.success;
+      } catch (error) {
+        console.warn('Gemini API key validation failed:', error);
+        return false;
+      }
+    } else if (pileAIProvider === 'ollama') {
+      // Ollama doesn't require API key
       return true;
     }
-
-    return false;
   }
 
   const AIContextValue = {
     ai,
-    baseUrl,
-    setBaseUrl,
     prompt,
     setPrompt,
     setKey: (secretKey) => window.electron.ipc.invoke('set-ai-key', secretKey),

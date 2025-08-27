@@ -37,6 +37,8 @@ export default function Chat() {
   const [querying, setQuerying] = useState(false);
   const [history, setHistory] = useState([]);
   const [aiApiKeyValid, setAiApiKeyValid] = useState(false);
+  const [error, setError] = useState(null);
+  const [canCancel, setCanCancel] = useState(false);
 
   // Check if the AI API key is valid
   useEffect(() => {
@@ -54,7 +56,15 @@ export default function Chat() {
   const onResetConversation = () => {
     setText('');
     setHistory([]);
+    setError(null);
     resetMessages();
+  };
+
+  const onCancelAI = () => {
+    setQuerying(false);
+    setCanCancel(false);
+    setError(null);
+    // Note: Actual cancellation would need to be implemented in useChat/AIContext
   };
 
   const appendToLastSystemMessage = (token) => {
@@ -72,14 +82,34 @@ export default function Chat() {
 
   const onSubmit = async () => {
     if (text === '') return;
-    setQuerying(true);
-    const message = `${text}`;
-    setText('');
-    setHistory((history) => [...history, { role: 'user', content: message }]);
-    const messages = await addMessage(message);
-    setHistory((history) => [...history, { role: 'system', content: '' }]);
-    await getAIResponse(messages, appendToLastSystemMessage);
-    setQuerying(false);
+    
+    try {
+      setQuerying(true);
+      setCanCancel(true);
+      setError(null);
+      
+      const message = `${text}`;
+      setText('');
+      setHistory((history) => [...history, { role: 'user', content: message }]);
+      const messages = await addMessage(message);
+      setHistory((history) => [...history, { role: 'system', content: '' }]);
+      
+      await getAIResponse(messages, appendToLastSystemMessage);
+    } catch (error) {
+      console.error('AI request failed:', error);
+      setError(error.message || 'AI request failed. Please try again.');
+      // Remove the empty system message if there was an error
+      setHistory((history) => {
+        if (history.length > 0 && history[history.length - 1].role === 'system' && 
+            history[history.length - 1].content === '') {
+          return history.slice(0, -1);
+        }
+        return history;
+      });
+    } finally {
+      setQuerying(false);
+      setCanCancel(false);
+    }
   };
 
   const handleKeyPress = (event) => {
@@ -122,13 +152,23 @@ export default function Chat() {
                       <Status setReady={setReady} />
                     </Dialog.Title>
                     <div className={styles.buttons}>
-                      <div
-                        className={styles.button}
-                        onClick={onResetConversation}
-                      >
-                        <RefreshIcon className={styles.icon} />
-                        Clear chat
-                      </div>
+                      {canCancel ? (
+                        <div
+                          className={styles.button}
+                          onClick={onCancelAI}
+                        >
+                          <CrossIcon className={styles.icon} />
+                          Cancel AI
+                        </div>
+                      ) : (
+                        <div
+                          className={styles.button}
+                          onClick={onResetConversation}
+                        >
+                          <RefreshIcon className={styles.icon} />
+                          Clear chat
+                        </div>
+                      )}
                       <Dialog.Close asChild>
                         <button
                           className={`${styles.close} ${osStyles}`}
@@ -145,6 +185,20 @@ export default function Chat() {
                   <VirtualList data={history} />
                 </div>
               </AnimatePresence>
+
+              {error && (
+                <div className={styles.errorMessage}>
+                  <div className={styles.error}>
+                    ⚠️ {error}
+                    <button 
+                      className={styles.dismissError}
+                      onClick={() => setError(null)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className={styles.inputBar}>
                 <AnimatePresence>

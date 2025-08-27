@@ -56,7 +56,7 @@ export default function AISettingTabs({ APIkey, setCurrentKey }) {
   return (
     <Tabs.Root
       className={styles.tabsRoot}
-      defaultValue="openai"
+      defaultValue="gemini"
       value={pileAIProvider}
       onValueChange={handleTabChange}
     >
@@ -64,7 +64,7 @@ export default function AISettingTabs({ APIkey, setCurrentKey }) {
         <Tabs.Trigger
           className={`${styles.tabsTrigger} ${
             pileAIProvider === 'ollama' ? styles.activeCenter : ''
-          } ${pileAIProvider === 'openai' ? styles.activeRight : ''}`}
+          } ${pileAIProvider === 'gemini' ? styles.activeRight : ''}`}
           value="subscription"
         >
           Subscription
@@ -73,7 +73,7 @@ export default function AISettingTabs({ APIkey, setCurrentKey }) {
         <Tabs.Trigger
           className={`${styles.tabsTrigger} ${
             pileAIProvider === 'subscription' ? styles.activeLeft : ''
-          } ${pileAIProvider === 'openai' ? styles.activeRight : ''}`}
+          } ${pileAIProvider === 'gemini' ? styles.activeRight : ''}`}
           value="ollama"
         >
           Ollama API
@@ -83,9 +83,9 @@ export default function AISettingTabs({ APIkey, setCurrentKey }) {
           className={`${styles.tabsTrigger} ${
             pileAIProvider === 'ollama' ? styles.activeCenter : ''
           }`}
-          value="openai"
+          value="gemini"
         >
-          OpenAI API
+          Gemini API
           <BoxOpenIcon className={styles.icon} />
         </Tabs.Trigger>
       </Tabs.List>
@@ -166,54 +166,42 @@ export default function AISettingTabs({ APIkey, setCurrentKey }) {
         </div>
       </Tabs.Content>
 
-      <Tabs.Content className={styles.tabsContent} value="openai">
+      <Tabs.Content className={styles.tabsContent} value="gemini">
         <div className={styles.providers}>
           <div className={styles.pitch}>
-            Create an API key in your OpenAI account and paste it here to start
-            using GPT AI models in Pile.
+            Create an API key in your Google AI Studio account and paste it here to start
+            using Gemini AI models in Pile.
           </div>
 
           <div className={styles.group}>
             <fieldset className={styles.fieldset}>
-              <label className={styles.label} htmlFor="openai-base-url">
-                Base URL
-              </label>
-              <input
-                id="openai-base-url"
-                className={styles.input}
-                onChange={handleInputChange(setBaseUrl)}
-                value={baseUrl}
-                placeholder="https://api.openai.com/v1"
-              />
-            </fieldset>
-            <fieldset className={styles.fieldset}>
-              <label className={styles.label} htmlFor="openai-model">
+              <label className={styles.label} htmlFor="gemini-model">
                 Model
               </label>
               <input
-                id="openai-model"
+                id="gemini-model"
                 className={styles.input}
                 onChange={handleInputChange(setModel)}
                 value={model}
-                placeholder="gpt-4o"
+                placeholder="gemini-2.5-pro"
               />
             </fieldset>
           </div>
           <fieldset className={styles.fieldset}>
-            <label className={styles.label} htmlFor="openai-api-key">
-              OpenAI API key
+            <label className={styles.label} htmlFor="gemini-api-key">
+              Gemini API key
             </label>
             <input
-              id="openai-api-key"
+              id="gemini-api-key"
               className={styles.input}
               onChange={handleInputChange(setCurrentKey)}
               value={APIkey}
-              placeholder="Paste an OpenAI API key to enable AI reflections"
+              placeholder="Paste a Gemini API key to enable AI reflections"
             />
           </fieldset>
           <div className={styles.disclaimer}>
-            Remember to manage your spend by setting up a budget in the API
-            service you choose to use.
+            Get your free Gemini API key from Google AI Studio. Remember to
+            monitor your usage and set up quotas as needed.
           </div>
         </div>
       </Tabs.Content>

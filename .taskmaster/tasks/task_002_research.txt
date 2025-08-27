@@ -1,0 +1,37 @@
+# Task ID: 2
+# Title: Spike: Set up @google/genai client and streaming in Electron main
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Install @google/genai, initialize GoogleGenAI with GEMINI_API_KEY, implement generateContentStream wrapper and log chunks.
+# Details:
+Create a main-process module `src/main/ai/gemini.ts` exporting `stream(prompt)` and `json(prompt)` using model `gemini-2.5-pro`. Wire minimal error handling.
+
+# Test Strategy:
+Unit: mock SDK; assert streaming iteration and error handling.
+
+# Subtasks:
+## 1. Install @google/genai and scaffold main client [pending]
+### Dependencies: None
+### Description: Add dependency, create `src/main/ai/gemini.ts` with model init (`gemini-2.5-pro`).
+### Details:
+
+
+## 2. Implement generateContentStream wrapper [pending]
+### Dependencies: None
+### Description: Expose `stream(prompt)` that yields text chunks; add error handling and abort support.
+### Details:
+
+
+## 3. Implement JSON generation helper [pending]
+### Dependencies: None
+### Description: Expose `json(prompt)` using `responseMimeType: 'application/json'` and safe parsing.
+### Details:
+
+
+## 4. Add basic unit tests with SDK mocks [pending]
+### Dependencies: None
+### Description: Mock @google/genai and test stream/json helpers for happy/error paths.
+### Details:
+
+

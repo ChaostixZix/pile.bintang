@@ -1,0 +1,37 @@
+# Task ID: 3
+# Title: IPC bridge: expose Gemini generate + streaming to renderer
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Add ipcMain handler and event channel; preload contextBridge exposes invoke and listener; validate sender; no key leakage.
+# Details:
+Add channels: `gemini:generate` (invoke) and `gemini:stream` (event). Update preload to expose minimal API. Update window creation to set security flags.
+
+# Test Strategy:
+Unit: mock ipcMain handlers; integration: preload exposure shape.
+
+# Subtasks:
+## 1. ipcMain handler for non-stream JSON [pending]
+### Dependencies: None
+### Description: `ipcMain.handle('gemini:generate')` returns JSON or text; validate input and sanitize.
+### Details:
+
+
+## 2. Streaming channel and preload bridge [pending]
+### Dependencies: None
+### Description: Send chunks via `webContents.send('gemini:stream', data)`; preload exposes `onGeminiResponse` and `invokeGemini`.
+### Details:
+
+
+## 3. Type declarations and sender validation [pending]
+### Dependencies: None
+### Description: Update `src/renderer/preload.d.ts`; validate sender frame URL is `file:` before serving requests.
+### Details:
+
+
+## 4. Security: narrow preload API surface [pending]
+### Dependencies: None
+### Description: Expose only functions needed; no raw ipcRenderer; add input schema validation.
+### Details:
+
+
