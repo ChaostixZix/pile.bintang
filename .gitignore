@@ -6,6 +6,7 @@ logs
 pids
 *.pid
 *.seed
+.mcp.json
 
 # Coverage directory used by tools like istanbul
 coverage
@@ -51,3 +52,4 @@ node_modules/
 # Task files
 # tasks.json
 # tasks/ 
+.mcp.json
