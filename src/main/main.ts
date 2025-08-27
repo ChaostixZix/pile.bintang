@@ -75,8 +75,15 @@ const createWindow = async () => {
     minHeight: 660,
     icon: getAssetPath('icon.png'),
     webPreferences: {
-      nodeIntegration: true,
+      nodeIntegration: false,
       contextIsolation: true,
+      enableRemoteModule: false,
+      nodeIntegrationInWorker: false,
+      nodeIntegrationInSubFrames: false,
+      sandbox: false, // Keep false to allow preload script
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+      experimentalFeatures: false,
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
@@ -142,6 +149,44 @@ app
       const filePath = request.url.slice('local://'.length);
       return net.fetch('file://' + filePath);
     });
+
+  // Configure session-level CSP headers (header-only, dev/prod variants)
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const isDev = isDebug;
+
+    const cspDirectives = [
+      "default-src 'self'",
+      // Avoid inline scripts when possible; allow eval only in dev for webpack tooling
+      isDev
+        ? "script-src 'self' 'unsafe-eval'"
+        : "script-src 'self'",
+      // Style-loader injects <style> tags; allow inline styles
+      "style-src 'self' 'unsafe-inline'",
+      // Allow local protocol (for protocol handler), data URIs and blobs for images
+      "img-src 'self' data: blob: local:",
+      "font-src 'self' data:",
+      // Dev server and HMR need localhost + ws; production restricts to Google API only
+      isDev
+        ? "connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* https://generativelanguage.googleapis.com"
+        : "connect-src 'self' https://generativelanguage.googleapis.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      // Prevent embedding
+      "frame-ancestors 'none'",
+      // Workers may use blob: URLs
+      "worker-src 'self' blob:"
+    ];
+
+    const csp = cspDirectives.join('; ');
+
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [csp],
+      },
+    });
+  });
 
     setupPilesFolder();
     createWindow();

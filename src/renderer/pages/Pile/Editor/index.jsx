@@ -168,6 +168,7 @@ const Editor = memo(
     const [deleteStep, setDeleteStep] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const [isAIResponding, setIsAiResponding] = useState(false);
+    const [canCancelAI, setCanCancelAI] = useState(false);
     const [prevDragPos, setPrevDragPos] = useState(0);
 
     const handleMouseDown = (e) => {
@@ -238,6 +239,7 @@ const Editor = memo(
       });
       setEditable(false);
       setIsAiResponding(true);
+      setCanCancelAI(true);
 
       try {
         const thread = await getThread(parentPostPath);
@@ -249,16 +251,18 @@ const Editor = memo(
           editor.commands.insertContent(token);
         });
       } catch (error) {
+        console.error('AI generation failed:', error);
         addNotification({
           id: 'reflecting',
           type: 'failed',
-          message: 'AI request failed',
+          message: `AI request failed: ${error.message || 'Unknown error'}`,
           dismissTime: 12000,
           onEnter: closeReply,
         });
       } finally {
         removeNotification('reflecting');
         setIsAiResponding(false);
+        setCanCancelAI(false);
       }
     }, [
       editor,
@@ -268,6 +272,20 @@ const Editor = memo(
       getThread,
       parentPostPath,
     ]);
+
+    const cancelAiResponse = useCallback(() => {
+      if (canCancelAI) {
+        setIsAiResponding(false);
+        setCanCancelAI(false);
+        removeNotification('reflecting');
+        addNotification({
+          id: 'ai-cancelled',
+          type: 'info',
+          message: 'AI response cancelled',
+          dismissTime: 3000,
+        });
+      }
+    }, [canCancelAI, removeNotification, addNotification]);
 
     useEffect(() => {
       if (editor) {

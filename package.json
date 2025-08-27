@@ -76,7 +76,8 @@
     ],
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/.erb/mocks/fileMock.js",
-      "\\.(css|less|sass|scss)$": "identity-obj-proxy"
+      "\\.(css|less|sass|scss)$": "identity-obj-proxy",
+      "^renderer/(.*)$": "<rootDir>/src/renderer/$1"
     },
     "setupFiles": [
       "./.erb/scripts/check-build-exists.ts"
@@ -95,6 +96,7 @@
   },
   "dependencies": {
     "@electron/notarize": "^2.3.2",
+    "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-alert-dialog": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.4",
     "@radix-ui/react-dropdown-menu": "^2.0.5",
@@ -122,7 +124,6 @@
     "install": "0.13.0",
     "lunr": "^2.3.9",
     "luxon": "^3.3.0",
-    "openai": "^4.44.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^9.0.1",

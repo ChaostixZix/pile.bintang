@@ -1,0 +1,545 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Epic: Migrate AI integration to Gemini 2.5 Pro",
+        "description": "Replace OpenAI with @google/genai, use model `gemini-2.5-pro`, add streaming + JSON mode, secure key handling in Electron main via IPC, update tests/docs.",
+        "details": "Scope: main-process client, streaming to renderer, JSON mode for summaries, settings UI for key, repo-wide replacement, security posture per Electron docs.",
+        "testStrategy": "Unit tests for client wrapper, IPC handlers, and JSON parsing; integration smoke for streaming UI.",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Spike: Set up @google/genai client and streaming in Electron main",
+        "description": "Install @google/genai, initialize GoogleGenAI with GEMINI_API_KEY, implement generateContentStream wrapper and log chunks.",
+        "details": "Create a main-process module `src/main/ai/gemini.ts` exporting `stream(prompt)` and `json(prompt)` using model `gemini-2.5-pro`. Wire minimal error handling.",
+        "testStrategy": "Unit: mock SDK; assert streaming iteration and error handling.",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "IPC bridge: expose Gemini generate + streaming to renderer",
+        "description": "Add ipcMain handler and event channel; preload contextBridge exposes invoke and listener; validate sender; no key leakage.",
+        "details": "Add channels: `gemini:generate` (invoke) and `gemini:stream` (event). Update preload to expose minimal API. Update window creation to set security flags.",
+        "testStrategy": "Unit: mock ipcMain handlers; integration: preload exposure shape.",
+        "status": "pending",
+        "dependencies": [
+          "2"
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Renderer: integrate streaming UI and buffering",
+        "description": "Adapt chat/editor to consume stream chunks, buffer safely, finalize completion, and handle errors/cancellations.",
+        "details": "Add a React hook/useGeminiStream for subscription; ensure UI state transitions match existing behavior; debounce renders.",
+        "testStrategy": "Integration: mount component and simulate chunked updates; ensure final text matches.",
+        "status": "pending",
+        "dependencies": [
+          "3"
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "JSON mode: structured summaries and parsing",
+        "description": "Add generationConfig.responseMimeType='application/json' for summary endpoints; robust JSON parse with fallback and user feedback.",
+        "details": "Create helper `generateJson(prompt)` with schema-in-prompt; surface parse errors with toasts; add typing to parsed objects.",
+        "testStrategy": "Unit: valid/invalid JSON responses; UI: shows error toast when invalid.",
+        "status": "pending",
+        "dependencies": [
+          "2"
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Settings: Gemini API key input + validation",
+        "description": "Add UI to store/validate GEMINI_API_KEY (main process storage) and block AI actions when missing/invalid.",
+        "details": "Reword settings from OpenAI to Gemini; add key test ping; never expose key to renderer logs; update README copy.",
+        "testStrategy": "Unit: validation logic; UI: disables actions without key; e2e: happy path store + use.",
+        "status": "pending",
+        "dependencies": [
+          "2"
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Repo-wide replacement: remove OpenAI, wire Gemini services",
+        "description": "Remove `openai` package and usages; replace with Gemini service calls in contexts and handlers; update typings.",
+        "details": "Search and replace: chat/completions → generateContent/stream; update prompt builders; revisit rate-limit/backoff handlers.",
+        "testStrategy": "Run full test suite; smoke run on all AI features; ensure no OpenAI imports remain.",
+        "status": "pending",
+        "dependencies": [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Security & CSP: enforce Electron best practices",
+        "description": "Verify contextIsolation, nodeIntegration, preload exposure, and add/adjust CSP. Validate IPC sender origins; sanitize inputs.",
+        "details": "Audit BrowserWindow creation, preload API surface, and enable strict CSP for renderer assets.",
+        "testStrategy": "Manual audit checklist + unit tests for preload API shape; verify no node APIs in renderer.",
+        "status": "pending",
+        "dependencies": [
+          "2",
+          "3"
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Tests and CI adjustments",
+        "description": "Update unit/integration tests for Gemini workflows; ensure CI scripts keep lint, type-check, packaging, and tests green.",
+        "details": "Add mocks for @google/genai; update jest setup if needed; ensure streaming tests are deterministic.",
+        "testStrategy": "Jest unit tests for wrappers; integration tests for streaming buffer and JSON parsing.",
+        "status": "pending",
+        "dependencies": [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Docs & release notes",
+        "description": "Update README, AGENTS.md, and in-app copy to reference Gemini; add migration notes and release highlights.",
+        "details": "Document settings changes, model defaults, and limitations; include references to Google docs.",
+        "testStrategy": "Docs review checklist; ensure commands and paths resolve.",
+        "status": "pending",
+        "dependencies": [
+          "7",
+          "8",
+          "9"
+        ],
+        "priority": "low",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-08-26T16:01:27.799Z",
+      "description": "Default tasks context",
+      "updated": "2025-08-26T16:02:38.062Z"
+    }
+  },
+  "research": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Epic: Migrate AI integration to Gemini 2.5 Pro",
+        "description": "Replace OpenAI with @google/genai, use model `gemini-2.5-pro`, add streaming + JSON mode, secure key handling in Electron main via IPC, update tests/docs.",
+        "details": "Scope: main-process client, streaming to renderer, JSON mode for summaries, settings UI for key, repo-wide replacement, security posture per Electron docs.",
+        "testStrategy": "Unit tests for client wrapper, IPC handlers, and JSON parsing; integration smoke for streaming UI.",
+        "status": "done",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Spike: Set up @google/genai client and streaming in Electron main",
+        "description": "Install @google/genai, initialize GoogleGenAI with GEMINI_API_KEY, implement generateContentStream wrapper and log chunks.",
+        "details": "Create a main-process module `src/main/ai/gemini.ts` exporting `stream(prompt)` and `json(prompt)` using model `gemini-2.5-pro`. Wire minimal error handling.",
+        "testStrategy": "Unit: mock SDK; assert streaming iteration and error handling.",
+        "status": "done",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Install @google/genai and scaffold main client",
+            "description": "Add dependency, create `src/main/ai/gemini.ts` with model init (`gemini-2.5-pro`).",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 2
+          },
+          {
+            "id": 2,
+            "title": "Implement generateContentStream wrapper",
+            "description": "Expose `stream(prompt)` that yields text chunks; add error handling and abort support.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 2
+          },
+          {
+            "id": 3,
+            "title": "Implement JSON generation helper",
+            "description": "Expose `json(prompt)` using `responseMimeType: 'application/json'` and safe parsing.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 2
+          },
+          {
+            "id": 4,
+            "title": "Add basic unit tests with SDK mocks",
+            "description": "Mock @google/genai and test stream/json helpers for happy/error paths.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 2
+          },
+          {
+            "id": 5,
+            "title": "Install @google/genai dependency",
+            "description": "Add the @google/genai package to the project's dependencies using the project's package manager (npm or yarn).",
+            "dependencies": [],
+            "details": "Run `npm install @google/genai` or `yarn add @google/genai` and confirm its addition to the `package.json` file. Verify that the project's dependencies can be installed successfully afterward.",
+            "status": "done",
+            "testStrategy": "Confirm the package is listed in `package.json` and the lock file. Run `npm install` or `yarn install` to ensure no dependency conflicts arise."
+          },
+          {
+            "id": 6,
+            "title": "Create gemini.ts module and initialize client",
+            "description": "Create the file `src/main/ai/gemini.ts` and implement the initialization logic for the GoogleGenAI client.",
+            "dependencies": [],
+            "details": "In the new module, import `GoogleGenerativeAI`. Instantiate the client using `new GoogleGenerativeAI(process.env.GEMINI_API_KEY)`. For the spike, the key can be loaded directly from environment variables.\n<info added on 2025-08-26T16:23:21.739Z>\nThe client is initialized with `gemini-2.5-pro` model. Basic structure for `stream` and `json` functions is in place.\n</info added on 2025-08-26T16:23:21.739Z>",
+            "status": "done",
+            "testStrategy": "Unit test: Mock `process.env.GEMINI_API_KEY` and assert that the `GoogleGenerativeAI` constructor is called with the expected key."
+          },
+          {
+            "id": 7,
+            "title": "Implement `stream(prompt)` function",
+            "description": "Implement and export an async generator function `stream(prompt)` that calls the Gemini API for streaming responses and logs the chunks.",
+            "dependencies": [],
+            "details": "Within `gemini.ts`, create the `stream` function. It should get the `gemini-2.5-pro` model from the initialized client, call `generateContentStream({ prompt })`, and iterate through the resulting stream. Log the text from each chunk to the main process console.\n<info added on 2025-08-26T16:24:17.364Z>\nAdditionally, ensure it is an async generator function that yields the text content from each chunk and includes proper error handling with try/catch.\n</info added on 2025-08-26T16:24:17.364Z>",
+            "status": "done",
+            "testStrategy": "Unit test: Mock the `generateContentStream` method to return a simulated async iterable. Assert that the function iterates correctly and that the content of each chunk is processed as expected."
+          },
+          {
+            "id": 8,
+            "title": "Implement `json(prompt)` function",
+            "description": "Implement and export an async function `json(prompt)` that calls the Gemini API to get a structured JSON response.",
+            "dependencies": [],
+            "details": "Within `gemini.ts`, create the `json` function. It should use the `gemini-2.5-pro` model and the `generateContent` method. The implementation should request a JSON response and parse the text output into a JavaScript object before returning it.\n<info added on 2025-08-26T16:25:19.669Z>\n, automatically adds JSON format instruction to prompts if not present, logs the response, and includes proper error handling with try/catch.\n</info added on 2025-08-26T16:25:19.669Z>",
+            "status": "done",
+            "testStrategy": "Unit test: Mock the `generateContent` method to return a mock response containing a valid JSON string. Assert that the function returns a correctly parsed JavaScript object."
+          },
+          {
+            "id": 9,
+            "title": "Add minimal error handling and finalize exports",
+            "description": "Wrap the API calls in both the `stream` and `json` functions with try/catch blocks to handle and log potential API or network errors.",
+            "dependencies": [],
+            "details": "In `gemini.ts`, add `try...catch` blocks around the `generateContentStream` and `generateContent` calls. In the catch block, log a descriptive error message to the console. Ensure both `stream` and `json` functions are properly exported from the module's public interface.\n<info added on 2025-08-26T16:26:09.023Z>\nErrors are re-thrown appropriately from the catch blocks. In addition to `stream` and `json`, `genAI` and `model` functions are also exported from the module's public interface.\n</info added on 2025-08-26T16:26:09.023Z>",
+            "status": "done",
+            "testStrategy": "Unit test: Mock the SDK methods to throw a specific error. Assert that the error is caught, logged, and that the function gracefully terminates or throws a custom error."
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "IPC bridge: expose Gemini generate + streaming to renderer",
+        "description": "Add ipcMain handler and event channel; preload contextBridge exposes invoke and listener; validate sender; no key leakage.",
+        "details": "Add channels: `gemini:generate` (invoke) and `gemini:stream` (event). Update preload to expose minimal API. Update window creation to set security flags.",
+        "testStrategy": "Unit: mock ipcMain handlers; integration: preload exposure shape.",
+        "status": "done",
+        "dependencies": [
+          "2"
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "ipcMain handler for non-stream JSON",
+            "description": "`ipcMain.handle('gemini:generate')` returns JSON or text; validate input and sanitize.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 3
+          },
+          {
+            "id": 2,
+            "title": "Streaming channel and preload bridge",
+            "description": "Send chunks via `webContents.send('gemini:stream', data)`; preload exposes `onGeminiResponse` and `invokeGemini`.",
+            "details": "<info added on 2025-08-26T16:29:16.937Z>\nImplemented streaming channel functionality: Added 'gemini:stream' IPC handler that streams chunks via webContents.send() with unique stream IDs. Updated preload.ts to expose onGeminiResponse() listener and invokeGemini()/startStream() methods. Includes proper stream lifecycle management (start/chunk/end/error events) and cleanup functions.\n</info added on 2025-08-26T16:29:16.937Z>",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 3
+          },
+          {
+            "id": 3,
+            "title": "Type declarations and sender validation",
+            "description": "Update `src/renderer/preload.d.ts`; validate sender frame URL is `file:` before serving requests.",
+            "details": "<info added on 2025-08-26T16:30:55.209Z>\nSender validation added to Gemini IPC handlers, ensuring `file://` protocol for sender frame URL. TypeScript type definitions (`GeminiResponse`, `GeminiStreamResponse`, `GeminiStreamEvent`) created in `src/main/types/gemini.ts` and used to update handler return types for improved type safety. Preload type declarations are automatically included via `ElectronHandler`.\n</info added on 2025-08-26T16:30:55.209Z>",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 3
+          },
+          {
+            "id": 4,
+            "title": "Security: narrow preload API surface",
+            "description": "Expose only functions needed; no raw ipcRenderer; add input schema validation.",
+            "details": "<info added on 2025-08-26T16:32:39.643Z>\nAdded comprehensive input schema validation to all Gemini functions (prompt type/length checks, callback function validation). Added data structure validation for streaming responses before passing to callbacks.\n</info added on 2025-08-26T16:32:39.643Z>",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 3
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Renderer: integrate streaming UI and buffering",
+        "description": "Adapt chat/editor to consume stream chunks, buffer safely, finalize completion, and handle errors/cancellations.",
+        "details": "Add a React hook/useGeminiStream for subscription; ensure UI state transitions match existing behavior; debounce renders.",
+        "testStrategy": "Integration: mount component and simulate chunked updates; ensure final text matches.",
+        "status": "done",
+        "dependencies": [
+          "3"
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create useGeminiStream hook",
+            "description": "Hook subscribes to `onGeminiResponse`, buffers chunks, exposes status and cancel.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 4
+          },
+          {
+            "id": 2,
+            "title": "Integrate hook into chat/editor",
+            "description": "Replace OpenAI streaming usage with Gemini; preserve UX and keyboard shortcuts.",
+            "details": "<info added on 2025-08-26T16:37:46.906Z>\nCompleted AIContext.js integration:\n- Updated default pileAIProvider from 'openai' to 'gemini'\n- Updated default model to 'gemini-2.5-pro' \n- Modified setupAi() function to handle Gemini initialization (sets ai type to 'gemini')\n- Updated generateCompletion() to support Gemini streaming with proper event handling\n- Enhanced checkApiKeyValidity() for Gemini validation using invokeGemini test call\n- Preserved existing OpenAI and Ollama compatibility\n- All context values properly exposed to consumers\n</info added on 2025-08-26T16:37:46.906Z>",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 4
+          },
+          {
+            "id": 3,
+            "title": "Handle errors, cancel, and finalize state",
+            "description": "Ensure UI shows errors, allows cancellation, and finalizes on stream end.",
+            "details": "<info added on 2025-08-26T16:41:49.285Z>\nCompleted error handling, cancellation, and finalized state UI:\n\nChat Component Enhancements:\n- Added error state management with setError/error state\n- Added canCancel state for showing/hiding cancel button\n- Enhanced onSubmit with try/catch error handling and proper cleanup\n- Added onCancelAI function for cancelling AI requests\n- Added error message UI display with dismissible error banner\n- Enhanced onResetConversation to clear error state\n- Added conditional Cancel AI button in header (replaces Clear chat when streaming)\n\nEditor Component Enhancements:\n- Added canCancelAI state for tracking cancellation availability\n- Enhanced generateAiResponse with better error messages showing actual error details\n- Added cancelAiResponse function with proper cleanup and user feedback\n- Improved error notifications to show specific error messages instead of generic \"AI request failed\"\n- Added proper state management for cancellation throughout AI response lifecycle\n\nBoth components now properly handle Gemini streaming errors, provide cancellation capabilities, and show appropriate UI feedback for all states (streaming, error, completion, cancellation).\n</info added on 2025-08-26T16:41:49.285Z>",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 4
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "JSON mode: structured summaries and parsing",
+        "description": "Add generationConfig.responseMimeType='application/json' for summary endpoints; robust JSON parse with fallback and user feedback.",
+        "details": "Create helper `generateJson(prompt)` with schema-in-prompt; surface parse errors with toasts; add typing to parsed objects.",
+        "testStrategy": "Unit: valid/invalid JSON responses; UI: shows error toast when invalid.",
+        "status": "done",
+        "dependencies": [
+          "2"
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define JSON prompt templates",
+            "description": "Create strict, minimal JSON schemas and prompts for summaries and metadata.",
+            "details": "<info added on 2025-08-26T16:46:33.505Z>\n- Created `SummaryResponse` and `MetadataResponse` interfaces for parsed JSON output.\n- Added `JSONTemplateResponse` union type for type safety of parsed responses.\n</info added on 2025-08-26T16:46:33.505Z>",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 5
+          },
+          {
+            "id": 2,
+            "title": "Add parse utility with safe fallback",
+            "description": "Gracefully handle invalid JSON; provide error messages and default values.",
+            "details": "<info added on 2025-08-26T16:49:36.086Z>\nCompleted safe JSON parsing utility with comprehensive error handling:\n\nMain Parser Module (jsonParser.ts):\n- Created comprehensive JSONParseError enum with error types\n- Implemented ParseResult interface with success/error structure\n- Added validateSummaryResponse() and validateMetadataResponse() functions\n- Created cleanJsonString() to handle common JSON formatting issues (markdown blocks, boundaries)\n- Implemented parseSummaryResponse() and parseMetadataResponse() with length limits\n- Added safeParseJson() generic function with template-specific validation\n- Created DEFAULT_VALUES fallbacks for both template types\n\nRenderer Utilities (jsonHelper.js):\n- Added generateStructuredResponse() with error callback support\n- Created formatErrorMessage() for user-friendly error display\n- Implemented validateResponseCompleteness() for data quality checks\n- Added createErrorToast() for notification integration\n- Provided getDefaultResponse() fallback mechanism\n\nIPC Enhancement:\n- Enhanced GeminiResponse type with parseWarning field\n- Updated generate-json handler to detect fallback usage\n- Added warning detection for invalid responses\n\nExample Implementation:\n- Created JsonExample.jsx component demonstrating full error handling workflow\n- Shows toast notifications for errors and warnings\n- Provides complete reference implementation\n\nThe system now gracefully handles invalid JSON, provides user feedback, and continues functioning with fallback values.\n</info added on 2025-08-26T16:49:36.086Z>",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 5
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Settings: Gemini API key input + validation",
+        "description": "Add UI to store/validate GEMINI_API_KEY (main process storage) and block AI actions when missing/invalid.",
+        "details": "Reword settings from OpenAI to Gemini; add key test ping; never expose key to renderer logs; update README copy.",
+        "testStrategy": "Unit: validation logic; UI: disables actions without key; e2e: happy path store + use.",
+        "status": "done",
+        "dependencies": [
+          "2"
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Settings UI updates and copy",
+            "description": "Rename OpenAI references to Gemini; adjust help text and validation messages.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 6
+          },
+          {
+            "id": 2,
+            "title": "Key storage and validation flow",
+            "description": "Store key in main process; add a test request; block actions when invalid/missing.",
+            "details": "<info added on 2025-08-26T17:54:01.121Z>\nCompleted key storage and validation flow implementation:\n\nKey Storage Enhancement:\n- Modified Gemini client to use stored API key from electron-settings instead of environment variables\n- Added initializeGemini() function to properly initialize client with stored key\n- Updated stream() and json() functions to ensure client is initialized before use\n- Added re-initialization when API key is updated via set-ai-key handler\n\nValidation Flow:\n- Existing checkApiKeyValidity() in AIContext already properly validates Gemini keys by making test API call\n- Key storage uses electron's safeStorage for encrypted storage in main process\n- Settings UI properly calls setKey() when saving changes\n- Delete key functionality properly removes stored credentials\n\nThe system now properly stores, validates, and uses Gemini API keys with secure main process storage and automatic client re-initialization when keys change.\n</info added on 2025-08-26T17:54:01.121Z>",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 6
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Repo-wide replacement: remove OpenAI, wire Gemini services",
+        "description": "Remove `openai` package and usages; replace with Gemini service calls in contexts and handlers; update typings.",
+        "details": "Search and replace: chat/completions → generateContent/stream; update prompt builders; revisit rate-limit/backoff handlers.",
+        "testStrategy": "Run full test suite; smoke run on all AI features; ensure no OpenAI imports remain.",
+        "status": "done",
+        "dependencies": [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Remove OpenAI deps and imports",
+            "description": "Uninstall openai, update package.json/locks; remove imports across codebase.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 7
+          },
+          {
+            "id": 2,
+            "title": "Replace service/context calls with Gemini",
+            "description": "Refactor usage to gemini service; adjust error and backoff logic.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 7
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Security & CSP: enforce Electron best practices",
+        "description": "Verify contextIsolation, nodeIntegration, preload exposure, and add/adjust CSP. Validate IPC sender origins; sanitize inputs.",
+        "details": "Audit BrowserWindow creation, preload API surface, and enable strict CSP for renderer assets.",
+        "testStrategy": "Manual audit checklist + unit tests for preload API shape; verify no node APIs in renderer.",
+        "status": "done",
+        "dependencies": [
+          "2",
+          "3"
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Enforce security flags and narrow preload",
+            "description": "Audit BrowserWindow flags; minimize preload API surface; add schema validation.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 8
+          },
+          {
+            "id": 2,
+            "title": "Add/adjust CSP",
+            "description": "Add CSP meta or headers in dev/prod; restrict remote content and eval.",
+            "details": "<info added on 2025-08-26T19:12:09.204Z>\nImplemented CSP hardening and consolidation: Removed meta CSP from renderer HTML (header-only now). Added environment-specific CSP in main process (dev vs prod). `script-src` updated to drop 'unsafe-inline' (allowing 'unsafe-eval' only in dev). `style-src` allows 'unsafe-inline' for CSS injection. `connect-src` allows ws/http localhost in dev and restricts to Google API in prod. Added `frame-ancestors 'none'` and `worker-src 'self' blob:`. Validated BrowserWindow flags remain secure (contextIsolation on, nodeIntegration off).\n</info added on 2025-08-26T19:12:09.204Z>",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 8
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Tests and CI adjustments",
+        "description": "Update unit/integration tests for Gemini workflows; ensure CI scripts keep lint, type-check, packaging, and tests green.",
+        "details": "Add mocks for @google/genai; update jest setup if needed; ensure streaming tests are deterministic.",
+        "testStrategy": "Jest unit tests for wrappers; integration tests for streaming buffer and JSON parsing.",
+        "status": "done",
+        "dependencies": [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add @google/genai mocks for Jest",
+            "description": "Create stable mocks for SDK streaming and JSON responses.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 9
+          },
+          {
+            "id": 2,
+            "title": "Unit tests for main helpers",
+            "description": "Test stream and JSON helpers (happy/error/abort).",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 9
+          },
+          {
+            "id": 3,
+            "title": "Integration tests for renderer streaming",
+            "description": "Simulate chunked updates and verify buffering/finalization.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 9
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Docs & release notes",
+        "description": "Update README, AGENTS.md, and in-app copy to reference Gemini; add migration notes and release highlights.",
+        "details": "Document settings changes, model defaults, and limitations; include references to Google docs.",
+        "testStrategy": "Docs review checklist; ensure commands and paths resolve.",
+        "status": "done",
+        "dependencies": [
+          "7",
+          "8",
+          "9"
+        ],
+        "priority": "low",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-08-26T16:05:18.194Z",
+      "updated": "2025-08-26T19:17:46.258Z",
+      "description": "Research-driven Gemini migration plan"
+    }
+  }
+}

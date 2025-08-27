@@ -1,0 +1,25 @@
+# Task ID: 8
+# Title: Security & CSP: enforce Electron best practices
+# Status: pending
+# Dependencies: 2, 3
+# Priority: high
+# Description: Verify contextIsolation, nodeIntegration, preload exposure, and add/adjust CSP. Validate IPC sender origins; sanitize inputs.
+# Details:
+Audit BrowserWindow creation, preload API surface, and enable strict CSP for renderer assets.
+
+# Test Strategy:
+Manual audit checklist + unit tests for preload API shape; verify no node APIs in renderer.
+
+# Subtasks:
+## 1. Enforce security flags and narrow preload [pending]
+### Dependencies: None
+### Description: Audit BrowserWindow flags; minimize preload API surface; add schema validation.
+### Details:
+
+
+## 2. Add/adjust CSP [pending]
+### Dependencies: None
+### Description: Add CSP meta or headers in dev/prod; restrict remote content and eval.
+### Details:
+
+

@@ -20,13 +20,13 @@ export default function HighlightsDialog() {
           </Dialog.Description>
           <fieldset className={styles.Fieldset}>
             <label className={styles.Label} htmlFor="name">
-              API key (OpenAI / UNMS)
+              API key (Gemini / UNMS)
             </label>
             {/* <input
               className={styles.Input}
               onChange={handleOnChangeKey}
               value={key}
-              placeholder="Paste an OpenAI API key to enable AI reflections"
+              placeholder="Paste a Gemini API key to enable AI reflections"
             /> */}
           </fieldset>
           <fieldset className={styles.Fieldset}>
@@ -35,7 +35,7 @@ export default function HighlightsDialog() {
             </label>
             <textarea
               className={styles.Textarea}
-              placeholder="Paste an OpenAI API key to enable AI reflections"
+              placeholder="Paste a Gemini API key to enable AI reflections"
               readOnly
             />
           </fieldset>

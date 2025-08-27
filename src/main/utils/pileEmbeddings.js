@@ -136,8 +136,7 @@ class PileEmbeddings {
     }
   }
 
-  // todo: based on which ai is configured this should either
-  // use ollama or openai
+  // todo: based on which ai is configured this should use ollama or Gemini
   async generateEmbedding(document) {
     const pileAIProvider = await settings.get('pileAIProvider');
     const embeddingModel = await settings.get('embeddingModel');
@@ -158,23 +157,9 @@ class PileEmbeddings {
         return null;
       }
     } else {
-      const url = 'https://api.openai.com/v1/embeddings';
-      const headers = {
-        Authorization: `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
-      };
-      const data = {
-        model: 'text-embedding-3-small',
-        input: document,
-      };
-
-      try {
-        const response = await axios.post(url, data, { headers });
-        return response.data.data[0].embedding;
-      } catch (error) {
-        console.error('Error generating embedding with OpenAI:', error);
-        return null;
-      }
+      // Gemini embeddings not yet implemented here; fallback disabled for OpenAI
+      console.warn('Gemini embeddings not implemented in PileEmbeddings; returning null');
+      return null;
     }
   }
 
