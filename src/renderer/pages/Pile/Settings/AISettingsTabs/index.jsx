@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
-import styles from './AISettingTabs.module.scss';
 import { useAIContext } from 'renderer/context/AIContext';
 import {
   usePilesContext,
   availableThemes,
 } from 'renderer/context/PilesContext';
-import { CardIcon, OllamaIcon, BoxOpenIcon } from 'renderer/icons';
+import { BoxOpenIcon } from 'renderer/icons';
 import { useIndexContext } from 'renderer/context/IndexContext';
+import styles from './AISettingTabs.module.scss';
 
 export default function AISettingTabs({ APIkey, setCurrentKey }) {
   const {
@@ -20,12 +20,10 @@ export default function AISettingTabs({ APIkey, setCurrentKey }) {
     deleteKey,
     model,
     setModel,
-    embeddingModel,
-    setEmbeddingModel,
-    ollama,
-    baseUrl,
     pileAIProvider,
     setPileAIProvider,
+    useMockAI,
+    setUseMockAI,
   } = useAIContext();
 
   const { currentTheme, setTheme } = usePilesContext();
@@ -45,10 +43,7 @@ export default function AISettingTabs({ APIkey, setCurrentKey }) {
         }`}
         onClick={() => setTheme(theme)}
       >
-        <div
-          className={styles.color1}
-          style={{ background: colors.primary }}
-        ></div>
+        <div className={styles.color1} style={{ background: colors.primary }} />
       </button>
     ));
   };
@@ -62,27 +57,7 @@ export default function AISettingTabs({ APIkey, setCurrentKey }) {
     >
       <Tabs.List className={styles.tabsList} aria-label="Manage your account">
         <Tabs.Trigger
-          className={`${styles.tabsTrigger} ${
-            pileAIProvider === 'ollama' ? styles.activeCenter : ''
-          } ${pileAIProvider === 'gemini' ? styles.activeRight : ''}`}
-          value="subscription"
-        >
-          Subscription
-          <CardIcon className={styles.icon} />
-        </Tabs.Trigger>
-        <Tabs.Trigger
-          className={`${styles.tabsTrigger} ${
-            pileAIProvider === 'subscription' ? styles.activeLeft : ''
-          } ${pileAIProvider === 'gemini' ? styles.activeRight : ''}`}
-          value="ollama"
-        >
-          Ollama API
-          <OllamaIcon className={styles.icon} />
-        </Tabs.Trigger>
-        <Tabs.Trigger
-          className={`${styles.tabsTrigger} ${
-            pileAIProvider === 'ollama' ? styles.activeCenter : ''
-          }`}
+          className={`${styles.tabsTrigger}`}
           value="gemini"
         >
           Gemini API
@@ -90,101 +65,43 @@ export default function AISettingTabs({ APIkey, setCurrentKey }) {
         </Tabs.Trigger>
       </Tabs.List>
 
-      <Tabs.Content className={styles.tabsContent} value="subscription">
-        <div className={styles.providers}>
-          <div className={styles.pitch}>
-            One simple subscription to use best-in-class AI with Pile, and
-            support the project.
-          </div>
-          <div>
-            <div className={styles.pro}>
-              <div className={styles.left}>
-                <div className={styles.price}>$9/month</div>
-              </div>
-              <div className={styles.right}>
-                <div className={styles.subscribe}>Coming soon!</div>
-              </div>
-            </div>
-            <div className={styles.disclaimer}>
-              AI subscription for Pile is provided separately by{' '}
-              <a href="https://un.ms" target="_blank">
-                UNMS
-              </a>
-              . Subject to availability and capacity limits. Fair-use policy
-              applies.
-            </div>
-          </div>
-        </div>
-      </Tabs.Content>
 
-      <Tabs.Content className={styles.tabsContent} value="ollama">
-        <div className={styles.providers}>
-          <div className={styles.pitch}>
-            Setup Ollama and set your preferred models here to use your local AI
-            in Pile.
-          </div>
-
-          <div className={styles.group}>
-            <fieldset className={styles.fieldset}>
-              <label className={styles.label} htmlFor="ollama-model">
-                Model
-              </label>
-              <input
-                id="ollama-model"
-                className={styles.input}
-                onChange={handleInputChange(setModel)}
-                value={model}
-                defaultValue="llama3.1:70b"
-                placeholder="llama3.1:70b"
-              />
-            </fieldset>
-            <fieldset className={styles.fieldset}>
-              <label className={styles.label} htmlFor="ollama-embedding-model">
-                Embedding model
-              </label>
-              <input
-                id="ollama-embedding-model"
-                className={styles.input}
-                onChange={handleInputChange(setEmbeddingModel)}
-                value={embeddingModel}
-                defaultValue="mxbai-embed-large"
-                placeholder="mxbai-embed-large"
-                disabled
-              />
-            </fieldset>
-          </div>
-
-          <div className={styles.disclaimer}>
-            Ollama is the easiest way to run AI models on your own computer.
-            Remember to pull your models in Ollama before using them in Pile.
-            Learn more and download Ollama from{' '}
-            <a href="https://ollama.com" target="_blank">
-              ollama.com
-            </a>
-            .
-          </div>
-        </div>
-      </Tabs.Content>
 
       <Tabs.Content className={styles.tabsContent} value="gemini">
         <div className={styles.providers}>
           <div className={styles.pitch}>
-            Create an API key in your Google AI Studio account and paste it here to start
-            using Gemini AI models in Pile.
+            Create an API key in your Google AI Studio account and paste it here
+            to start using Gemini AI models in Pile.
           </div>
 
           <div className={styles.group}>
             <fieldset className={styles.fieldset}>
+              <label className={styles.label}>
+                <input
+                  type="checkbox"
+                  checked={useMockAI}
+                  onChange={(e) => setUseMockAI(e.target.checked)}
+                  style={{ marginRight: '8px' }}
+                />
+                Use Mock AI (for testing)
+              </label>
+            </fieldset>
+            
+            <fieldset className={styles.fieldset}>
               <label className={styles.label} htmlFor="gemini-model">
                 Model
               </label>
-              <input
+              <select
                 id="gemini-model"
                 className={styles.input}
                 onChange={handleInputChange(setModel)}
                 value={model}
-                placeholder="gemini-2.5-pro"
-              />
+                disabled={useMockAI}
+              >
+                <option value="gemini-2.5-flash">gemini-2.5-flash (Fast & Efficient - Recommended)</option>
+                <option value="gemini-2.5-pro">gemini-2.5-pro (Most Powerful with Thinking)</option>
+                <option value="gemini-2.5-flash-lite-preview-06-17">gemini-2.5-flash-lite (Low Cost & High Speed)</option>
+              </select>
             </fieldset>
           </div>
           <fieldset className={styles.fieldset}>
