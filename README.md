@@ -1,264 +1,256 @@
-# PileBintang - AI Architectural Analysis Prompt
+# PileBintang
 
-You are an AI assistant analyzing the PileBintang application, a sophisticated Electron-based desktop journaling app with AI integration. This document serves as a comprehensive architectural guide to help you understand the codebase structure, data flow, and implementation details.
+A sophisticated cross-platform desktop journaling application with AI integration, built with Electron and React.
 
-![Pile app screenshot](./assets/cover.png)
+![PileBintang Screenshot](./assets/cover.png)
 
-## Application Architecture Overview
+## ✨ Features
 
-**PileBintang** is a cross-platform desktop application built with modern web technologies, following a two-process Electron architecture:
+### 🤖 AI-Powered Journaling
+- **Google Gemini 2.5 Pro Integration**: Advanced AI assistance for reflection, summarization, and content generation
+- **Local AI Support**: Ollama integration for privacy-focused local AI processing
+- **Streaming Responses**: Real-time AI interactions with token-by-token streaming
+- **Context-Aware AI**: AI understands your journal history for personalized responses
 
-### Core Technologies Stack
-- **Runtime**: Electron (v33.2.0) for cross-platform desktop deployment
-- **Frontend**: React 19 with TypeScript/JavaScript for UI components
-- **State Management**: React Context API for application state
-- **Text Editor**: TipTap editor for rich text journaling
-- **AI Integration**: Google Gemini 2.5 Pro (via @google/generative-ai) and Ollama for local AI processing
-- **Animation**: Framer Motion for smooth UI transitions
-- **Build System**: Webpack with TypeScript compilation
-- **Data Storage**: File-based markdown storage with frontmatter metadata
+### 📝 Rich Text Editing
+- **TipTap Editor**: Modern, extensible rich text editor with markdown support
+- **Drag & Drop**: Easy file uploads and media attachments
+- **Auto-save**: Never lose your thoughts with automatic content saving
+- **Markdown Export**: Full markdown compatibility with frontmatter metadata
 
-### Architectural Patterns
-1. **Multi-Process Architecture**: Electron's main process (Node.js) + renderer process (React)
-2. **IPC Communication**: Secure Inter-Process Communication between main and renderer
-3. **Context-Based State Management**: Multiple React contexts for feature isolation
-4. **File-System Based Storage**: Local markdown files with timestamp-based organization
-5. **Component Composition**: Modular React components with clear separation of concerns
+### 🗂️ Smart Organization
+- **Pile System**: Organize journals into separate "piles" for different topics
+- **Timeline View**: Navigate through your entries chronologically
+- **Tag System**: Categorize and filter entries with custom tags
+- **Full-Text Search**: Find any entry instantly with powerful search
+- **Highlights**: Mark and preserve important passages
 
-## Directory Structure and File Functions
+### 🔒 Privacy & Security
+- **Local Storage**: All data stored locally on your device
+- **Encrypted API Keys**: Secure storage of AI service credentials
+- **No Cloud Dependency**: Works completely offline (except for AI features)
+- **Open Source**: Full transparency with MIT license
 
-### `/src/main/` - Main Process (Node.js/Electron Backend)
+### 🎨 User Experience
+- **Cross-Platform**: Native apps for macOS, Windows, and Linux
+- **Dark/Light Themes**: Choose your preferred visual style
+- **Responsive Design**: Optimized for different screen sizes
+- **Smooth Animations**: Polished UI with Framer Motion
 
-#### Core Files:
-- **`main.ts`**: Application entry point
-  - Manages BrowserWindow lifecycle
-  - Handles app events (ready, activate, close)
-  - Sets up window properties (frame, transparency, titlebar)
-  - Registers protocol handlers for local file access
-  - Initializes auto-updater functionality
+## 🚀 Quick Start
 
-- **`preload.ts`**: Security bridge between main and renderer processes
-  - Exposes safe APIs to renderer via `contextBridge`
-  - Provides file system operations (read, write, mkdir, etc.)
-  - Handles path operations and platform detection
-  - Manages electron-store settings integration
+### Prerequisites
+- **Node.js** 18 or higher
+- **npm** or **yarn** package manager
 
-- **`ipc.ts`**: IPC handler registration hub
-  - Imports and registers all feature-specific handlers
-  - Centralizes IPC communication setup
+### Installation
 
-#### `/src/main/handlers/` - Feature-Specific IPC Handlers:
-- **`file.ts`**: File operations and pile management
-  - Handles file CRUD operations
-  - Manages pile folder creation and organization
-  - Processes file attachments and media uploads
-  - Implements gray-matter parsing for markdown frontmatter
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/ChaostixZix/PileBintang.git
+   cd PileBintang
+   ```
 
-- **`keys.ts`**: API key management for AI services
-  - Secure storage/retrieval of Gemini API keys
-  - Handles encryption/decryption of sensitive data
+2. **Install dependencies**
+   ```bash
+   npm install --legacy-peer-deps
+   ```
 
-- **`store.ts`**: Electron-store integration for persistent settings
-- **`tags.ts`**: Tag system backend operations
-- **`highlights.ts`**: Text highlighting system backend
-- **`index.ts`**: Search indexing and full-text search functionality
-- **`links.ts`**: Link extraction and management
+3. **Start development server**
+   ```bash
+   npm start
+   ```
 
-#### `/src/main/utils/` - Utility Functions:
-- **`pileHelper.ts`**: Core pile management utilities
-- **`autoUpdates.ts`**: Automatic update functionality
+4. **Build for production**
+   ```bash
+   npm run build
+   npm run package
+   ```
 
-### `/src/renderer/` - Renderer Process (React Frontend)
+### AI Setup
 
-#### Core Application Files:
-- **`index.tsx`**: Application bootstrap
-  - Creates React root
-  - Sets up MemoryRouter for routing
-  - Handles platform-specific styling
+#### Google Gemini Integration
+1. Get your API key from [Google AI Studio](https://aistudio.google.com/)
+2. In PileBintang settings, paste your Gemini API key
+3. Select "Gemini" as your AI provider
 
-- **`App.jsx`**: Main application component
-  - Defines route structure and navigation
-  - Wraps application in context providers
-  - Manages page transitions with Framer Motion
+#### Ollama (Local AI)
+1. Install [Ollama](https://ollama.ai/) on your system
+2. Pull a model: `ollama pull llama2`
+3. In PileBintang settings, select "Ollama" as your AI provider
 
-#### `/src/renderer/pages/` - Application Views:
+## 🛠️ Technology Stack
 
-- **`Home/`**: Landing page and pile selection
-  - Lists existing piles
-  - Provides pile creation interface
-  - Handles pile deletion and management
+### Core Technologies
+- **Electron 33.2.0** - Cross-platform desktop framework
+- **React 19** - Modern UI library with hooks
+- **TypeScript** - Type-safe JavaScript
+- **TipTap** - Extensible rich text editor
+- **Framer Motion** - Smooth animations
+- **Google Gemini 2.5 Pro** - Advanced AI integration
+- **Ollama** - Local AI inference
 
-- **`CreatePile/`**: New pile creation wizard
-  - Directory selection interface
-  - Pile naming and configuration
+### Development Tools
+- **Webpack** - Module bundling and build system
+- **ESLint** - Code linting and formatting
+- **Jest** - Testing framework
+- **Electron Builder** - App packaging and distribution
 
-- **`Pile/`**: Main journaling interface
-  - **`index.tsx`**: Main pile view wrapper
-  - **`Layout.jsx`**: Pile-specific layout with sidebar
-  - **`Posts/`**: Post listing and thread management
-  - **`Editor/`**: Rich text editor component with AI integration
-  - **`Chat/`**: AI chat interface for journal queries
-  - **`Search/`**: Full-text search functionality
-  - **`Settings/`**: Pile-specific settings and AI configuration
-  - **`Sidebar/`**: Navigation and pile information
-  - **`Highlights/`**: Text highlighting system
-  - **`Toasts/`**: Notification system
+## 📁 Project Structure
 
-#### `/src/renderer/context/` - State Management:
+### Main Process (`src/main/`)
+- **`main.ts`** - Application entry point and window management
+- **`preload.ts`** - Secure IPC bridge between main and renderer
+- **`handlers/`** - Feature-specific IPC handlers
+  - `file.ts` - File operations and pile management
+  - `gemini.ts` - Gemini AI integration
+  - `keys.ts` - Secure API key management
+  - `store.ts` - Settings and preferences
+- **`ai/gemini.ts`** - Google Gemini 2.5 Pro client implementation
 
-- **`PilesContext.js`**: Core pile management state
-  - Manages list of available piles
-  - Handles pile creation, deletion, updates
-  - Provides current pile context
-  - Manages theme system
+### Renderer Process (`src/renderer/`)
+- **`App.jsx`** - Main application component with routing
+- **`pages/`** - Application views
+  - `Home/` - Pile selection and management
+  - `Pile/` - Main journaling interface
+  - `CreatePile/` - Pile creation wizard
+- **`context/`** - React Context providers
+  - `PilesContext.js` - Pile management state
+  - `AIContext.js` - AI integration state
+- **`hooks/`** - Custom React hooks
+  - `useGeminiStream.js` - Gemini streaming integration
 
-- **`AIContext.js`**: AI integration state and operations
-  - Manages Gemini and Ollama connections
-  - Handles API key storage and validation
-  - Provides AI completion functionality
-  - Manages AI model selection and configuration
+## 🔧 Development Commands
 
-- **`ToastsContext.js`**: Notification system state
-- **`TagsContext.js`**: Tag management state
-- **`TimelineContext.js`**: Timeline view state
-- **`HighlightsContext.js`**: Text highlighting state
-- **`LinksContext.js`**: Link management state
-- **`IndexContext.js`**: Search index state
-- **`AutoUpdateContext.js`**: Auto-update status management
-
-#### `/src/renderer/utils/` - Frontend Utilities:
-- **`fileOperations.js`**: File system operation helpers
-  - Post format definitions
-  - File path generation utilities
-  - Markdown file operations
-
-- **`debounce.js`**: Performance optimization utilities
-
-## Data Flow and Application Logic
-
-### 1. Application Initialization Flow
-```
-main.ts starts → setupPilesFolder() → createWindow() → 
-App.jsx loads → PilesContext initializes → 
-getConfig() reads piles.json → Home page renders pile list
+### Building and Running
+```bash
+npm start                # Start development server
+npm run build           # Production build
+npm run package         # Create distributable packages
+npm run release         # Build and publish to GitHub releases
 ```
 
-### 2. Pile Creation Flow
-```
-User clicks "Create new pile" → CreatePile page → 
-Directory selection dialog → Pile name input → 
-createPile() in PilesContext → File system operations → 
-Config update → Navigation to new pile
-```
-
-### 3. Post Creation Flow
-```
-User types in Editor → TipTap editor captures content → 
-handleSubmit() triggers → File path generation → 
-Markdown file creation with frontmatter → 
-Post list refresh → UI update
+### Code Quality
+```bash
+npm run lint            # Run ESLint
+npm run lint:fix        # Fix linting issues automatically
+npm test               # Run Jest tests
 ```
 
-### 4. AI Integration Flow
-```
-User clicks "reflect" → AI context preparation → 
-Thread context gathering → Gemini/Ollama API call → 
-Streaming response handling → Token-by-token insertion → 
-AI response saved as new post
+### Platform-Specific Development
+```bash
+npm run start:main      # Start main process with file watching
+npm run start:renderer  # Start renderer dev server
+npm run build:main      # Build main process only
+npm run build:renderer  # Build renderer process only
 ```
 
-### 5. File Storage Organization
+## 🧩 Architecture Overview
+
+PileBintang follows Electron's multi-process architecture with enhanced security:
+
+### Security Model
+- **Context Isolation**: Renderer process isolated from Node.js APIs
+- **IPC Communication**: Secure communication via contextBridge
+- **Content Security Policy**: Strict CSP headers for enhanced security
+- **API Key Encryption**: Secure storage of sensitive credentials
+
+### Data Organization
 ```
 Pile Directory/
 ├── YYYY/
 │   ├── MMM/
-│   │   ├── YYMMDD-HHMMSS.md (journal entries)
-│   │   └── media/ (attachments)
+│   │   ├── YYMMDD-HHMMSS.md    # Journal entries
+│   │   └── media/               # File attachments
 │   └── ...
-└── ...
+└── piles.json                   # Pile configuration
 ```
 
-## Key Components Deep Dive
+## 🆕 Recent Updates
 
-### TipTap Editor Integration (`/src/renderer/pages/Pile/Editor/`)
-- Rich text editing with markdown serialization
-- Drag-and-drop file upload support
-- Real-time content synchronization
-- AI response streaming integration
-- Custom extensions for submit behavior
+### v1.0.0 - Gemini 2.5 Pro Migration
+- **✅ Migrated to Google Gemini 2.5 Pro** from OpenAI for enhanced AI capabilities
+- **🔒 Enhanced Security**: Implemented strict Content Security Policy and improved IPC validation
+- **🚀 Streaming AI Responses**: Real-time token-by-token AI response rendering
+- **📝 JSON Mode Support**: Structured AI responses for summaries and metadata
+- **🧪 Comprehensive Testing**: Added Jest tests for AI functionality and streaming
+- **🔧 Improved Developer Experience**: Better error handling and debugging tools
 
-### AI Context System (`/src/renderer/context/AIContext.js`)
-- Dual provider support (Gemini + Ollama)
-- Secure API key management
-- Context preparation for AI conversations
-- Streaming response handling
-- Model selection and configuration
+### Key Improvements
+- **Performance**: Faster AI response times with optimized streaming
+- **Reliability**: Better error handling and recovery mechanisms
+- **Security**: Enhanced API key encryption and secure IPC communication
+- **Compatibility**: Maintained Ollama support for local AI processing
+- **Testing**: Full test coverage for critical AI functionality
 
-### File Management System
-- Timestamp-based file naming
-- Automatic directory structure creation
-- Markdown frontmatter for metadata
-- Media file organization and linking
+## 🤝 Contributing
 
-### Search and Indexing
-- Full-text search across all posts
-- Tag-based filtering
-- Timeline-based navigation
-- Highlight preservation
+We welcome contributions! Please follow these steps:
 
-## Development Workflow
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** with proper tests
+4. **Run the test suite**: `npm test`
+5. **Lint your code**: `npm run lint:fix`
+6. **Commit your changes**: `git commit -m 'Add amazing feature'`
+7. **Push to the branch**: `git push origin feature/amazing-feature`
+8. **Open a Pull Request**
 
-### Build Commands
-- `npm start`: Development server with hot reload
-- `npm run build`: Production build
-- `npm run package`: Create distributable packages
-- `npm run lint`: Code linting with ESLint
+### Development Guidelines
+- Follow the existing code style and patterns
+- Add tests for new functionality
+- Update documentation for significant changes
+- Ensure all tests pass before submitting
+- Use TypeScript for type safety
 
-### Testing
-- Jest for unit testing
-- Testing Library for React components
-- Electron-specific testing setup
+## 📋 Requirements
 
-### Development Environment Setup
-1. Install dependencies: `npm install --legacy-peer-deps`
-2. Start development: `npm start`
-3. The app runs in development mode with hot reload enabled
+### System Requirements
+- **Operating System**: macOS 10.14+, Windows 10+, or Linux (Ubuntu 18.04+)
+- **Node.js**: Version 18 or higher
+- **Memory**: 512MB RAM minimum, 1GB recommended
+- **Storage**: 100MB for application, additional space for journal data
 
-## Security Considerations
+### Optional Requirements
+- **Internet Connection**: Required for Gemini AI features
+- **Ollama**: For local AI processing (privacy-focused option)
 
-### IPC Security
-- `contextBridge` isolates main and renderer processes
-- No direct Node.js access in renderer
-- Whitelisted APIs only
+## 🛡️ Privacy & Security
 
-### Data Security
-- API keys stored in electron-store with encryption
-- Local file system access only
-- No data transmission to external servers (except AI APIs)
+PileBintang is designed with privacy in mind:
 
-## Platform-Specific Features
+- **Local Data Storage**: All journal entries are stored locally on your device
+- **No Cloud Sync**: Your data never leaves your device (except for AI API calls)
+- **Encrypted Credentials**: API keys are encrypted using industry-standard methods
+- **Open Source**: Full transparency - inspect the code yourself
+- **Minimal Permissions**: App only accesses files you explicitly grant access to
 
-### macOS
-- Custom titlebar with traffic light positioning
-- Vibrancy effects for window background
-- Native window behavior and dock integration
+## 🐛 Known Issues & Limitations
 
-### Windows
-- Custom window frame handling
-- Windows-specific file system operations
+- **Large Files**: Very large journal entries (>1MB) may affect performance
+- **AI Rate Limits**: Gemini API has usage limits (see Google's pricing)
+- **File Conflicts**: Concurrent editing of the same file is not yet supported
 
-### Linux
-- AppImage distribution format
-- Cross-platform file system compatibility
+## 📞 Support
 
-## Extension Points for AI Assistants
+- **Issues**: [GitHub Issues](https://github.com/ChaostixZix/PileBintang/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/ChaostixZix/PileBintang/discussions)
+- **Documentation**: Check the `docs/` folder for detailed guides
 
-When working with this codebase:
+## 📄 License
 
-1. **Adding New Features**: Extend existing contexts or create new ones
-2. **AI Improvements**: Modify `AIContext.js` for new AI providers
-3. **UI Components**: Follow the existing component structure in `/pages/`
-4. **File Operations**: Use utilities in `fileOperations.js`
-5. **IPC Communication**: Add handlers in `/main/handlers/`
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
-This architecture provides a solid foundation for a feature-rich journaling application with AI integration while maintaining security, performance, and cross-platform compatibility.
+## 🙏 Acknowledgments
+
+- **Electron Team** for the amazing cross-platform framework
+- **TipTap** for the excellent rich text editor
+- **Google** for the Gemini AI API
+- **Ollama** for local AI inference capabilities
+- **React Team** for the robust UI library
+
+---
+
+**Built with ❤️ for digital journaling enthusiasts**
+
+*PileBintang - Where thoughts meet intelligence*
