@@ -5,6 +5,10 @@
 
 /* Root variables for app theme, dark and light mode */
 :root {
+  /* Font tokens (reverted to original) */
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Inter', sans-serif;
+  --font-heading: 'Porpora', serif;
   --brand: #00ff29;
   --translucent: rgba(193, 193, 193, 0.5);
   --sidebar-width: 250px;
@@ -317,13 +321,14 @@
 
 @import '../../assets/inter/inter.css';
 
+/* Use Inter as the primary UI font */
 html {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
 }
 
 @supports (font-variation-settings: normal) {
   html {
-    font-family: 'Inter var', sans-serif;
+    font-family: var(--font-sans);
   }
 }
 
@@ -338,7 +343,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   color: var(--primary);
 }
 

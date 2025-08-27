@@ -11,6 +11,7 @@ import HighlightsDialog from './Highlights';
 import Toasts from './Toasts';
 import Search from './Search';
 import Sidebar from './Sidebar/Timeline/index';
+import SyncStatus from '../../components/Sync/SyncStatus';
 import styles from './PileLayout.module.scss';
 import InstallUpdate from './InstallUpdate';
 import Chat from './Chat';
@@ -53,18 +54,21 @@ export default function PileLayout({ children }) {
     <div className={`${styles.frame} ${themeStyles} ${osStyles}`}>
       <div className={styles.bg} />
       <div className={styles.main}>
-        <div className={`${styles.sidebar} ${sidebarCollapsed ? styles.collapsed : ''}`}>
+        <div
+          className={`${styles.sidebar} ${sidebarCollapsed ? styles.collapsed : ''}`}
+        >
           <div className={styles.top}>
             <div className={styles.part}>
-              <button 
+              <button
                 className={styles.toggleButton}
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                title={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+                title={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
               >
-                {sidebarCollapsed ? 
-                  <ChevronRightIcon className={styles.chevron} /> : 
+                {sidebarCollapsed ? (
+                  <ChevronRightIcon className={styles.chevron} />
+                ) : (
                   <ChevronLeftIcon className={styles.chevron} />
-                }
+                )}
               </button>
               {!sidebarCollapsed && (
                 <div className={styles.count}>
@@ -75,7 +79,9 @@ export default function PileLayout({ children }) {
           </div>
           {!sidebarCollapsed && <Sidebar />}
         </div>
-        <div className={`${styles.content} ${sidebarCollapsed ? styles.contentExpanded : ''}`}>
+        <div
+          className={`${styles.content} ${sidebarCollapsed ? styles.contentExpanded : ''}`}
+        >
           <div className={styles.nav}>
             <div className={styles.left}>
               {pileName} <span style={{ padding: '6px' }}>·</span>
@@ -101,6 +107,7 @@ export default function PileLayout({ children }) {
               {/* <HighlightsDialog /> */}
             </div>
           </div>
+          <SyncStatus />
           {children}
         </div>
       </div>
