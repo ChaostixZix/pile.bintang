@@ -1,14 +1,14 @@
 import { useParams } from 'react-router-dom';
-import styles from './Posts.module.scss';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { useState, useCallback, useEffect, useMemo, useRef, memo } from 'react';
 import { useIndexContext } from 'renderer/context/IndexContext';
-import Post from './Post';
-import NewPost from '../NewPost';
 import { AnimatePresence, motion } from 'framer-motion';
 import debounce from 'renderer/utils/debounce';
+import Post from './Post';
+import NewPost from '../NewPost';
+import styles from './Posts.module.scss';
 import VirtualList from './VirtualList';
 
 export default function Posts() {
@@ -66,7 +66,7 @@ export default function Posts() {
   return (
     <div className={styles.posts}>
       <AnimatePresence>{renderList}</AnimatePresence>
-      <div className={styles.gradient}></div>
+      <div className={styles.gradient} />
     </div>
   );
 }

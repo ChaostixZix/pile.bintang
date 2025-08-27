@@ -27,9 +27,12 @@ const VirtualTimeline = memo(({ data }) => {
   const { virtualListRef, setVisibleIndex } = useTimelineContext();
   const [isScrolling, setIsScrolling] = useState(false);
 
-  const handleRangeChanged = useCallback((range) => {
-    setVisibleIndex(range.startIndex);
-  }, [setVisibleIndex]);
+  const handleRangeChanged = useCallback(
+    (range) => {
+      setVisibleIndex(range.startIndex);
+    },
+    [setVisibleIndex],
+  );
 
   const renderItem = useCallback((index, entry) => {
     // Only render NewPost at the very top
@@ -38,12 +41,7 @@ const VirtualTimeline = memo(({ data }) => {
     }
 
     const [postPath, post] = entry;
-    return (
-      <PostItem
-        postPath={postPath}
-        post={post}
-      />
-    );
+    return <PostItem postPath={postPath} post={post} />;
   }, []);
 
   const getKey = useCallback((index, entry) => {
@@ -60,18 +58,18 @@ const VirtualTimeline = memo(({ data }) => {
       itemContent={renderItem}
       computeItemKey={getKey}
       components={{
-        Scroller: Scrollbar
+        Scroller: Scrollbar,
       }}
       overscan={5}
       defaultItemHeight={220}
       style={{ height: '100%', width: '100%' }}
       initialTopMostItemIndex={0}
-      followOutput={'smooth'}
+      followOutput="smooth"
       alignToBottom={false}
       components={{
         Scroller: Scrollbar,
         Footer: () => <div style={{ height: 20 }} />,
-        EmptyPlaceholder: () => <div></div>,
+        EmptyPlaceholder: () => <div />,
       }}
     />
   );

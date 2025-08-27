@@ -1,4 +1,4 @@
-export const RelevantIcon = (props) => {
+export function RelevantIcon(props) {
   return (
     <svg
       width="1385"
@@ -14,4 +14,4 @@ export const RelevantIcon = (props) => {
       />
     </svg>
   );
-};
+}

@@ -1,4 +1,4 @@
-export const HomeIcon = (props) => {
+export function HomeIcon(props) {
   return (
     <svg
       {...props}
@@ -14,4 +14,4 @@ export const HomeIcon = (props) => {
       />
     </svg>
   );
-};
+}

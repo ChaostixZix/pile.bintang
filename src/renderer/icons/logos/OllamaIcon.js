@@ -1,4 +1,4 @@
-export const OllamaIcon = (props) => {
+export function OllamaIcon(props) {
   return (
     <svg
       {...props}
@@ -30,4 +30,4 @@ export const OllamaIcon = (props) => {
       />
     </svg>
   );
-};
+}

@@ -1,4 +1,4 @@
-export const Search2Icon = (props) => {
+export function Search2Icon(props) {
   return (
     <svg
       width="961"
@@ -14,4 +14,4 @@ export const Search2Icon = (props) => {
       />
     </svg>
   );
-};
+}

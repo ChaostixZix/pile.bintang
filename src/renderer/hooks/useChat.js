@@ -15,8 +15,7 @@ const useChat = () => {
       },
       {
         role: 'system',
-        content:
-          'The user has provided a description of your personality:' + prompt,
+        content: `The user has provided a description of your personality:${prompt}`,
       },
       {
         role: 'system',
@@ -28,7 +27,7 @@ const useChat = () => {
       },
       { role: 'system', content: 'The user starts the conversation:' },
     ],
-    [prompt, latestThreads]
+    [prompt, latestThreads],
   );
 
   const [messages, setMessages] = useState(STARTER);
@@ -47,14 +46,14 @@ const useChat = () => {
         ...messages,
         {
           role: 'system',
-          content:
-            "Here are some relevant entries from the user's journal related to the user's message:" +
-            threadsAsText.join('\n'),
+          content: `Here are some relevant entries from the user's journal related to the user's message:${threadsAsText.join(
+            '\n',
+          )}`,
         },
         { role: 'user', content: message },
       ];
     },
-    [messages, vectorSearch, getThreadsAsText]
+    [messages, vectorSearch, getThreadsAsText],
   );
 
   const getAIResponse = useCallback(
@@ -62,7 +61,7 @@ const useChat = () => {
       setMessages(messages);
       await generateCompletion(messages, callback);
     },
-    [generateCompletion]
+    [generateCompletion],
   );
 
   return { addMessage, getAIResponse, resetMessages };

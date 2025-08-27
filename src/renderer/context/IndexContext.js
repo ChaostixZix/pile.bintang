@@ -10,7 +10,7 @@ import { usePilesContext } from './PilesContext';
 
 export const IndexContext = createContext();
 
-export const IndexContextProvider = ({ children }) => {
+export function IndexContextProvider({ children }) {
   const { currentPile, getCurrentPilePath } = usePilesContext();
   const [filters, setFilters] = useState();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -37,7 +37,7 @@ export const IndexContextProvider = ({ children }) => {
   }, []);
 
   const prependIndex = useCallback((key, value) => {
-    console.log('prepend index', key, value)
+    console.log('prepend index', key, value);
     setIndex((prevIndex) => {
       const newIndex = new Map([[key, value], ...prevIndex]);
       return newIndex;
@@ -50,14 +50,14 @@ export const IndexContextProvider = ({ children }) => {
       const pilePath = getCurrentPilePath();
 
       await window.electron.ipc
-      .invoke('index-add', newEntryPath)
-      .then((index) => {
-        // setIndex(index);
-        loadLatestThreads();
-      });
+        .invoke('index-add', newEntryPath)
+        .then((index) => {
+          // setIndex(index);
+          loadLatestThreads();
+        });
       console.timeEnd('index-add-time');
     },
-    [currentPile]
+    [currentPile],
   );
 
   const regenerateEmbeddings = () => {
@@ -112,7 +112,7 @@ export const IndexContextProvider = ({ children }) => {
     getThreadsAsText,
     latestThreads,
     regenerateEmbeddings,
-    prependIndex
+    prependIndex,
   };
 
   return (
@@ -120,6 +120,6 @@ export const IndexContextProvider = ({ children }) => {
       {children}
     </IndexContext.Provider>
   );
-};
+}
 
 export const useIndexContext = () => useContext(IndexContext);

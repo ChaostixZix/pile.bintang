@@ -1,0 +1,168 @@
+.globalSpinner {
+  position: fixed;
+  top: var(--nav-height);
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  border-bottom: 2px solid var(--border);
+  padding: 12px 20px;
+  z-index: 9999;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  
+  &.error {
+    background: linear-gradient(135deg, rgba(255, 59, 48, 0.1) 0%, rgba(255, 59, 48, 0.05) 100%);
+    border-bottom-color: var(--base-red);
+  }
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.spinner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--base);
+  animation: pulse 1.4s ease-in-out infinite;
+  
+  &:nth-child(1) {
+    animation-delay: 0s;
+  }
+  
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  
+  &:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+}
+
+@keyframes pulse {
+  0%, 80%, 100% {
+    transform: scale(0.7);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+
+.errorIcon {
+  font-size: 20px;
+  animation: none;
+}
+
+.message {
+  font-size: 1em;
+  font-weight: 500;
+  color: var(--base);
+}
+
+.error .message {
+  color: var(--base-red);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.retryButton, 
+.cancelButton, 
+.dismissButton {
+  display: flex;
+  align-items: center;
+  font-size: 0.9em;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--base);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.retryButton {
+  background: var(--base-green);
+  color: white;
+  border-color: var(--base-green);
+  
+  &:hover {
+    filter: brightness(1.1);
+  }
+}
+
+.cancelButton, .dismissButton {
+  background: var(--base-red);
+  color: white;
+  border-color: var(--base-red);
+  
+  &:hover {
+    filter: brightness(1.1);
+  }
+}
+
+.dismissButton {
+  background: var(--bg-secondary);
+  color: var(--base);
+  border-color: var(--border);
+  
+  &:hover {
+    background: var(--bg-tertiary);
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .globalSpinner {
+    padding: 8px 16px;
+  }
+  
+  .content {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .actions {
+    align-self: flex-end;
+  }
+  
+  .retryButton, 
+  .cancelButton, 
+  .dismissButton {
+    font-size: 0.8em;
+    padding: 4px 8px;
+  }
+}

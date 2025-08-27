@@ -18,7 +18,7 @@ export const availableThemes = {
 
 export const PilesContext = createContext();
 
-export const PilesContextProvider = ({ children }) => {
+export function PilesContextProvider({ children }) {
   const location = useLocation();
   const [currentPile, setCurrentPile] = useState(null);
   const [piles, setPiles] = useState([]);
@@ -70,7 +70,6 @@ export const PilesContextProvider = ({ children }) => {
     window.electron.writeFile(configFilePath, JSON.stringify(piles), (err) => {
       if (err) {
         console.error('Error writing to config');
-        return;
       }
     });
   };
@@ -133,10 +132,10 @@ export const PilesContextProvider = ({ children }) => {
     (theme = 'light') => {
       const valid = Object.keys(availableThemes);
       if (!valid.includes(theme)) return;
-      const _pile = { ...currentPile, theme: theme };
+      const _pile = { ...currentPile, theme };
       updateCurrentPile(_pile);
     },
-    [currentPile]
+    [currentPile],
   );
 
   const pilesContextValue = {
@@ -155,6 +154,6 @@ export const PilesContextProvider = ({ children }) => {
       {children}
     </PilesContext.Provider>
   );
-};
+}
 
 export const usePilesContext = () => useContext(PilesContext);

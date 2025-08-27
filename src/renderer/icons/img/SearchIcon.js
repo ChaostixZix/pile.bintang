@@ -1,4 +1,4 @@
-export const SearchIcon = (props) => {
+export function SearchIcon(props) {
   return (
     <svg
       {...props}
@@ -14,4 +14,4 @@ export const SearchIcon = (props) => {
       />
     </svg>
   );
-};
+}

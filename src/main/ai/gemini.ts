@@ -7,25 +7,27 @@ let genAI: GoogleGenerativeAI | null = null;
 let model: any = null;
 let jsonModel: any = null;
 
-// Initialize Gemini client with the stored API key
-async function initializeGemini() {
+// Initialize Gemini client with the stored API key and specified model
+async function initializeGemini(selectedModel: string = 'gemini-2.5-flash') {
   try {
-    const apiKey = await getKey() || process.env.GEMINI_API_KEY;
+    const apiKey = (await getKey()) || process.env.GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error('No Gemini API key available');
     }
 
     genAI = new GoogleGenerativeAI(apiKey);
-    
+
+    console.log('Initializing Gemini with model:', selectedModel);
+
     // Get the model instance for regular text generation
-    model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
+    model = genAI.getGenerativeModel({ model: selectedModel });
 
     // Get the model instance for JSON generation
-    jsonModel = genAI.getGenerativeModel({ 
-      model: 'gemini-2.5-pro',
+    jsonModel = genAI.getGenerativeModel({
+      model: selectedModel,
       generationConfig: {
-        responseMimeType: 'application/json'
-      }
+        responseMimeType: 'application/json',
+      },
     });
 
     return true;
@@ -38,20 +40,21 @@ async function initializeGemini() {
 /**
  * Stream function that generates content using Gemini API with streaming
  * @param prompt - The text prompt to send to Gemini
+ * @param selectedModel - The Gemini model to use (optional)
  * @returns AsyncGenerator that yields text chunks from the streaming response
  */
-export async function* stream(prompt: string) {
+export async function* stream(prompt: string, selectedModel?: string) {
   try {
-    // Ensure Gemini is initialized
-    if (!model) {
-      const initialized = await initializeGemini();
+    // Ensure Gemini is initialized with the correct model
+    if (!model || selectedModel) {
+      const initialized = await initializeGemini(selectedModel || 'gemini-2.5-flash');
       if (!initialized || !model) {
         throw new Error('Failed to initialize Gemini client');
       }
     }
 
     const result = await model.generateContentStream(prompt);
-    
+
     for await (const chunk of result.stream) {
       const text = chunk.text();
       if (text) {
@@ -76,15 +79,19 @@ export const JSON_TEMPLATES = {
         title: { type: 'string', maxLength: 100 },
         summary: { type: 'string', maxLength: 500 },
         keyThemes: { type: 'array', items: { type: 'string' }, maxItems: 5 },
-        mood: { type: 'string', enum: ['positive', 'negative', 'neutral', 'mixed'] },
-        confidence: { type: 'number', minimum: 0, maximum: 1 }
+        mood: {
+          type: 'string',
+          enum: ['positive', 'negative', 'neutral', 'mixed'],
+        },
+        confidence: { type: 'number', minimum: 0, maximum: 1 },
       },
       required: ['title', 'summary', 'keyThemes', 'mood', 'confidence'],
-      additionalProperties: false
+      additionalProperties: false,
     },
-    systemPrompt: 'You are an expert at analyzing journal entries and creating structured summaries. Respond only with valid JSON matching the exact schema provided.'
+    systemPrompt:
+      'You are an expert at analyzing journal entries and creating structured summaries. Respond only with valid JSON matching the exact schema provided.',
   },
-  
+
   metadata: {
     schema: {
       type: 'object',
@@ -92,33 +99,39 @@ export const JSON_TEMPLATES = {
         tags: { type: 'array', items: { type: 'string' }, maxItems: 10 },
         category: { type: 'string', maxLength: 50 },
         importance: { type: 'string', enum: ['low', 'medium', 'high'] },
-        actionItems: { type: 'array', items: { type: 'string' }, maxItems: 5 }
+        actionItems: { type: 'array', items: { type: 'string' }, maxItems: 5 },
       },
       required: ['tags', 'category', 'importance', 'actionItems'],
-      additionalProperties: false
+      additionalProperties: false,
     },
-    systemPrompt: 'You are an expert at extracting metadata from text content. Respond only with valid JSON matching the exact schema provided.'
-  }
+    systemPrompt:
+      'You are an expert at extracting metadata from text content. Respond only with valid JSON matching the exact schema provided.',
+  },
 };
 
 /**
  * Generate structured JSON content using Gemini API with strict schema enforcement
  * @param prompt - The text prompt to analyze
  * @param templateName - The JSON template to use (summary, metadata)
+ * @param selectedModel - The Gemini model to use (optional)
  * @returns Promise that resolves to a parsed JavaScript object matching the schema
  */
-export async function json(prompt: string, templateName: keyof typeof JSON_TEMPLATES = 'summary'): Promise<any> {
+export async function json(
+  prompt: string,
+  templateName: keyof typeof JSON_TEMPLATES = 'summary',
+  selectedModel?: string,
+): Promise<any> {
   try {
-    // Ensure Gemini is initialized
-    if (!jsonModel) {
-      const initialized = await initializeGemini();
+    // Ensure Gemini is initialized with the correct model
+    if (!jsonModel || selectedModel) {
+      const initialized = await initializeGemini(selectedModel || 'gemini-2.5-flash');
       if (!initialized || !jsonModel) {
         throw new Error('Failed to initialize Gemini client');
       }
     }
 
     const template = JSON_TEMPLATES[templateName];
-    
+
     // Construct schema-aware prompt
     const fullPrompt = `${template.systemPrompt}
 
@@ -133,18 +146,18 @@ Return only valid JSON that strictly matches the schema above. No additional tex
     const result = await jsonModel.generateContent(fullPrompt);
     const response = await result.response;
     const text = response.text().trim();
-    
+
     console.log('Gemini JSON response:', text);
-    
+
     // Parse and validate JSON response using safe parser
     const parseResult = safeParseJson(text, templateName);
-    
+
     if (!parseResult.success) {
       console.error('JSON parsing failed:', parseResult.error);
       // Still return the data (fallback values) but log the error
       // This ensures the application continues to function even with invalid JSON
     }
-    
+
     return parseResult.data;
   } catch (error) {
     console.error('Error in Gemini JSON generation:', error);

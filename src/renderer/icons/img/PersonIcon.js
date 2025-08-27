@@ -1,4 +1,4 @@
-export const PersonIcon = (props) => {
+export function PersonIcon(props) {
   return (
     <svg
       {...props}
@@ -16,4 +16,4 @@ export const PersonIcon = (props) => {
       />
     </svg>
   );
-};
+}

@@ -9,7 +9,7 @@ const useGeminiStream = () => {
   const [streamedContent, setStreamedContent] = useState('');
   const [error, setError] = useState(null);
   const [isComplete, setIsComplete] = useState(false);
-  
+
   // Track current stream for cancellation
   const currentStreamId = useRef(null);
   const cleanupFunctionRef = useRef(null);
@@ -59,41 +59,45 @@ const useGeminiStream = () => {
   }, []);
 
   // Start a new stream
-  const startStream = useCallback(async (prompt) => {
-    try {
-      // Cancel any existing stream
-      if (currentStreamId.current) {
-        cancelStream();
-      }
+  const startStream = useCallback(
+    async (prompt) => {
+      try {
+        // Cancel any existing stream
+        if (currentStreamId.current) {
+          cancelStream();
+        }
 
-      // Reset state
-      setIsStreaming(true);
-      setError(null);
-      setIsComplete(false);
-      setStreamedContent('');
-      bufferRef.current = '';
+        // Reset state
+        setIsStreaming(true);
+        setError(null);
+        setIsComplete(false);
+        setStreamedContent('');
+        bufferRef.current = '';
 
-      // Set up stream listener
-      const cleanup = window.electron.gemini.onGeminiResponse(handleStreamEvent);
-      cleanupFunctionRef.current = cleanup;
+        // Set up stream listener
+        const cleanup =
+          window.electron.gemini.onGeminiResponse(handleStreamEvent);
+        cleanupFunctionRef.current = cleanup;
 
-      // Start the stream
-      const response = await window.electron.gemini.startStream(prompt);
-      
-      if (response.success) {
-        currentStreamId.current = response.streamId;
-      } else {
-        setError(new Error(response.error || 'Failed to start stream'));
+        // Start the stream
+        const response = await window.electron.gemini.startStream(prompt);
+
+        if (response.success) {
+          currentStreamId.current = response.streamId;
+        } else {
+          setError(new Error(response.error || 'Failed to start stream'));
+          setIsStreaming(false);
+          setIsComplete(true);
+        }
+      } catch (err) {
+        console.error('Failed to start Gemini stream:', err);
+        setError(err);
         setIsStreaming(false);
         setIsComplete(true);
       }
-    } catch (err) {
-      console.error('Failed to start Gemini stream:', err);
-      setError(err);
-      setIsStreaming(false);
-      setIsComplete(true);
-    }
-  }, [handleStreamEvent]);
+    },
+    [handleStreamEvent],
+  );
 
   // Cancel the current stream
   const cancelStream = useCallback(() => {
@@ -102,7 +106,7 @@ const useGeminiStream = () => {
       setIsStreaming(false);
       setIsComplete(true);
     }
-    
+
     if (cleanupFunctionRef.current) {
       cleanupFunctionRef.current();
       cleanupFunctionRef.current = null;
@@ -114,12 +118,11 @@ const useGeminiStream = () => {
     try {
       setError(null);
       const response = await window.electron.gemini.invokeGemini(prompt);
-      
+
       if (response.success) {
         return response.data;
-      } else {
-        throw new Error(response.error || 'Failed to generate completion');
       }
+      throw new Error(response.error || 'Failed to generate completion');
     } catch (err) {
       console.error('Failed to generate Gemini completion:', err);
       setError(err);
@@ -149,7 +152,7 @@ const useGeminiStream = () => {
     streamedContent,
     error,
     isComplete,
-    
+
     // Actions
     startStream,
     cancelStream,

@@ -1,4 +1,4 @@
-export const CheckboxIcon = (props) => {
+export function CheckboxIcon(props) {
   return (
     <svg
       width="1024"
@@ -18,4 +18,4 @@ export const CheckboxIcon = (props) => {
       />
     </svg>
   );
-};
+}

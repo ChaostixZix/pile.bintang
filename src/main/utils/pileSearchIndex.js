@@ -31,24 +31,24 @@ class PileSearchIndex {
         builder.field('isReply');
         builder.field('isAI');
 
-        for (let [filePath, metadata] of index) {
+        for (const [filePath, metadata] of index) {
           try {
             //  we only index parent documents
             // the replies are concatenated to the contents
             if (metadata.isReply) continue;
-            let fullPath = path.join(this.pilePath, filePath);
-            let fileContent = fs.readFileSync(fullPath, 'utf8');
+            const fullPath = path.join(this.pilePath, filePath);
+            const fileContent = fs.readFileSync(fullPath, 'utf8');
             let { content } = matter(fileContent);
 
             // concat the contents of replies
-            for (let replyPath of metadata.replies) {
-              let replyFullPath = path.join(this.pilePath, replyPath);
-              let replyFileContent = fs.readFileSync(replyFullPath, 'utf8');
-              let { content: replyContent } = matter(replyFileContent);
-              content += '\n' + replyContent;
+            for (const replyPath of metadata.replies) {
+              const replyFullPath = path.join(this.pilePath, replyPath);
+              const replyFileContent = fs.readFileSync(replyFullPath, 'utf8');
+              const { content: replyContent } = matter(replyFileContent);
+              content += `\n${replyContent}`;
             }
 
-            let doc = {
+            const doc = {
               id: filePath,
               title: metadata.title,
               attachments: metadata.attachments.join(' '),

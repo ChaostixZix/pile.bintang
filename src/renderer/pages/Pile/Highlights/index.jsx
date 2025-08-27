@@ -1,9 +1,9 @@
-import styles from './Highlights.module.scss';
 import { SettingsIcon, CrossIcon } from 'renderer/icons';
 import { useEffect, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useAIContext } from 'renderer/context/AIContext';
 import { useHighlightsContext } from 'renderer/context/HighlightsContext';
+import styles from './Highlights.module.scss';
 
 // UNDER CONSTRUCTION
 export default function HighlightsDialog() {

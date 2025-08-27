@@ -1,4 +1,3 @@
-import styles from './Search.module.scss';
 import {
   SettingsIcon,
   CrossIcon,
@@ -17,12 +16,13 @@ import {
   usePilesContext,
 } from 'renderer/context/PilesContext';
 import { useIndexContext } from 'renderer/context/IndexContext';
-import Post from '../Posts/Post';
 import TextareaAutosize from 'react-textarea-autosize';
+import { AnimatePresence, motion } from 'framer-motion';
+import Post from '../Posts/Post';
 import Waiting from '../Toasts/Toast/Loaders/Waiting';
 import Thinking from '../Toasts/Toast/Loaders/Thinking';
 import InputBar from './InputBar';
-import { AnimatePresence, motion } from 'framer-motion';
+import styles from './Search.module.scss';
 import OptionsBar from './OptionsBar';
 import VirtualList from '../Posts/VirtualList';
 
@@ -151,7 +151,7 @@ export default function Search() {
 
   const osStyles = useMemo(
     () => (window.electron.isMac ? styles.mac : styles.win),
-    []
+    [],
   );
 
   return (
@@ -183,18 +183,18 @@ export default function Search() {
               {filtered && (
                 <div className={styles.meta}>
                   {filtered?.length} thread{filtered?.length !== 1 && 's'}
-                  <div className={styles.sep}></div>
+                  <div className={styles.sep} />
                   {filtered.reduce(
                     (a, i) => a + 1 + i?.replies?.length,
-                    0
+                    0,
                   )}{' '}
                   entries
-                  <div className={styles.sep}></div>
+                  <div className={styles.sep} />
                   {filtered.filter((post) => post.highlight).length} highlighted
-                  <div className={styles.sep}></div>
+                  <div className={styles.sep} />
                   {filtered.reduce(
                     (a, i) => a + i?.attachments?.length,
-                    0
+                    0,
                   )}{' '}
                   attachments
                 </div>
@@ -210,8 +210,8 @@ export default function Search() {
                 </motion.ul>
               </AnimatePresence>
             </div>
-            <div className={styles.gradient}></div>
-            <div className={styles.gradient2}></div>
+            <div className={styles.gradient} />
+            <div className={styles.gradient2} />
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>

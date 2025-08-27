@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import styles from './OpenPileFolder.module.scss';
 import { FolderIcon, TrashIcon } from 'renderer/icons';
 import { Link } from 'react-router-dom';
+import styles from './OpenPileFolder.module.scss';
 import { usePilesContext } from '../../../context/PilesContext';
 
 export default function OpenPileFolder({ pile }) {

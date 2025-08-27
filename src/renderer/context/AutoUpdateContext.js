@@ -3,7 +3,7 @@ import { useToastsContext } from './ToastsContext';
 
 export const AutoUpdateContext = createContext();
 
-export const AutoUpdateContextProvider = ({ children }) => {
+export function AutoUpdateContextProvider({ children }) {
   const { addNotification, removeNotification } = useToastsContext();
 
   const [updateAvailable, setUpdateAvailable] = useState(false);
@@ -67,16 +67,16 @@ export const AutoUpdateContextProvider = ({ children }) => {
     return () => {
       window.electron.ipc.removeListener(
         'update_available',
-        handleUpdateAvailable
+        handleUpdateAvailable,
       );
       window.electron.ipc.removeListener(
         'update_downloaded',
-        handleUpdateDownloaded
+        handleUpdateDownloaded,
       );
       window.electron.ipc.removeListener('update_error', handleUpdateError);
       window.electron.ipc.removeListener(
         'update_not_available',
-        handleUpdateNotAvailable
+        handleUpdateNotAvailable,
       );
     };
   }, []);
@@ -99,6 +99,6 @@ export const AutoUpdateContextProvider = ({ children }) => {
       {children}
     </AutoUpdateContext.Provider>
   );
-};
+}
 
 export const useAutoUpdateContext = () => useContext(AutoUpdateContext);

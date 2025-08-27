@@ -11,7 +11,7 @@ import debounce from 'renderer/utils/debounce';
 
 export const TimelineContext = createContext();
 
-export const TimelineContextProvider = ({ children }) => {
+export function TimelineContextProvider({ children }) {
   const [visibleIndex, _setVisibleIndex] = useState(0);
   const [closestDate, setClosestDate] = useState(new Date());
   const virtualListRef = useRef(null);
@@ -44,6 +44,6 @@ export const TimelineContextProvider = ({ children }) => {
       {children}
     </TimelineContext.Provider>
   );
-};
+}
 
 export const useTimelineContext = () => useContext(TimelineContext);

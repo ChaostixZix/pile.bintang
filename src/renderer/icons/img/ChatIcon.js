@@ -1,4 +1,4 @@
-export const ChatIcon = (props) => {
+export function ChatIcon(props) {
   return (
     <svg
       {...props}
@@ -16,4 +16,4 @@ export const ChatIcon = (props) => {
       />
     </svg>
   );
-};
+}

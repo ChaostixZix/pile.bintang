@@ -1,10 +1,10 @@
-import styles from './Message.module.scss';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState, useEffect, useCallback, memo } from 'react';
 import { AIIcon, PersonIcon } from 'renderer/icons';
 import Markdown from 'react-markdown';
+import styles from './Message.module.scss';
 
-const Message = ({ index, message, scrollToBottom }) => {
+function Message({ index, message, scrollToBottom }) {
   const isUser = message.role === 'user';
   const [streamedResponse, setStreamedResponse] = useState('');
 
@@ -43,6 +43,6 @@ const Message = ({ index, message, scrollToBottom }) => {
       </motion.div>
     </div>
   );
-};
+}
 
 export default Message;

@@ -1,4 +1,4 @@
-export const ChainIcon = (props) => {
+export function ChainIcon(props) {
   return (
     <svg
       {...props}
@@ -20,4 +20,4 @@ export const ChainIcon = (props) => {
       </g>
     </svg>
   );
-};
+}

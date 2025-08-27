@@ -17,7 +17,7 @@ class AudioRecorder {
     const timestamp = new Date().toISOString().replace(/:/g, '-');
     const filePath = path.join(
       this.outputDirectory,
-      `recording_${timestamp}.wav`
+      `recording_${timestamp}.wav`,
     );
 
     this.micInstance = mic({

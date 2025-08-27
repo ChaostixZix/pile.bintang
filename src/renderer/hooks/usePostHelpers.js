@@ -13,7 +13,7 @@ export const getPost = async (postPath) => {
     const fileContent = await window.electron.ipc.invoke('get-file', postPath);
     const parsed = await window.electron.ipc.invoke(
       'matter-parse',
-      fileContent
+      fileContent,
     );
     const post = { content: parsed.content, data: parsed.data };
     return post;
@@ -31,8 +31,8 @@ export const attachToPostCreator =
       // save image data to a file
       const newFilePath = await window.electron.ipc.invoke('save-file', {
         fileData: imageData,
-        fileExtension: fileExtension,
-        storePath: storePath,
+        fileExtension,
+        storePath,
       });
 
       if (newFilePath) {
@@ -42,7 +42,7 @@ export const attachToPostCreator =
       }
     } else {
       newAttachments = await window.electron.ipc.invoke('open-file', {
-        storePath: storePath,
+        storePath,
       });
     }
     // Attachments are stored relative to the base path from the
@@ -68,16 +68,16 @@ export const attachToPostCreator =
 export const detachFromPostCreator =
   (setPost, getCurrentPilePath) => (attachmentPath) => {
     setPost((post) => {
-      let newPost = JSON.parse(JSON.stringify(post));
+      const newPost = JSON.parse(JSON.stringify(post));
       const newAtt = newPost.data.attachments.filter(
-        (a) => a !== attachmentPath
+        (a) => a !== attachmentPath,
       );
 
       newPost.data.attachments = newAtt;
 
       const fullPath = window.electron.joinPath(
         getCurrentPilePath(),
-        attachmentPath
+        attachmentPath,
       );
 
       window.electron.deleteFile(fullPath, (err) => {
@@ -124,9 +124,9 @@ export const setHighlightCreator = (post, setPost, savePost) => {
   return (highlight) => {
     setPost((post) => ({
       ...post,
-      data: { ...post.data, highlight: highlight },
+      data: { ...post.data, highlight },
     }));
-    savePost({ highlight: highlight });
+    savePost({ highlight });
   };
 };
 
@@ -143,7 +143,7 @@ export const cycleColorCreator = (post, setPost, savePost, highlightColors) => {
     }
     const currentColor = post.data.highlightColor;
     const currentIndex = highlightColors.findIndex(
-      (color) => color === currentColor
+      (color) => color === currentColor,
     );
     const nextIndex = (currentIndex + 1) % highlightColors.length;
     const nextColor = highlightColors[nextIndex];

@@ -14,15 +14,15 @@ const DEFAULT_VALUES = {
     summary: 'Failed to parse AI response. Please try again.',
     keyThemes: ['parsing-error'],
     mood: 'neutral' as const,
-    confidence: 0
+    confidence: 0,
   } as SummaryResponse,
-  
+
   metadata: {
     tags: ['parsing-error'],
     category: 'uncategorized',
     importance: 'low' as const,
-    actionItems: []
-  } as MetadataResponse
+    actionItems: [],
+  } as MetadataResponse,
 };
 
 /**
@@ -32,7 +32,7 @@ export enum JSONParseError {
   INVALID_JSON = 'INVALID_JSON',
   MISSING_REQUIRED_FIELDS = 'MISSING_REQUIRED_FIELDS',
   INVALID_FIELD_TYPE = 'INVALID_FIELD_TYPE',
-  VALIDATION_FAILED = 'VALIDATION_FAILED'
+  VALIDATION_FAILED = 'VALIDATION_FAILED',
 }
 
 export interface ParseResult<T> {
@@ -96,60 +96,64 @@ function cleanJsonString(jsonStr: string): string {
     .replace(/```json\s*/g, '')
     .replace(/```\s*/g, '')
     .trim();
-  
+
   // Try to find JSON object boundaries
   const startIndex = cleaned.indexOf('{');
   const lastIndex = cleaned.lastIndexOf('}');
-  
+
   if (startIndex !== -1 && lastIndex !== -1 && lastIndex > startIndex) {
     return cleaned.substring(startIndex, lastIndex + 1);
   }
-  
+
   return cleaned;
 }
 
 /**
  * Safely parses JSON response for summary template
  */
-export function parseSummaryResponse(response: string): ParseResult<SummaryResponse> {
+export function parseSummaryResponse(
+  response: string,
+): ParseResult<SummaryResponse> {
   try {
     const cleanedResponse = cleanJsonString(response);
     const parsed = JSON.parse(cleanedResponse);
-    
+
     if (validateSummaryResponse(parsed)) {
       // Apply length limits to prevent overflow
       const safeData: SummaryResponse = {
         title: parsed.title.substring(0, 100),
         summary: parsed.summary.substring(0, 500),
-        keyThemes: parsed.keyThemes.slice(0, 5).map((theme: string) => theme.substring(0, 50)),
+        keyThemes: parsed.keyThemes
+          .slice(0, 5)
+          .map((theme: string) => theme.substring(0, 50)),
         mood: parsed.mood,
-        confidence: Math.max(0, Math.min(1, parsed.confidence))
+        confidence: Math.max(0, Math.min(1, parsed.confidence)),
       };
-      
+
       return {
         success: true,
-        data: safeData
-      };
-    } else {
-      return {
-        success: false,
-        data: DEFAULT_VALUES.summary,
-        error: {
-          type: JSONParseError.VALIDATION_FAILED,
-          message: 'Parsed JSON does not match required summary schema',
-          originalResponse: response
-        }
+        data: safeData,
       };
     }
+    return {
+      success: false,
+      data: DEFAULT_VALUES.summary,
+      error: {
+        type: JSONParseError.VALIDATION_FAILED,
+        message: 'Parsed JSON does not match required summary schema',
+        originalResponse: response,
+      },
+    };
   } catch (error) {
     return {
       success: false,
       data: DEFAULT_VALUES.summary,
       error: {
         type: JSONParseError.INVALID_JSON,
-        message: error instanceof Error ? error.message : 'Unknown JSON parsing error',
-        originalResponse: response
-      }
+        message:
+          error instanceof Error ? error.message : 'Unknown JSON parsing error',
+        originalResponse: response,
+      },
     };
   }
 }
@@ -157,44 +161,50 @@ export function parseSummaryResponse(response: string): ParseResult<SummaryRespo
 /**
  * Safely parses JSON response for metadata template
  */
-export function parseMetadataResponse(response: string): ParseResult<MetadataResponse> {
+export function parseMetadataResponse(
+  response: string,
+): ParseResult<MetadataResponse> {
   try {
     const cleanedResponse = cleanJsonString(response);
     const parsed = JSON.parse(cleanedResponse);
-    
+
     if (validateMetadataResponse(parsed)) {
       // Apply length limits to prevent overflow
       const safeData: MetadataResponse = {
-        tags: parsed.tags.slice(0, 10).map((tag: string) => tag.substring(0, 30)),
+        tags: parsed.tags
+          .slice(0, 10)
+          .map((tag: string) => tag.substring(0, 30)),
         category: parsed.category.substring(0, 50),
         importance: parsed.importance,
-        actionItems: parsed.actionItems.slice(0, 5).map((item: string) => item.substring(0, 100))
+        actionItems: parsed.actionItems
+          .slice(0, 5)
+          .map((item: string) => item.substring(0, 100)),
       };
-      
+
       return {
         success: true,
-        data: safeData
-      };
-    } else {
-      return {
-        success: false,
-        data: DEFAULT_VALUES.metadata,
-        error: {
-          type: JSONParseError.VALIDATION_FAILED,
-          message: 'Parsed JSON does not match required metadata schema',
-          originalResponse: response
-        }
+        data: safeData,
       };
     }
+    return {
+      success: false,
+      data: DEFAULT_VALUES.metadata,
+      error: {
+        type: JSONParseError.VALIDATION_FAILED,
+        message: 'Parsed JSON does not match required metadata schema',
+        originalResponse: response,
+      },
+    };
   } catch (error) {
     return {
       success: false,
       data: DEFAULT_VALUES.metadata,
       error: {
         type: JSONParseError.INVALID_JSON,
-        message: error instanceof Error ? error.message : 'Unknown JSON parsing error',
-        originalResponse: response
-      }
+        message:
+          error instanceof Error ? error.message : 'Unknown JSON parsing error',
+        originalResponse: response,
+      },
     };
   }
 }
@@ -203,12 +213,11 @@ export function parseMetadataResponse(response: string): ParseResult<MetadataRes
  * Generic safe JSON parser with template-specific validation
  */
 export function safeParseJson<T extends 'summary' | 'metadata'>(
-  response: string, 
-  template: T
+  response: string,
+  template: T,
 ): ParseResult<T extends 'summary' ? SummaryResponse : MetadataResponse> {
   if (template === 'summary') {
     return parseSummaryResponse(response) as any;
-  } else {
-    return parseMetadataResponse(response) as any;
   }
+  return parseMetadataResponse(response) as any;
 }

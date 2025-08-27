@@ -1,9 +1,11 @@
 /* eslint import/prefer-default-export: off */
 import { URL } from 'url';
 import path from 'path';
+
 const fs = require('fs');
-const readdir = fs.promises.readdir;
-const stat = fs.promises.stat;
+
+const { readdir } = fs.promises;
+const { stat } = fs.promises;
 
 export function resolveHtmlPath(htmlFileName: string) {
   if (process.env.NODE_ENV === 'development') {
@@ -21,7 +23,7 @@ export function convertHTMLToPlainText(html: string) {
     /<a [^>]*href="([^"]+)"[^>]*>([^<]+)<\/a>/gi,
     (match, href, anchorText) => {
       return href; // Replace with the href content
-    }
+    },
   );
 
   // Strip out remaining <p>, <strong> tags
@@ -37,7 +39,7 @@ export async function walk(dir: string, root = true) {
       const filePath = path.join(dir, file);
       const stats = await stat(filePath);
       if (stats.isDirectory()) {
-        //Validate by YEAR/MMM:2024/Nov folder structure
+        // Validate by YEAR/MMM:2024/Nov folder structure
         if (
           !root &&
           !(
@@ -48,10 +50,11 @@ export async function walk(dir: string, root = true) {
           return null;
         }
         return walk(filePath, false);
-      } else if (stats.isFile() && filePath.endsWith('.md')) {
+      }
+      if (stats.isFile() && filePath.endsWith('.md')) {
         return filePath;
       }
-    })
+    }),
   );
 
   return files.flat().filter(Boolean);

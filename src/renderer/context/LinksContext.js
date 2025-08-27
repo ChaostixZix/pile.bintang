@@ -12,7 +12,7 @@ import { useToastsContext } from './ToastsContext';
 
 export const LinksContext = createContext();
 
-export const LinksContextProvider = ({ children }) => {
+export function LinksContextProvider({ children }) {
   const { currentPile, getCurrentPilePath } = usePilesContext();
   const { ai } = useAIContext();
   const { addNotification, updateNotification, removeNotification } =
@@ -24,7 +24,7 @@ export const LinksContextProvider = ({ children }) => {
       const preview = await window.electron.ipc.invoke(
         'links-get',
         pilePath,
-        url
+        url,
       );
 
       // return cached preview if available
@@ -44,14 +44,14 @@ export const LinksContextProvider = ({ children }) => {
       updateNotification(url, 'thinking', 'Generating preview...');
       const aiCard = await generateMeta(url).catch(() => {
         console.log(
-          'Failed to generate AI link preview, a basic preview will be used.'
+          'Failed to generate AI link preview, a basic preview will be used.',
         );
         updateNotification(url, 'failed', 'AI link preview failed');
         return null;
       });
 
       const linkPreview = {
-        url: url,
+        url,
         createdAt: new Date().toISOString(),
         title: _preview?.title ?? '',
         images: _preview?.images ?? [],
@@ -69,7 +69,7 @@ export const LinksContextProvider = ({ children }) => {
 
       return linkPreview;
     },
-    [currentPile]
+    [currentPile],
   );
 
   const setLink = useCallback(
@@ -77,7 +77,7 @@ export const LinksContextProvider = ({ children }) => {
       const pilePath = getCurrentPilePath();
       window.electron.ipc.invoke('links-set', pilePath, url, data);
     },
-    [currentPile]
+    [currentPile],
   );
 
   const getPreview = async (url) => {
@@ -93,7 +93,7 @@ export const LinksContextProvider = ({ children }) => {
   const trimContent = (string, numWords = 2000) => {
     const wordsArray = string.split(/\s+/);
     if (wordsArray.length > numWords) {
-      return wordsArray.slice(0, numWords).join(' ') + '...';
+      return `${wordsArray.slice(0, numWords).join(' ')}...`;
     }
     return string;
   };
@@ -102,7 +102,7 @@ export const LinksContextProvider = ({ children }) => {
     const { text, images, links } = await getContent(url);
     const trimmedContent = trimContent(text);
 
-    let context = [];
+    const context = [];
 
     context.push({
       role: 'system',
@@ -164,6 +164,6 @@ export const LinksContextProvider = ({ children }) => {
       {children}
     </LinksContext.Provider>
   );
-};
+}
 
 export const useLinksContext = () => useContext(LinksContext);

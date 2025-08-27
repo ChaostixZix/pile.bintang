@@ -14,6 +14,8 @@ import { HighlightsContextProvider } from './context/HighlightsContext';
 import { LinksContextProvider } from './context/LinksContext';
 import { ToastsContextProvider } from './context/ToastsContext';
 import { AutoUpdateContextProvider } from './context/AutoUpdateContext';
+import { DebugProvider } from './context/DebugContext';
+import DebugNotifications from './components/DebugNotifications';
 
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
@@ -26,7 +28,7 @@ const transition = {
   duration: 0.1,
 };
 
-const AnimatedPage = ({ children, _key = '', down = false }) => {
+function AnimatedPage({ children, _key = '', down = false }) {
   return (
     <motion.div
       key={_key}
@@ -38,7 +40,7 @@ const AnimatedPage = ({ children, _key = '', down = false }) => {
       {children}
     </motion.div>
   );
-};
+}
 
 export default function App() {
   const location = useLocation();
@@ -48,54 +50,57 @@ export default function App() {
       <ToastsContextProvider>
         <AutoUpdateContextProvider>
           <AIContextProvider>
-            <IndexContextProvider>
-              <HighlightsContextProvider>
-                <TagsContextProvider>
-                  <TimelineContextProvider>
-                    <LinksContextProvider>
-                      <AnimatePresence mode="wait">
-                        <Routes location={location} key={location.pathname}>
-                          <Route
-                            path="/"
-                            element={
-                              <AnimatedPage _key="home">
-                                <Home />
-                              </AnimatedPage>
-                            }
-                          />
-                          <Route
-                            path="/license"
-                            element={
-                              <AnimatedPage _key="license">
-                                <License />
-                              </AnimatedPage>
-                            }
-                          />
-                          <Route
-                            path="/new-pile"
-                            element={
-                              <AnimatedPage _key="new-pile">
-                                <CreatePile />
-                              </AnimatedPage>
-                            }
-                          />
-                          <Route path="/pile">
+            <DebugProvider>
+                <IndexContextProvider>
+                  <HighlightsContextProvider>
+                    <TagsContextProvider>
+                      <TimelineContextProvider>
+                        <LinksContextProvider>
+                          <DebugNotifications />
+                          <AnimatePresence mode="wait">
+                          <Routes location={location} key={location.pathname}>
                             <Route
-                              path=":pileName"
+                              path="/"
                               element={
-                                <AnimatedPage down _key="pile">
-                                  <Pile />
+                                <AnimatedPage _key="home">
+                                  <Home />
                                 </AnimatedPage>
                               }
                             />
-                          </Route>
-                        </Routes>
-                      </AnimatePresence>
-                    </LinksContextProvider>
-                  </TimelineContextProvider>
-                </TagsContextProvider>
-              </HighlightsContextProvider>
-            </IndexContextProvider>
+                            <Route
+                              path="/license"
+                              element={
+                                <AnimatedPage _key="license">
+                                  <License />
+                                </AnimatedPage>
+                              }
+                            />
+                            <Route
+                              path="/new-pile"
+                              element={
+                                <AnimatedPage _key="new-pile">
+                                  <CreatePile />
+                                </AnimatedPage>
+                              }
+                            />
+                            <Route path="/pile">
+                              <Route
+                                path=":pileName"
+                                element={
+                                  <AnimatedPage down _key="pile">
+                                    <Pile />
+                                  </AnimatedPage>
+                                }
+                              />
+                            </Route>
+                          </Routes>
+                        </AnimatePresence>
+                      </LinksContextProvider>
+                    </TimelineContextProvider>
+                  </TagsContextProvider>
+                </HighlightsContextProvider>
+              </IndexContextProvider>
+            </DebugProvider>
           </AIContextProvider>
         </AutoUpdateContextProvider>
       </ToastsContextProvider>

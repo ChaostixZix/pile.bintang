@@ -11,8 +11,8 @@ class PileTags {
   }
 
   sortMap(map) {
-    let sortedMap = new Map(
-      [...map.entries()].sort((a, b) => a[1].posts.length - b[1].posts.length)
+    const sortedMap = new Map(
+      [...map.entries()].sort((a, b) => a[1].posts.length - b[1].posts.length),
     );
 
     return sortedMap;
@@ -31,11 +31,10 @@ class PileTags {
       this.tags = sortedTags;
 
       return this.tags;
-    } else {
-      // save to initialize an empty index
-      this.save();
-      return this.tags;
     }
+    // save to initialize an empty index
+    this.save();
+    return this.tags;
   }
 
   get() {
@@ -59,7 +58,7 @@ class PileTags {
     const { data, content } = matter(fileContent);
 
     if (this.tags.has(tag)) {
-      let updatedTag = this.tags.get(tag);
+      const updatedTag = this.tags.get(tag);
       if (!updatedTag.posts.includes(tag)) {
         updatedTag.posts.push(filePath);
         this.tags.set(tag, updatedTag);
@@ -76,7 +75,7 @@ class PileTags {
 
   remove(tag, filePath) {
     if (this.tags.has(tag)) {
-      let updatedTag = this.tags.get(tag);
+      const updatedTag = this.tags.get(tag);
       updatedTag.posts = updatedTag.posts.filter((f) => f !== filePath);
       this.tags.set(tag, updatedTag);
       this.save();
@@ -99,7 +98,7 @@ class PileTags {
 
     if (!entries) return;
 
-    let strMap = JSON.stringify(Array.from(entries));
+    const strMap = JSON.stringify(Array.from(entries));
 
     fs.writeFileSync(tagsPath, strMap);
   }

@@ -1,8 +1,8 @@
-import styles from './TagButton.module.scss';
 import { useCallback, useState, useEffect } from 'react';
 import { DiscIcon, PhotoIcon, TrashIcon, TagIcon } from 'renderer/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTagsContext } from 'renderer/context/TagsContext';
+import styles from './TagButton.module.scss';
 
 export default function Tags({
   tags = [],

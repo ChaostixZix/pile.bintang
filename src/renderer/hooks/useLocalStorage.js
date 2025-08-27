@@ -22,7 +22,7 @@ export function useLocalStorage(key, initialValue) {
     (value) => {
       if (typeof window === 'undefined') {
         console.warn(
-          `Tried setting localStorage key "${key}" even though environment is not a client`
+          `Tried setting localStorage key "${key}" even though environment is not a client`,
         );
       }
 
@@ -37,7 +37,7 @@ export function useLocalStorage(key, initialValue) {
         console.warn(`Error setting localStorage key "${key}":`, error);
       }
     },
-    [key, storedValue]
+    [key, storedValue],
   );
 
   return [storedValue, setValue];

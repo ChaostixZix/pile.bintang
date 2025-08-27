@@ -15,10 +15,10 @@ class PileIndex {
   }
 
   sortMap(map) {
-    let sortedMap = new Map(
+    const sortedMap = new Map(
       [...map.entries()].sort(
-        (a, b) => new Date(b[1].createdAt) - new Date(a[1].createdAt)
-      )
+        (a, b) => new Date(b[1].createdAt) - new Date(a[1].createdAt),
+      ),
     );
 
     return sortedMap;
@@ -126,23 +126,23 @@ class PileIndex {
 
   getThreadAsText(filePath) {
     try {
-      let fullPath = path.join(this.pilePath, filePath);
-      let fileContent = fs.readFileSync(fullPath, 'utf8');
+      const fullPath = path.join(this.pilePath, filePath);
+      const fileContent = fs.readFileSync(fullPath, 'utf8');
       let { content, data: metedata } = matter(fileContent);
 
-      content =
-        `First entry at ${new Date(metedata.createdAt).toString()}:\n ` +
-        convertHTMLToPlainText(content);
+      content = `First entry at ${new Date(metedata.createdAt).toString()}:\n ${convertHTMLToPlainText(
+        content,
+      )}`;
 
       // concat the contents of replies
-      for (let replyPath of metedata.replies) {
+      for (const replyPath of metedata.replies) {
         try {
-          let replyFullPath = path.join(this.pilePath, replyPath);
-          let replyFileContent = fs.readFileSync(replyFullPath, 'utf8');
-          let { content: replyContent, data: replyMetadata } =
+          const replyFullPath = path.join(this.pilePath, replyPath);
+          const replyFileContent = fs.readFileSync(replyFullPath, 'utf8');
+          const { content: replyContent, data: replyMetadata } =
             matter(replyFileContent);
           content += `\n\n Reply at ${new Date(
-            replyMetadata.createdAt
+            replyMetadata.createdAt,
           ).toString()}:\n  ${convertHTMLToPlainText(replyContent)}`;
         } catch (error) {
           continue;
@@ -159,7 +159,7 @@ class PileIndex {
   updateParentOfReply(replyPath) {
     const reply = this.index.get(replyPath);
     if (reply.isReply) {
-      for (let [filePath, metadata] of this.index) {
+      for (const [filePath, metadata] of this.index) {
         if (!metadata.isReply) {
           if (metadata.replies.includes(replyPath)) {
             // this is the parent
@@ -178,7 +178,6 @@ class PileIndex {
   regenerateEmbeddings() {
     pileEmbeddings.regenerateEmbeddings(this.index);
     this.save();
-    return;
   }
 
   update(relativeFilePath, data) {
@@ -209,7 +208,7 @@ class PileIndex {
 
     if (!entries) return;
 
-    let strMap = JSON.stringify(Array.from(entries));
+    const strMap = JSON.stringify(Array.from(entries));
     fs.writeFileSync(filePath, strMap);
   }
 }

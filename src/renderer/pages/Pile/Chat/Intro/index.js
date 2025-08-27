@@ -1,8 +1,8 @@
 import { OpenBookIcon } from 'renderer/icons';
-import styles from './Intro.module.scss';
 import { AnimatePresence, motion } from 'framer-motion';
+import styles from './Intro.module.scss';
 
-const Intro = () => {
+function Intro() {
   return (
     <AnimatePresence>
       <motion.div
@@ -24,7 +24,7 @@ const Intro = () => {
           <div className={styles.title}>
             Start a conversation with your journal
           </div>
-          <div className={styles.line}></div>
+          <div className={styles.line} />
           <div className={styles.des}>
             The AI will use your journal entries as context for the
             conversation. It's not perfect yet, but we will improve it with
@@ -34,6 +34,6 @@ const Intro = () => {
       </motion.div>
     </AnimatePresence>
   );
-};
+}
 
 export default Intro;

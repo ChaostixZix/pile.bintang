@@ -1,4 +1,4 @@
-export const CoinIcon = (props) => {
+export function CoinIcon(props) {
   return (
     <svg
       height="21"
@@ -9,10 +9,10 @@ export const CoinIcon = (props) => {
     >
       <g
         fill="none"
-        fill-rule="evenodd"
+        fillRule="evenodd"
         stroke="currentColor"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         transform="translate(1 3)"
       >
         <path d="m17.5 8.5v3c0 1.2994935-3.1340068 3-7 3-3.86599325 0-7-1.7005065-7-3 0-.4275221 0-1.2608554 0-2.5" />
@@ -22,4 +22,4 @@ export const CoinIcon = (props) => {
       </g>
     </svg>
   );
-};
+}

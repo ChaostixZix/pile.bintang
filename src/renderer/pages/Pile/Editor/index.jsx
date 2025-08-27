@@ -1,5 +1,3 @@
-import './ProseMirror.scss';
-import styles from './Editor.module.scss';
 import { useCallback, useState, useEffect, useRef, memo } from 'react';
 import { Extension } from '@tiptap/core';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -12,15 +10,17 @@ import { DiscIcon, PhotoIcon, TrashIcon, TagIcon } from 'renderer/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { postFormat } from 'renderer/utils/fileOperations';
 import { useParams } from 'react-router-dom';
-import TagButton from './TagButton';
-import TagList from './TagList';
-import Attachments from './Attachments';
 import usePost from 'renderer/hooks/usePost';
-import ProseMirrorStyles from './ProseMirror.scss';
 import { useAIContext } from 'renderer/context/AIContext';
 import useThread from 'renderer/hooks/useThread';
-import LinkPreviews from './LinkPreviews';
 import { useToastsContext } from 'renderer/context/ToastsContext';
+import { useDebug } from 'renderer/context/DebugContext';
+import Attachments from './Attachments';
+import TagList from './TagList';
+import TagButton from './TagButton';
+import styles from './Editor.module.scss';
+import ProseMirrorStyles from './ProseMirror.scss';
+import LinkPreviews from './LinkPreviews';
 
 // Escape special characters
 const escapeRegExp = (string) => {
@@ -30,10 +30,7 @@ const escapeRegExp = (string) => {
 const highlightTerms = (text, term) => {
   if (!term.trim()) return text;
   const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi');
-  return text.replace(
-    regex,
-    '<span class="' + styles.highlight + '">$1</span>'
-  );
+  return text.replace(regex, `<span class="${styles.highlight}">$1</span>`);
 };
 
 const Editor = memo(
@@ -63,6 +60,7 @@ const Editor = memo(
     const { ai, prompt, model, generateCompletion, prepareCompletionContext } =
       useAIContext();
     const { addNotification, removeNotification } = useToastsContext();
+    const { showAIStatus, hideAIStatus } = useDebug();
 
     const isNew = !postPath;
 
@@ -125,7 +123,7 @@ const Editor = memo(
         EnterSubmitExtension,
       ],
       editorProps: {
-        handlePaste: function (view, event, slice) {
+        handlePaste(view, event, slice) {
           const items = Array.from(event.clipboardData?.items || []);
           let imageHandled = false; // flag to track if an image was handled
 
@@ -140,8 +138,8 @@ const Editor = memo(
           }
           return imageHandled;
         },
-        handleDrop: function (view, event, slice, moved) {
-          let imageHandled = false; // flag to track if an image was handled
+        handleDrop(view, event, slice, moved) {
+          const imageHandled = false; // flag to track if an image was handled
           if (
             !moved &&
             event.dataTransfer &&
@@ -157,7 +155,7 @@ const Editor = memo(
         },
       },
       autofocus: true,
-      editable: editable,
+      editable,
       content: post?.content || '',
       onUpdate: ({ editor }) => {
         setContent(editor.getHTML());
@@ -169,6 +167,8 @@ const Editor = memo(
     const [isDragging, setIsDragging] = useState(false);
     const [isAIResponding, setIsAiResponding] = useState(false);
     const [canCancelAI, setCanCancelAI] = useState(false);
+    const [aiError, setAiError] = useState(null);
+    const [retryCount, setRetryCount] = useState(0);
     const [prevDragPos, setPrevDragPos] = useState(0);
 
     const handleMouseDown = (e) => {
@@ -223,46 +223,118 @@ const Editor = memo(
     // This has to ensure that it only calls the AI generate function
     // on entries added for the AI that are empty.
     const generateAiResponse = useCallback(async () => {
+      console.log('📝 [Editor] generateAiResponse called', {
+        hasEditor: !!editor,
+        isAIResponding,
+        isAI,
+        hasContent: editor?.state.doc.textContent.length > 0,
+        parentPostPath
+      });
+
       if (
         !editor ||
         isAIResponding ||
         !isAI ||
-        !editor.state.doc.textContent.length === 0
-      )
+        editor.state.doc.textContent.length !== 0
+      ) {
+        console.log('📝 [Editor] Skipping AI response due to conditions');
         return;
+      }
 
-      addNotification({
-        id: 'reflecting',
-        type: 'thinking',
-        message: 'talking to AI',
-        dismissTime: 10000,
-      });
+      console.log('📝 [Editor] Starting AI response generation...');
       setEditable(false);
       setIsAiResponding(true);
       setCanCancelAI(true);
+      setAiError(null);
+
+      // Show debug notification
+      showAIStatus('loading', `AI is thinking with ${model}...`);
 
       try {
+        console.log('📝 [Editor] Getting thread for:', parentPostPath);
         const thread = await getThread(parentPostPath);
+        console.log('📝 [Editor] Thread retrieved:', thread?.length, 'posts');
+        
         const context = prepareCompletionContext(thread);
+        console.log('📝 [Editor] Context prepared:', context?.length, 'messages');
 
-        if (context.length === 0) return;
+        if (context.length === 0) {
+          throw new Error('No context available for AI response');
+        }
 
-        await generateCompletion(context, (token) => {
-          editor.commands.insertContent(token);
-        });
+        let tokenCount = 0;
+        let streamCompleted = false;
+        
+        // Set up a hard timeout as failsafe
+        const failsafeTimeout = setTimeout(() => {
+          if (!streamCompleted) {
+            console.error('📝 [Editor] Failsafe timeout triggered - AI response taking too long');
+            const timeoutError = 'AI response timed out. The model might be overloaded. Try a different model.';
+            setAiError(timeoutError);
+            setIsAiResponding(false);
+            setCanCancelAI(false);
+            showAIStatus('error', timeoutError);
+            streamCompleted = true;
+          }
+        }, 60000); // 60 second hard timeout
+
+        try {
+          await generateCompletion(
+            context, 
+            (token) => {
+              if (streamCompleted) return; // Ignore tokens after completion
+              tokenCount++;
+              console.log('📝 [Editor] Received token', tokenCount, ':', token.substring(0, 50));
+              editor.commands.insertContent(token);
+            },
+            {
+              timeout: 45000, // 45 second timeout
+              onStart: () => {
+                console.log('📝 [Editor] AI stream started callback');
+              },
+              onError: (error) => {
+                if (streamCompleted) return;
+                streamCompleted = true;
+                clearTimeout(failsafeTimeout);
+                
+                console.error('📝 [Editor] AI error callback:', error.message);
+                const errorMessage = error.message || 'AI request failed';
+                setAiError(errorMessage);
+                setIsAiResponding(false);
+                setCanCancelAI(false);
+                // Show error in debug notification
+                showAIStatus('error', errorMessage);
+              }
+            }
+          );
+          
+          // Clear the failsafe timeout since we completed successfully
+          streamCompleted = true;
+          clearTimeout(failsafeTimeout);
+        } catch (error) {
+          streamCompleted = true;
+          clearTimeout(failsafeTimeout);
+          throw error; // Re-throw to be caught by outer catch
+        }
+        
+        console.log('📝 [Editor] AI completion finished, total tokens:', tokenCount);
+        // Show success and hide after a moment
+        showAIStatus('success', `AI response completed (${tokenCount} tokens)`);
+        setTimeout(() => hideAIStatus(), 2000);
       } catch (error) {
-        console.error('AI generation failed:', error);
-        addNotification({
-          id: 'reflecting',
-          type: 'failed',
-          message: `AI request failed: ${error.message || 'Unknown error'}`,
-          dismissTime: 12000,
-          onEnter: closeReply,
-        });
+        console.error('📝 [Editor] AI generation failed:', error);
+        const errorMessage = error.message || 'Unknown error occurred';
+        setAiError(errorMessage);
+        // Show error in debug notification
+        showAIStatus('error', errorMessage);
       } finally {
-        removeNotification('reflecting');
-        setIsAiResponding(false);
-        setCanCancelAI(false);
+        console.log('📝 [Editor] Finally block - aiError:', aiError);
+        // Only clean up local state if no error occurred
+        if (!aiError) {
+          console.log('📝 [Editor] Cleaning up - no error');
+          setIsAiResponding(false);
+          setCanCancelAI(false);
+        }
       }
     }, [
       editor,
@@ -271,21 +343,28 @@ const Editor = memo(
       prepareCompletionContext,
       getThread,
       parentPostPath,
+      isAIResponding,
+      aiError,
     ]);
 
     const cancelAiResponse = useCallback(() => {
-      if (canCancelAI) {
+      if (canCancelAI || isAIResponding) {
+        console.log('📝 [Editor] Cancelling AI response');
         setIsAiResponding(false);
         setCanCancelAI(false);
-        removeNotification('reflecting');
-        addNotification({
-          id: 'ai-cancelled',
-          type: 'info',
-          message: 'AI response cancelled',
-          dismissTime: 3000,
-        });
+        setAiError(null);
+        setEditable(true); // Re-enable editing
+        hideAIStatus(); // Hide debug notification
       }
-    }, [canCancelAI, removeNotification, addNotification]);
+    }, [canCancelAI, isAIResponding, hideAIStatus]);
+
+    const retryAiResponse = useCallback(() => {
+      console.log('📝 [Editor] Retrying AI response');
+      setRetryCount(prev => prev + 1);
+      setAiError(null);
+      hideAIStatus(); // Hide current error state
+      generateAiResponse();
+    }, [generateAiResponse, hideAIStatus]);
 
     useEffect(() => {
       if (editor) {
@@ -334,10 +413,10 @@ const Editor = memo(
     }
 
     return (
-      <div className={`${styles.frame} ${isNew && styles.isNew}`}>
+      <div className={`${styles.frame} ${isNew && styles.isNew}`} style={{ position: 'relative' }}>
         {editable ? (
           <EditorContent
-            key={'new'}
+            key="new"
             className={`${styles.editor} ${isBig() && styles.editorBig} ${
               isAIResponding && styles.responding
             }`}
@@ -352,6 +431,7 @@ const Editor = memo(
             />
           </div>
         )}
+
 
         <LinkPreviews post={post} />
 
@@ -412,7 +492,7 @@ const Editor = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 export default Editor;

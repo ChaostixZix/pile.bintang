@@ -1,8 +1,10 @@
 export class GoogleGenerativeAI {
   apiKey: string;
+
   constructor(apiKey: string) {
     this.apiKey = apiKey;
   }
+
   getGenerativeModel(_opts: { model: string; generationConfig?: any }) {
     return {
       async generateContentStream(_prompt: string) {
@@ -31,4 +33,3 @@ export class GoogleGenerativeAI {
 }
 
 export default GoogleGenerativeAI;
-

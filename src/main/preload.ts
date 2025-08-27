@@ -49,9 +49,8 @@ const electronHandler = {
       if (err) throw err;
       if (files.length === 0) {
         return true;
-      } else {
-        return false;
       }
+      return false;
     }),
   readFile: (path: string, callback: any) =>
     fs.readFile(path, 'utf-8', callback),
@@ -69,73 +68,95 @@ const electronHandler = {
   settingsGet: (key: string) => ipcRenderer.invoke('electron-store-get', key),
   settingsSet: (key: string, value: string) =>
     ipcRenderer.invoke('electron-store-set', key, value),
-  
+
   // Gemini AI integration
   gemini: {
     // Invoke Gemini for JSON responses
     invokeGemini: (prompt: string) => {
       // Input schema validation
       if (!prompt || typeof prompt !== 'string') {
-        return Promise.reject(new Error('Invalid prompt: must be a non-empty string'));
+        return Promise.reject(
+          new Error('Invalid prompt: must be a non-empty string'),
+        );
       }
       if (prompt.length > 10000) {
-        return Promise.reject(new Error('Prompt too long: maximum 10000 characters allowed'));
+        return Promise.reject(
+          new Error('Prompt too long: maximum 10000 characters allowed'),
+        );
       }
       return ipcRenderer.invoke('gemini:generate', prompt);
     },
-    
+
     // Start streaming Gemini responses
-    startStream: (prompt: string) => {
+    startStream: (prompt: string, selectedModel?: string) => {
       // Input schema validation
       if (!prompt || typeof prompt !== 'string') {
-        return Promise.reject(new Error('Invalid prompt: must be a non-empty string'));
+        return Promise.reject(
+          new Error('Invalid prompt: must be a non-empty string'),
+        );
       }
       if (prompt.length > 10000) {
-        return Promise.reject(new Error('Prompt too long: maximum 10000 characters allowed'));
+        return Promise.reject(
+          new Error('Prompt too long: maximum 10000 characters allowed'),
+        );
       }
-      return ipcRenderer.invoke('gemini:stream', prompt);
+      return ipcRenderer.invoke('gemini:stream', prompt, selectedModel);
     },
-    
+
     // Listen to streaming responses
     onGeminiResponse: (callback: (data: any) => void) => {
       // Input validation for callback
       if (typeof callback !== 'function') {
         throw new Error('Invalid callback: must be a function');
       }
-      
+
       const subscription = (_event: IpcRendererEvent, data: any) => {
         // Validate the data structure before passing to callback
-        if (data && typeof data === 'object' && 
-            data.type && data.streamId && data.timestamp) {
+        if (
+          data &&
+          typeof data === 'object' &&
+          data.type &&
+          data.streamId &&
+          data.timestamp
+        ) {
           callback(data);
         }
       };
       ipcRenderer.on('gemini:stream', subscription);
-      
+
       return () => {
         ipcRenderer.removeListener('gemini:stream', subscription);
       };
     },
-    
+
     // Remove all Gemini stream listeners
     removeAllStreamListeners: () => {
       ipcRenderer.removeAllListeners('gemini:stream');
     },
-    
+
     // Generate structured JSON with predefined templates
-    generateJson: (prompt: string, template: 'summary' | 'metadata' = 'summary') => {
+    generateJson: (
+      prompt: string,
+      template: 'summary' | 'metadata' = 'summary',
+    ) => {
       // Input schema validation
       if (!prompt || typeof prompt !== 'string') {
-        return Promise.reject(new Error('Invalid prompt: must be a non-empty string'));
+        return Promise.reject(
+          new Error('Invalid prompt: must be a non-empty string'),
+        );
       }
       if (prompt.length > 10000) {
-        return Promise.reject(new Error('Prompt too long: maximum 10000 characters allowed'));
+        return Promise.reject(
+          new Error('Prompt too long: maximum 10000 characters allowed'),
+        );
       }
       if (template && !['summary', 'metadata'].includes(template)) {
-        return Promise.reject(new Error('Invalid template: must be "summary" or "metadata"'));
+        return Promise.reject(
+          new Error('Invalid template: must be "summary" or "metadata"'),
+        );
       }
       return ipcRenderer.invoke('gemini:generate-json', prompt, template);
-    }
+    },
   },
 };
 

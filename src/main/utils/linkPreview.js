@@ -32,7 +32,7 @@ export const getLinkPreview = async (url) => {
     const $ = cheerio.load(html);
     const parsedUrl = new URL(url);
 
-    let meta = {
+    const meta = {
       title: '',
       images: [],
       host: parsedUrl.host,
@@ -100,10 +100,10 @@ export const getLinkContent = async (url) => {
 
     // Some content we want to filter out
     $(
-      'script, style, iframe, noscript, nav, header, footer, .nav, .menu, .footer'
+      'script, style, iframe, noscript, nav, header, footer, .nav, .menu, .footer',
     ).remove();
 
-    let contentSections = [];
+    const contentSections = [];
 
     // Targets likely to hold main text content
     const sectionSelectors = 'div, section, article, main, [role="main"]';
@@ -116,7 +116,7 @@ export const getLinkContent = async (url) => {
       if (textLength > 200) {
         contentSections.push({
           html: $(this).html(), // Keep the HTML to preserve images and links
-          textLength: textLength,
+          textLength,
         });
       }
     });
@@ -127,7 +127,7 @@ export const getLinkContent = async (url) => {
     // Concatenate the HTML of the top sections to form the main content.
     // Adjust the number of sections as needed,
     // 3 does well enough for most websites
-    let mainContentHtml = contentSections
+    const mainContentHtml = contentSections
       .slice(0, 3)
       .map((section) => section.html)
       .join(' ');
