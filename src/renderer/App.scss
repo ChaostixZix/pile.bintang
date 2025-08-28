@@ -32,6 +32,8 @@
   --border: #e4e4e4;
 
   --bg: #fff;
+  /* Alias for components referencing --bg-primary */
+  --bg-primary: var(--bg);
   --bg-secondary: rgb(246, 246, 246);
   --bg-tertiary: #dedede;
   --bg-color-secondary-hover: rgb(226, 226, 226);
@@ -57,6 +59,8 @@
     --border: #565656;
 
     --bg: #171717;
+    /* keep alias consistent in dark mode */
+    --bg-primary: var(--bg);
     --bg-secondary: #373737;
     --bg-tertiary: #575757;
     --bg-color-secondary-hover: rgb(108, 108, 108);
@@ -345,7 +349,8 @@ body {
   overflow: hidden;
   font-family: var(--font-sans);
   color: var(--primary);
-  background: #020617; /* base background (slate-950) */
+  /* Use theme variable for background rather than fixed dark color */
+  background: var(--bg);
 }
 
 /* Global radial emerald glow background (behind all content) */
@@ -361,11 +366,23 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  /* Softer glow on light theme */
   background-image: radial-gradient(
     circle 500px at 50% 300px,
-    rgba(16, 185, 129, 0.35),
+    rgba(16, 185, 129, 0.18),
     transparent
   );
+}
+
+@media (prefers-color-scheme: dark) {
+  #root::before {
+    /* Stronger glow for dark backgrounds */
+    background-image: radial-gradient(
+      circle 500px at 50% 300px,
+      rgba(16, 185, 129, 0.35),
+      transparent
+    );
+  }
 }
 
 /* Ensure app content renders above the glow */

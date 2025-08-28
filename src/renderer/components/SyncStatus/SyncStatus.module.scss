@@ -61,13 +61,16 @@
   }
 }
 
-.icon {
-  animation: none;
-  
-  /* Spinning animation for sync in progress */
-  .indicator:has-text('🔄') & {
-    animation: spin 1s linear infinite;
-  }
+.icon { display: inline-flex; align-items: center; justify-content: center; }
+
+.svgIcon {
+  width: 12px;
+  height: 12px;
+}
+
+/* Spinning animation for sync in progress */
+.indicator[data-status='syncing'] .svgIcon {
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {

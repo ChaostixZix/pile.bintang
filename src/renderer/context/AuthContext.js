@@ -160,23 +160,27 @@ export function AuthProvider({ children }) {
   };
 
   const signInWithGoogle = async () => {
-    console.log('signInWithGoogle called');
+    console.log('signInWithGoogle called - using system browser approach');
     try {
       setLoading(true);
-      // Choose redirect based on environment. In dev (http/https origin), use in-app callback.
-      // In production (file://), use the custom deep link.
-      const isHttpOrigin = typeof window !== 'undefined' && /^https?:$/.test(window.location.protocol);
-      const redirectTarget = isHttpOrigin
-        ? window.location.origin + '/auth/callback'
-        : 'pilebintang://auth-callback';
       
-      // Get OAuth URL from Supabase
+      // Use system browser integration to avoid Electron security conflicts
+      // This approach:
+      // 1. Opens user's default browser for OAuth (full JS support)
+      // 2. Maintains Supabase flow state (same browser context)  
+      // 3. Keeps Electron app secure (no webSecurity compromise)
+      // 4. Uses deep link to return session to Electron
+      
+      const redirectTarget = 'pilebintang://auth-callback';
+      
+      console.log('OAuth redirect target (deep link):', redirectTarget);
+      
+      // Get OAuth URL from Supabase using PKCE flow
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectTarget,
-          skipBrowserRedirect: true, // Don't redirect automatically
-          // Prefer PKCE to receive an authorization code we can exchange
+          skipBrowserRedirect: true, // We'll handle browser opening manually
           flowType: 'pkce',
         },
       });
@@ -188,54 +192,83 @@ export function AuthProvider({ children }) {
 
       console.log('Supabase OAuth response:', data);
 
-      // Use Electron's OAuth handler for the popup flow
-      if (data?.url && window.electron?.oauth) {
-        console.log('Opening OAuth popup with URL:', data.url);
-        const result = await window.electron.oauth.google(data.url);
-        console.log('OAuth result:', result);
+      if (data?.url && window.electron?.shell) {
+        console.log('Opening OAuth URL in system browser:', data.url);
         
-        if (result.success && result.callbackUrl) {
-          // Parse the callback URL and extract auth data
-          const url = new URL(result.callbackUrl);
-          const hashParams = new URLSearchParams(url.hash.substring(1));
-          const searchParams = new URLSearchParams(url.search);
-          
-          // Check for tokens in hash or search params
-          const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
-          const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
-          const authCode = searchParams.get('code');
-          
-          if (accessToken) {
-            // Set the session using the tokens
-            const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken || '',
-            });
+        // Store the current page so we can return after auth
+        const returnUrl = window.location.pathname + window.location.search;
+        await window.electron?.store?.set('oauth_return_url', returnUrl);
+        
+        // Open the OAuth URL in the user's default browser
+        await window.electron.shell.openExternal(data.url);
+        
+        // Set up a promise that resolves when deep link callback is received
+        return new Promise(async (resolve, reject) => {
+          // Set up IPC listener for OAuth callback
+          const handleAuthCallback = async (event, callbackData) => {
+            console.log('OAuth callback received:', callbackData);
             
-            if (sessionError) {
-              throw sessionError;
-            }
-            
-            return { data: sessionData, error: null };
-          } else if (authCode && typeof supabase?.auth?.exchangeCodeForSession === 'function') {
-            // PKCE code flow: exchange authorization code for a session
             try {
-              const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode);
-
-              if (exchangeError) throw exchangeError;
-              return { data: sessionData, error: null };
-            } catch (ex) {
-              console.error('Exchange code for session failed:', ex);
-              throw ex;
+              if (callbackData.success && callbackData.data) {
+                const { code, accessToken, callbackUrl } = callbackData.data;
+                
+                if (accessToken) {
+                  // Direct token (implicit flow)
+                  console.log('Processing implicit flow tokens');
+                  const url = new URL(callbackUrl);
+                  const hashParams = new URLSearchParams(url.hash.substring(1));
+                  const refreshToken = hashParams.get('refresh_token');
+                  
+                  const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+                    access_token: accessToken,
+                    refresh_token: refreshToken || '',
+                  });
+                  
+                  if (sessionError) {
+                    throw sessionError;
+                  }
+                  
+                  resolve({ data: sessionData, error: null });
+                } else if (code) {
+                  // Authorization code (PKCE flow)
+                  console.log('Processing PKCE flow - exchanging code for session');
+                  
+                  const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+                  
+                  if (exchangeError) {
+                    throw exchangeError;
+                  }
+                  
+                  resolve({ data: sessionData, error: null });
+                } else {
+                  throw new Error('No valid authentication data received');
+                }
+              } else {
+                throw new Error(callbackData.error || 'OAuth failed');
+              }
+            } catch (error) {
+              console.error('Error processing OAuth callback:', error);
+              reject(error);
             }
-          }
-        } else if (result.error) {
-          throw new Error(result.error);
-        }
+            
+            // Clean up listener
+            window.electron?.ipcRenderer?.removeListener('oauth-callback', handleAuthCallback);
+          };
+          
+          // Listen for the OAuth callback from main process
+          window.electron?.ipcRenderer?.on('oauth-callback', handleAuthCallback);
+          
+          // Set up timeout to avoid hanging indefinitely
+          setTimeout(() => {
+            window.electron?.ipcRenderer?.removeListener('oauth-callback', handleAuthCallback);
+            reject(new Error('OAuth timeout - no response from browser'));
+          }, 5 * 60 * 1000); // 5 minute timeout
+        });
+        
+      } else {
+        console.error('No OAuth URL or shell API available');
+        throw new Error('OAuth not available - missing URL or shell API');
       }
-      
-      // Fallback to regular OAuth flow
-      return { data, error: null };
     } catch (error) {
       console.error('Google sign in error:', error);
       return { data: null, error };
@@ -311,6 +344,35 @@ export function AuthProvider({ children }) {
       return { error };
     }
   };
+
+  // Debug function for OAuth configuration
+  const debugOAuthConfig = () => {
+    const isHttpOrigin = typeof window !== 'undefined' && /^https?:$/.test(window.location.protocol);
+    const redirectTarget = isHttpOrigin
+      ? window.location.origin + '/auth/callback'
+      : 'pilebintang://auth-callback';
+    
+    console.log('🔧 OAuth Configuration Debug:');
+    console.log('Current location:', window.location);
+    console.log('Is HTTP origin:', isHttpOrigin);
+    console.log('Redirect target:', redirectTarget);
+    console.log('\n📋 Required Supabase Redirect URLs:');
+    console.log('1. pilebintang://auth-callback');
+    console.log('2. ' + window.location.origin + '/auth/callback');
+    console.log('\n💡 Add both URLs to your Supabase project settings under "Allowed Redirect URLs"');
+    
+    return {
+      currentLocation: window.location,
+      isHttpOrigin,
+      redirectTarget,
+      requiredUrls: ['pilebintang://auth-callback', window.location.origin + '/auth/callback']
+    };
+  };
+  
+  // Make debug function available globally
+  if (typeof window !== 'undefined') {
+    window.debugOAuthConfig = debugOAuthConfig;
+  }
 
   const updatePassword = async (newPassword) => {
     try {

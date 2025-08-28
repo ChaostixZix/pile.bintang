@@ -14,6 +14,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     // Detect session from URL (for OAuth callbacks)
     detectSessionInUrl: true,
+    // Use PKCE flow by default for security
+    flowType: 'pkce',
     // Storage options for Electron
     storage: {
       getItem: (key) => {
@@ -84,6 +86,18 @@ export const signOut = async () => {
 // Helper function to listen for auth state changes
 export const onAuthStateChange = (callback) => {
   return supabase.auth.onAuthStateChange(callback);
+};
+
+// Full-text search on posts (requires search_vector tsvector column + GIN index and trigger)
+export const searchPostsFullText = async (query, { limit = 50, config = 'english' } = {}) => {
+  if (!query || !query.trim()) return { data: [], error: null };
+  // Use websearch for natural language queries: supports phrases and operators
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .textSearch('search_vector', query, { type: 'websearch', config })
+    .limit(limit);
+  return { data, error };
 };
 
 // Helper function to update user profile

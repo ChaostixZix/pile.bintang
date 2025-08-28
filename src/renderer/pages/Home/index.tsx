@@ -7,7 +7,9 @@ import DeletePile from './DeletePile';
 import { TrashIcon } from 'renderer/icons';
 import Logo from './logo';
 import OpenPileFolder from './OpenPileFolder';
-import SyncStatus from '../../components/SyncStatus';
+// Sync indicator removed from Home; only shown in threads
+import ErrorBanner from '../../components/Sync/ErrorBanner';
+import { CloudIcon } from 'renderer/icons';
 
 const quotes = [
   'One moment at a time',
@@ -65,7 +67,7 @@ export default function Home() {
           <div className={styles.left}>
             <div className={styles.name}>
               {pile.name}
-              {isCloudPile && <span className={styles.cloudBadge}>☁</span>}
+              {isCloudPile && <CloudIcon className={styles.cloudBadge} />}
             </div>
             {isCloudPile && pile.description && (
               <div className={styles.description}>{pile.description}</div>
@@ -130,18 +132,12 @@ export default function Home() {
                 </button>
               </div>
             </div>
-          ) : (
-            <Link to="/auth" className={styles.button}>
-              Sign In / Sign Up
-            </Link>
-          )}
+          ) : null}
         </div>
 
         {/* Main content - centered */}
         <div className={styles.content}>
-          <div className={styles.syncStatusContainer}>
-            <SyncStatus compact={true} showDetails={false} />
-          </div>
+          <ErrorBanner />
           <div className={styles.header}>
             <div className={styles.holder}>
               <div className={styles.iconHolder}>
@@ -168,8 +164,22 @@ export default function Home() {
                   }
                 }}
               >
-                Create a cloud pile ☁
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <CloudIcon className={styles.cloudBadge} />
+                  Create a cloud pile
+                </span>
               </button>
+            )}
+
+            {!isAuthenticated && (
+              <div className={styles.authButtonsRight}>
+                <Link to="/auth?mode=signin" className={styles.button}>
+                  Sign In
+                </Link>
+                <Link to="/auth?mode=signup" className={styles.button}>
+                  Sign Up
+                </Link>
+              </div>
             )}
           </div>
 

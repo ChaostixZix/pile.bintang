@@ -6,11 +6,13 @@ import StarterKit from '@tiptap/starter-kit';
 import Typography from '@tiptap/extension-typography';
 import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
-import { DiscIcon, PhotoIcon, TrashIcon, TagIcon } from 'renderer/icons';
+import { DiscIcon, PhotoIcon, TrashIcon, TagIcon, AlertTriangleIcon, CloudIcon } from 'renderer/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams } from 'react-router-dom';
 import useCloudPost from 'renderer/hooks/useCloudPost';
 import { useToastsContext } from 'renderer/context/ToastsContext';
+import { useAuth } from 'renderer/context/AuthContext';
+import { uploadAttachmentForPost, listAttachmentsForPost, getAttachmentSignedUrl, deleteAttachment as removeAttachment } from 'renderer/lib/storage';
 import { useSyncContext } from 'renderer/context/SyncContext';
 import { useCloudPostsContext } from 'renderer/context/CloudPostsContext';
 import CursorOverlay from 'renderer/components/CursorOverlay';
@@ -40,6 +42,7 @@ const CloudEditor = memo(
     } = useCloudPost(postId);
 
     const { addNotification, removeNotification } = useToastsContext();
+    const { user } = useAuth();
     const { cursorPositions, broadcastCursor, isRealtimeConnected } = useCloudPostsContext();
 
     const [editor, setEditor] = useState(null);
@@ -49,6 +52,8 @@ const CloudEditor = memo(
     const [showTagInput, setShowTagInput] = useState(false);
     const tagInputRef = useRef(null);
     const editorContainerRef = useRef(null);
+    const fileInputRef = useRef(null);
+    const [attachments, setAttachments] = useState([]);
 
     const EnterSubmitExtension = Extension.create({
       name: 'EnterSubmitExtension',
@@ -115,6 +120,21 @@ const CloudEditor = memo(
         editor.commands.setContent(post.content);
       }
     }, [post.content, editor]);
+
+    // Load attachments for this post
+    useEffect(() => {
+      const load = async () => {
+        try {
+          if (post?.id) {
+            const rows = await listAttachmentsForPost(post.id);
+            setAttachments(rows);
+          }
+        } catch (e) {
+          console.error('Failed to load attachments', e);
+        }
+      };
+      load();
+    }, [post?.id]);
 
     // Handle submit on Enter key
     useEffect(() => {
@@ -185,6 +205,37 @@ const CloudEditor = memo(
         }
       }
     }, [deletePost, addNotification]);
+
+    const handleUploadClick = () => fileInputRef.current?.click();
+
+    const handleFileSelected = async (e) => {
+      const files = Array.from(e.target.files || []);
+      if (!files.length || !post?.id || !user?.id) return;
+      try {
+        for (const f of files) {
+          await uploadAttachmentForPost(post.id, f, user.id);
+        }
+        const rows = await listAttachmentsForPost(post.id);
+        setAttachments(rows);
+        addNotification({ id: Date.now(), message: 'Attachment(s) uploaded', type: 'success' });
+      } catch (err) {
+        console.error('Upload failed', err);
+        addNotification({ id: Date.now(), message: 'Upload failed', type: 'error' });
+      } finally {
+        e.target.value = '';
+      }
+    };
+
+    const handleAttachmentDelete = async (att) => {
+      if (!confirm('Delete attachment?')) return;
+      try {
+        await removeAttachment(att);
+        setAttachments(attachments.filter(a => a.id !== att.id));
+      } catch (e) {
+        console.error('Delete attachment failed', e);
+        addNotification({ id: Date.now(), message: 'Failed to delete attachment', type: 'error' });
+      }
+    };
 
     const handleTagSubmit = useCallback(
       (e) => {
@@ -291,7 +342,11 @@ const CloudEditor = memo(
           )}
 
           {/* Error display */}
-          {error && <div className={cloudStyles.errorMessage}>⚠️ {error}</div>}
+          {error && (
+            <div className={cloudStyles.errorMessage}>
+              <AlertTriangleIcon style={{ width: 14, height: 14, marginRight: 6, verticalAlign: 'text-bottom' }} /> {error}
+            </div>
+          )}
         </div>
 
         {/* Actions */}
@@ -305,6 +360,21 @@ const CloudEditor = memo(
               >
                 <TagIcon />
               </button>
+              {/* Upload attachments */}
+              <button
+                className={styles.tagButton}
+                onClick={handleUploadClick}
+                title="Attach file"
+              >
+                <PhotoIcon />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                style={{ display: 'none' }}
+                onChange={handleFileSelected}
+              />
             </div>
 
             <div className={styles.right}>
@@ -350,6 +420,18 @@ const CloudEditor = memo(
           </div>
         )}
 
+        {/* Attachments list */}
+        {attachments && attachments.length > 0 && (
+          <div style={{ marginTop: 12 }}>
+            <div style={{ fontSize: 12, color: 'var(--secondary)', marginBottom: 6 }}>Attachments</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {attachments.map((att) => (
+                <AttachmentRow key={att.id} att={att} onDelete={() => handleAttachmentDelete(att)} />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Tag input */}
         {showTagInput && (
           <form onSubmit={handleTagSubmit} className={styles.tagInputForm}>
@@ -371,10 +453,38 @@ const CloudEditor = memo(
         )}
 
         {/* Cloud indicator */}
-        <div className={cloudStyles.cloudIndicator}>☁️ Cloud Post</div>
+        <div className={cloudStyles.cloudIndicator}>
+          <CloudIcon style={{ width: 14, height: 14, marginRight: 6, verticalAlign: 'text-bottom' }} />
+          Cloud Post
+        </div>
       </div>
     );
   },
 );
 
 export default CloudEditor;
+
+function AttachmentRow({ att, onDelete }) {
+  const [url, setUrl] = useState(null);
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const signed = await getAttachmentSignedUrl(att.path);
+        if (mounted) setUrl(signed);
+      } catch {}
+    })();
+    return () => { mounted = false; };
+  }, [att?.path]);
+
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+      <a href={url || '#'} target="_blank" rel="noreferrer" style={{ flex: 1, color: 'var(--primary)' }}>
+        {att.name || att.path}
+      </a>
+      <button className="button" style={{ padding: '4px 10px' }} onClick={onDelete}>
+        Delete
+      </button>
+    </div>
+  );
+}

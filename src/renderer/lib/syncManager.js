@@ -245,7 +245,7 @@ class SyncManager {
 
       // Handle conflicts with last-write-wins strategy
       const localItem = await this.getLocalItem(tableName, id);
-      const resolvedData = this.resolveConflict(localItem, result, updateData);
+      const resolvedData = this.resolveConflict(localItem, result, updateData, tableName);
 
       // Update local cache
       switch (tableName) {
@@ -344,7 +344,7 @@ class SyncManager {
         for (const item of data) {
           // Check for local conflicts
           const localItem = await this.getLocalItem(tableName, item.id);
-          const resolvedItem = this.resolveConflict(localItem, item);
+          const resolvedItem = this.resolveConflict(localItem, item, null, tableName);
           
           // Update local cache
           switch (tableName) {
@@ -390,7 +390,7 @@ class SyncManager {
   /**
    * Resolve conflicts using last-write-wins strategy
    */
-  resolveConflict(localItem, remoteItem, pendingChanges = null) {
+  resolveConflict(localItem, remoteItem, pendingChanges = null, tableName = null) {
     if (!localItem) {
       // No local version, use remote
       return remoteItem;
@@ -404,6 +404,38 @@ class SyncManager {
     // Compare timestamps for last-write-wins
     const localTime = new Date(localItem.updated_at || localItem.cached_at);
     const remoteTime = new Date(remoteItem.updated_at);
+
+    const bothChangedSinceLastSync = async () => {
+      try {
+        const lastSync = this.lastSyncTime ? new Date(this.lastSyncTime) : null;
+        const localChanged = lastSync ? new Date(localItem.cached_at || localItem.updated_at) > lastSync : false;
+        const remoteChanged = lastSync ? new Date(remoteItem.updated_at) > lastSync : true;
+        // Heuristic: if we have pendingChanges (local update) and remote changed, consider conflict
+        const hasPending = !!pendingChanges;
+        return (localChanged || hasPending) && remoteChanged;
+      } catch {
+        return false;
+      }
+    };
+
+    // Detect conflict scenario and record it for UI resolution
+    // We still return a best-effort value using LWW to keep cache consistent
+    (async () => {
+      if (await bothChangedSinceLastSync()) {
+        try {
+          await localCache.addConflict({
+            table_name: tableName || (localItem && Object.prototype.hasOwnProperty.call(localItem, 'pile_id') ? SUPPORTED_TABLES.POSTS : SUPPORTED_TABLES.PILES),
+            item_id: localItem.id || remoteItem.id,
+            local: localItem,
+            remote: remoteItem,
+            strategy: 'lww_detect',
+          });
+          console.warn('Conflict detected and recorded for item', localItem.id || remoteItem.id);
+        } catch (e) {
+          console.warn('Failed to add conflict record:', e?.message || e);
+        }
+      }
+    })();
 
     if (remoteTime > localTime) {
       console.log(`Remote item is newer, using remote version for ${remoteItem.id}`);

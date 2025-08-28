@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import styles from './AuthForm.module.scss';
 
 function AuthForm({ onSuccess }) {
   const { signIn, signUp, signInWithGoogle, loading } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [searchParams] = useSearchParams();
+  const initialMode = searchParams.get('mode') === 'signup' ? true : false;
+  const [isSignUp, setIsSignUp] = useState(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -86,9 +89,13 @@ function AuthForm({ onSuccess }) {
 
   return (
     <div className={styles.authForm} data-mode={isSignUp ? 'signup' : 'signin'}>
-      <div
+      <div className={styles.backdrop} />
+      <motion.div
         className={styles.container}
         data-mode={isSignUp ? 'signup' : 'signin'}
+        initial={{ opacity: 0, scale: 0.96, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 22 }}
       >
         <div className={styles.topRow}>
           <Link to="/" className={styles.backButton}>
@@ -228,7 +235,7 @@ function AuthForm({ onSuccess }) {
         </button>
 
         {/* Footer text removed in favor of segmented control above */}
-      </div>
+      </motion.div>
     </div>
   );
 }

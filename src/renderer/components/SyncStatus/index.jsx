@@ -5,6 +5,7 @@
 import React from 'react';
 import { useSyncInfra } from '../../context/SyncInfraContext.js';
 import styles from './SyncStatus.module.scss';
+import { RefreshIcon, CheckIcon, AlertTriangleIcon, ClockIcon, GlobeIcon } from 'renderer/icons';
 
 export default function SyncStatus({ compact = false, showDetails = true }) {
   const {
@@ -52,12 +53,22 @@ export default function SyncStatus({ compact = false, showDetails = true }) {
     return 'Synced';
   };
 
+  const statusName = !isOnline
+    ? 'offline'
+    : syncStatus.syncInProgress
+    ? 'syncing'
+    : isFailedOperations
+    ? 'failed'
+    : isPendingSync
+    ? 'pending'
+    : 'synced';
+
   const getStatusIcon = () => {
-    if (!isOnline) return '🔴';
-    if (syncStatus.syncInProgress) return '🔄';
-    if (isFailedOperations) return '⚠️';
-    if (isPendingSync) return '⏳';
-    return '✅';
+    if (!isOnline) return <AlertTriangleIcon className={styles.svgIcon} />;
+    if (syncStatus.syncInProgress) return <RefreshIcon className={styles.svgIcon} />;
+    if (isFailedOperations) return <AlertTriangleIcon className={styles.svgIcon} />;
+    if (isPendingSync) return <ClockIcon className={styles.svgIcon} />;
+    return <CheckIcon className={styles.svgIcon} />;
   };
 
   if (compact) {
@@ -65,6 +76,7 @@ export default function SyncStatus({ compact = false, showDetails = true }) {
       <div className={`${styles.syncStatus} ${styles.compact}`}>
         <div 
           className={styles.indicator}
+          data-status={statusName}
           style={{ backgroundColor: getStatusColor() }}
           title={`${getStatusText()}${networkLatency ? ` (${networkLatency}ms)` : ''}`}
         >
@@ -80,6 +92,7 @@ export default function SyncStatus({ compact = false, showDetails = true }) {
         <div className={styles.statusRow}>
           <div 
             className={styles.indicator}
+            data-status={statusName}
             style={{ backgroundColor: getStatusColor() }}
           >
             <span className={styles.icon}>{getStatusIcon()}</span>
@@ -100,21 +113,21 @@ export default function SyncStatus({ compact = false, showDetails = true }) {
               className={styles.actionButton}
               title="Force synchronization"
             >
-              {syncStatus.syncInProgress ? '⏳' : '🔄'}
+              <RefreshIcon className={styles.svgIcon} />
             </button>
             <button 
               onClick={handleCheckConnectivity}
               className={styles.actionButton}
               title="Check connectivity"
             >
-              📡
+              <GlobeIcon className={styles.svgIcon} />
             </button>
             <button 
               onClick={refreshSyncStatus}
               className={styles.actionButton}
               title="Refresh status"
             >
-              ↻
+              <RefreshIcon className={styles.svgIcon} />
             </button>
           </div>
         )}

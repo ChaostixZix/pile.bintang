@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'PileBintangCache';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // bump for conflicts store
 
 // Define the schema for our local cache
 const STORES = {
@@ -85,6 +85,18 @@ class LocalCache {
         // Metadata store for sync timestamps and app state
         if (!db.objectStoreNames.contains(STORES.METADATA)) {
           db.createObjectStore(STORES.METADATA, { keyPath: 'key' });
+        }
+
+        // Conflicts store for detected sync conflicts
+        if (!db.objectStoreNames.contains('conflicts')) {
+          const conflictsStore = db.createObjectStore('conflicts', {
+            keyPath: 'id',
+            autoIncrement: true,
+          });
+          conflictsStore.createIndex('table_name', 'table_name', { unique: false });
+          conflictsStore.createIndex('item_id', 'item_id', { unique: false });
+          conflictsStore.createIndex('status', 'status', { unique: false });
+          conflictsStore.createIndex('detected_at', 'detected_at', { unique: false });
         }
       };
     });
@@ -339,6 +351,68 @@ class LocalCache {
         resolve(result ? result.value : null);
       };
       request.onerror = () => reject(request.error);
+    });
+  }
+
+  // ==================== CONFLICTS OPERATIONS ====================
+
+  /**
+   * Add a detected conflict record
+   */
+  async addConflict(conflict) {
+    const db = await this.ensureInitialized();
+    const tx = db.transaction(['conflicts'], 'readwrite');
+    const store = tx.objectStore('conflicts');
+    const record = {
+      status: 'pending',
+      detected_at: new Date().toISOString(),
+      ...conflict,
+    };
+    return new Promise((resolve, reject) => {
+      const req = store.add(record);
+      req.onsuccess = () => resolve({ ...record, id: req.result });
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  /**
+   * List conflicts (optionally by status)
+   */
+  async getConflicts(status = null) {
+    const db = await this.ensureInitialized();
+    const tx = db.transaction(['conflicts'], 'readonly');
+    const store = tx.objectStore('conflicts');
+    return new Promise((resolve, reject) => {
+      const req = store.getAll();
+      req.onsuccess = () => {
+        const all = req.result || [];
+        resolve(status ? all.filter((c) => c.status === status) : all);
+      };
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  /**
+   * Resolve a conflict by applying chosen data and marking record
+   */
+  async resolveConflictRecord(conflictId, resolution, resolvedData = null) {
+    const db = await this.ensureInitialized();
+    const tx = db.transaction(['conflicts'], 'readwrite');
+    const store = tx.objectStore('conflicts');
+    return new Promise((resolve, reject) => {
+      const getReq = store.get(conflictId);
+      getReq.onsuccess = async () => {
+        const rec = getReq.result;
+        if (!rec) return reject(new Error('Conflict not found'));
+        rec.status = 'resolved';
+        rec.resolution = resolution;
+        rec.resolved_at = new Date().toISOString();
+        rec.resolved_data = resolvedData;
+        const putReq = store.put(rec);
+        putReq.onsuccess = () => resolve(rec);
+        putReq.onerror = () => reject(putReq.error);
+      };
+      getReq.onerror = () => reject(getReq.error);
     });
   }
 

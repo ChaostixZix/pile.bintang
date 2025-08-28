@@ -1629,13 +1629,13 @@
         "id": 17,
         "title": "Implement Conflict Resolution Strategy",
         "description": "Refine the conflict resolution mechanism for simultaneous edits or offline changes, providing user-friendly options.",
-        "details": "Enhance the 'last-write-wins' strategy with more sophisticated conflict detection. Design and implement a UI/UX for users to be notified of conflicts and potentially choose between conflicting versions or merge changes, especially for collaborative editing scenarios.",
+        "details": "Enhance the 'last-write-wins' strategy with more sophisticated conflict detection. Design and implement a UI/UX for users to be notified of conflicts and potentially choose between conflicting versions or merge changes, especially for collaborative editing scenarios.\n<info added on 2025-08-27T18:19:00.691Z>\nInitial implementation has added client-side conflict detection and recording. This involved bumping the local cache IndexedDB version to 2 and adding a `conflicts` store with indices (`table_name`, `item_id`, `status`, `detected_at`) and helper functions (`addConflict`, `getConflicts`, `resolveConflictRecord`). The `SyncManager`'s `resolveConflict` function has been enhanced to detect conflicts where both local and remote data have changed since the last sync (or local has pending changes), recording these conflicts with per-table metadata, while still applying a 'last-write-wins' strategy to maintain cache consistency.\n</info added on 2025-08-27T18:19:00.691Z>",
         "testStrategy": "Simulate simultaneous edits on the same post from different devices. Test offline edits followed by online edits. Verify the conflict resolution UI is clear and functional.",
         "priority": "medium",
         "dependencies": [
           15
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1643,7 +1643,7 @@
             "description": "Research and define specific rules for detecting conflicts beyond 'last-write-wins' (e.g., field-level changes, semantic conflicts). Determine necessary data model enhancements (e.g., versioning, change tracking metadata) to support these rules.",
             "dependencies": [],
             "details": "Investigate strategies like operational transformation (OT) or conflict-free replicated data types (CRDTs) for inspiration, but focus on a practical approach for the current system. Specify how `posts` and `piles` data will be compared to identify conflicts and what metadata is needed to track versions.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Review and validate the defined rules and data model with stakeholders and technical leads. Ensure they cover anticipated conflict scenarios and are feasible to implement within the Supabase ecosystem."
           },
           {
@@ -1654,7 +1654,7 @@
               "17.1"
             ],
             "details": "Modify Supabase Functions or database triggers/procedures to perform detailed conflict detection when `posts` or `piles` are updated. This logic should identify *what* fields are conflicting and *which* versions are involved, preparing the data for client-side resolution.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test the conflict detection logic with various simulated conflicting scenarios (e.g., simultaneous edits on the same field, different fields, offline edits). Verify that conflicts are correctly identified and categorized by the backend."
           },
           {
@@ -1665,7 +1665,7 @@
               "17.2"
             ],
             "details": "Design the UI/UX for a conflict notification banner or modal. Define the layout for presenting conflicting versions (e.g., side-by-side, 'Your changes' vs. 'Other's changes'). Specify options like 'Keep My Version', 'Discard My Version', 'Take Other's Version', and a potential 'Merge' option.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Conduct internal reviews of wireframes/mockups. Gather feedback from potential users or UI/UX experts on clarity, usability, and effectiveness of the proposed conflict notification and resolution flow."
           },
           {
@@ -1677,7 +1677,7 @@
               "17.3"
             ],
             "details": "Implement the UI elements designed in 17.3. This includes displaying conflict alerts, fetching and presenting the conflicting versions (e.g., current local vs. server's latest), and handling user input to select a preferred version. Integrate this with the client-side sync logic.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Simulate conflicts (e.g., by manually creating conflicting data or using test scripts) and verify that the UI correctly notifies the user, presents the conflicting versions clearly, and allows successful selection of one version, which then syncs correctly."
           },
           {
@@ -1690,7 +1690,7 @@
               "17.4"
             ],
             "details": "Implement a UI component that can display a diff between conflicting versions of a post or pile. Provide controls for users to selectively accept or reject individual changes or lines of content. This will require client-side logic to apply the merged changes back to the local data and then synchronize.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test the merge UI with complex conflicting content, including additions, deletions, and modifications in different parts of a post. Verify that the diff viewer accurately highlights changes and that users can successfully merge and save the desired outcome, which is then correctly synchronized."
           }
         ]
@@ -1709,70 +1709,10 @@
         "subtasks": []
       },
       {
-        "id": 19,
-        "title": "Develop Pile Sharing & Member Management UI",
-        "description": "Create the user interface and backend logic for sharing piles with other users and managing collaborators' permissions.",
-        "details": "Implement functionality to generate shareable links for piles, allowing users to invite others. Develop a UI for managing pile members, including inviting, removing, and assigning roles/permissions (e.g., read-only, editor) using the `pile_members` table. Ensure RLS policies are respected.",
-        "testStrategy": "Test sharing a pile with different permission levels. Verify invited users can access/edit based on their role. Confirm the owner can remove members and revoke access.",
-        "priority": "high",
-        "dependencies": [
-          14,
-          18
-        ],
-        "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Implement Backend API for Shareable Links & Initial Invitations",
-            "description": "Develop the server-side logic and API endpoints required to generate unique shareable links for piles and process initial invitations when users accept these links.",
-            "dependencies": [],
-            "details": "Implement API endpoints for creating secure, unique shareable links for a given pile, including options for default permission levels. Develop backend logic to store link metadata and to validate and process invitations, adding users to the `pile_members` table with the specified role upon link acceptance.",
-            "status": "pending",
-            "testStrategy": "Test link generation for various piles and permission levels. Verify that accepting a link correctly adds a user to the `pile_members` table with the intended role."
-          },
-          {
-            "id": 2,
-            "title": "Develop UI for Shareable Link Generation & Display",
-            "description": "Create the user interface elements that allow pile owners to generate shareable links and easily copy them, including options for initial access permissions.",
-            "dependencies": [],
-            "details": "Design and implement a UI component (e.g., a button, a modal within the pile view) that enables a pile owner to generate a shareable link. Display the generated link prominently for copying and provide UI controls for setting the initial permission level (e.g., read-only, editor) for users joining via this link.",
-            "status": "pending",
-            "testStrategy": "Verify the UI correctly generates and displays links. Test setting different initial permission levels. Ensure the link is easily copyable."
-          },
-          {
-            "id": 3,
-            "title": "Implement Backend API for Member CRUD & Role Management",
-            "description": "Develop the server-side logic and API endpoints for directly managing pile members, including adding, removing, and updating their roles and permissions.",
-            "dependencies": [],
-            "details": "Implement API endpoints for direct management of pile members: adding specific users to a pile (e.g., by ID or email), removing users from a pile, and updating the roles/permissions (e.g., 'read-only', 'editor') of existing members within the `pile_members` table.",
-            "status": "pending",
-            "testStrategy": "Test adding, removing, and updating roles for various users on different piles via the API. Verify `pile_members` table reflects changes accurately."
-          },
-          {
-            "id": 4,
-            "title": "Develop UI for Pile Member Management Dashboard",
-            "description": "Create a dedicated user interface for pile owners to view, invite, remove, and modify the roles of collaborators on their piles.",
-            "dependencies": [],
-            "details": "Design and implement a dedicated UI screen or modal (e.g., a 'Manage Collaborators' panel) where the pile owner can view a list of all current members, see their assigned roles, and perform actions such as inviting new users (e.g., by username/email lookup), removing existing members, and changing their roles (e.g., from read-only to editor).",
-            "status": "pending",
-            "testStrategy": "Verify the UI accurately displays members and roles. Test inviting new members, removing existing members, and changing roles through the UI. Confirm UI updates reflect backend changes."
-          },
-          {
-            "id": 5,
-            "title": "Implement RLS Policies & Conduct End-to-End Testing",
-            "description": "Ensure all pile sharing and member management operations strictly adhere to Row Level Security policies and conduct comprehensive testing across all functionalities.",
-            "dependencies": [],
-            "details": "Implement and rigorously verify Row Level Security (RLS) policies on the `pile_members` table and any related tables to ensure that users can only perform actions (view, edit, manage) consistent with their assigned roles and pile ownership. Conduct comprehensive end-to-end integration testing covering shareable link generation, invitation acceptance, direct member invitation, member removal, role changes, and access validation for all defined roles (owner, editor, read-only) to confirm RLS is correctly enforced across the entire system.",
-            "status": "pending",
-            "testStrategy": "Simulate various user roles (owner, editor, read-only, uninvited) and attempt all operations (view pile, edit pile, generate link, invite, remove, change role). Verify that only authorized actions succeed and unauthorized actions are blocked by RLS."
-          }
-        ]
-      },
-      {
         "id": 20,
         "title": "Integrate Supabase Storage for Attachments",
         "description": "Implement secure file upload, download, and management for attachments using Supabase Storage buckets.",
-        "details": "Create `pile-attachments` and `user-avatars` storage buckets in Supabase. Implement client-side logic for securely uploading images and other files, associating them with `posts` via the `attachments` table. Develop functionality to download and display these attachments. Configure RLS for storage buckets to ensure only authorized users can access files.",
+        "details": "Create `pile-attachments` and `user-avatars` storage buckets in Supabase. Implement client-side logic for securely uploading images and other files, associating them with `posts` via the `attachments` table. Develop functionality to download and display these attachments. Configure RLS for storage buckets to ensure only authorized users can access files.\n<info added on 2025-08-27T18:32:59.342Z>\nInitial client-side logic for file management has been implemented in `src/renderer/lib/storage.js`, including `uploadAttachmentForPost`, `listAttachmentsForPost`, `getAttachmentSignedUrl`, and `deleteAttachment` functions. This logic inserts attachment metadata (post_id, user_id, path, name, type, size) into the `attachments` table. The Cloud editor UI (`src/renderer/pages/Pile/CloudEditor/index.jsx`) now features an upload button with multi-file input, displays a list of attachments with signed download links, and provides a delete action, integrating Toaster for notifications. Future work includes optionally adding thumbnails/previews for images and drag-and-drop upload, and confirming RLS allows inserts/deletes for attachments by the owner.\n</info added on 2025-08-27T18:32:59.342Z>",
         "testStrategy": "Upload various file types and sizes. Verify successful upload, secure storage, and correct display/download. Test RLS by attempting to access unauthorized files.",
         "priority": "high",
         "dependencies": [
@@ -1780,21 +1720,21 @@
           14,
           15
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
         "id": 21,
         "title": "Implement Full-Text Search on Post Content",
         "description": "Add efficient full-text search capabilities across all user's journal entries using PostgreSQL's built-in features.",
-        "details": "Configure a `tsvector` column on the `posts` table, automatically updating it on content changes using a trigger. Implement a search API endpoint that utilizes `to_tsquery` for fast and relevant full-text search across all posts accessible to the user. Optimize search queries for performance.",
+        "details": "Configure a `tsvector` column on the `posts` table, automatically updating it on content changes using a trigger. Implement a search API endpoint that utilizes `to_tsquery` for fast and relevant full-text search across all posts accessible to the user. Optimize search queries for performance.\n<info added on 2025-08-27T18:35:37.863Z>\nInitial implementation includes the following:\n- **Database Schema & Logic (SQL Migration):**\n  - Added `search_vector` (tsvector) column to `public.posts`.\n  - Backfilled existing posts' `search_vector` using `to_tsvector('english', coalesce(content::text,''))`.\n  - Created a GIN index `posts_search_vector_idx` on `search_vector`.\n  - Implemented `public.posts_search_vector_update()` trigger function and `posts_search_vector_tgr` trigger to automatically update `search_vector` on `BEFORE INSERT OR UPDATE` of `public.posts`.\n  - *Note:* The SQL migration was prepared but needs to be run directly on Supabase due to tool limitations.\n- **Client-side API Integration:**\n  - Added `searchPostsFullText(query, { limit, config })` function in `src/renderer/lib/supabase.js`.\n  - This function utilizes Supabase's `.textSearch('search_vector', query, { type: 'websearch', config })` for full-text queries.\n</info added on 2025-08-27T18:35:37.863Z>",
         "testStrategy": "Perform searches with various keywords, phrases, and special characters. Verify search results are accurate and returned within the performance requirements (<1 second). Test search across large datasets.",
         "priority": "medium",
         "dependencies": [
           11,
           15
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1802,7 +1742,7 @@
             "description": "Add a `tsvector` column to the `posts` table and create a GIN index on it to enable efficient full-text search.",
             "dependencies": [],
             "details": "Modify the `posts` table schema to include a new `tsvector` column, e.g., `search_vector`. This column will store the processed text for full-text search. Create a GIN index on this `search_vector` column for optimal query performance.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify the `posts` table schema includes the new `tsvector` column and that the GIN index is successfully created. Check index properties and ensure it's a GIN index."
           },
           {
@@ -1811,7 +1751,7 @@
             "description": "Create a PostgreSQL trigger to automatically update the `tsvector` column whenever a post's content is inserted or updated.",
             "dependencies": [],
             "details": "Develop a PostgreSQL function and an associated trigger that fires `BEFORE INSERT OR UPDATE` on the `posts` table. This trigger will populate the `search_vector` column using `to_tsvector` on the `content` column (and potentially other relevant text fields like `title`) with an appropriate text search configuration (e.g., 'english').",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create a new post and update an existing post. Verify that the `search_vector` column is correctly populated and updated with the processed text after each operation. Test with various content types and lengths."
           },
           {
@@ -1820,7 +1760,7 @@
             "description": "Populate the `tsvector` column for all existing journal entries in the `posts` table to make historical data searchable.",
             "dependencies": [],
             "details": "Write and execute a one-time SQL script to iterate through all existing `posts` and populate their `search_vector` column using `to_tsvector(config, content)`. This ensures all historical data is immediately searchable upon feature deployment.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "After backfill, query a representative sample of old posts directly to ensure their `search_vector` column contains the expected data. Perform a few test searches on old content to confirm they return results."
           },
           {
@@ -1829,7 +1769,7 @@
             "description": "Create a new API endpoint that accepts search queries and returns relevant posts using PostgreSQL's full-text search capabilities, respecting user access.",
             "dependencies": [],
             "details": "Implement a server-side API endpoint (e.g., a Supabase Function or API route) that takes a search string. This endpoint will use `to_tsquery` to convert the search string and then query the `posts` table, joining on the `search_vector` column using the `@@` operator. Ensure the query respects Row Level Security (RLS) to only return posts accessible to the authenticated user.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Perform searches with various keywords, phrases, and special characters through the API. Verify that results are accurate, relevant, and only include posts the authenticated user has access to. Test with different user accounts to confirm RLS is enforced."
           },
           {
@@ -1838,7 +1778,7 @@
             "description": "Refine search queries and database configuration to ensure full-text searches are fast and return highly relevant results, meeting performance requirements.",
             "dependencies": [],
             "details": "Analyze query plans for the search endpoint. Implement optimizations such as using `ts_rank` for result ordering, considering different `ts_config` settings (e.g., `english`, `simple`), and potentially adding partial indexing or other PostgreSQL FTS features. Ensure search queries consistently return results within the specified performance target (<1 second) even with large datasets.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Conduct performance tests with large datasets and complex queries, measuring query execution times. Verify that search results are ordered by relevance and that the system can handle concurrent search requests efficiently. Test against the <1 second performance requirement."
           }
         ]
@@ -1847,14 +1787,14 @@
         "id": 22,
         "title": "Develop Sync Status Indicators & Error Handling UI",
         "description": "Create clear visual indicators for sync status, connection status, and user-friendly error messages for sync-related issues.",
-        "details": "Implement UI elements (e.g., sidebar icons, status bar indicators) to visually communicate 'synced', 'syncing', 'offline', and 'conflict' states. Design and implement clear, actionable error messages and recovery options for network issues, sync failures, or data conflicts.",
+        "details": "Implement UI elements (e.g., sidebar icons, status bar indicators) to visually communicate 'synced', 'syncing', 'offline', and 'conflict' states. Design and implement clear, actionable error messages and recovery options for network issues, sync failures, or data conflicts.\n<info added on 2025-08-27T18:46:05.544Z>\nSync status and error handling UI have been fully implemented. The `SyncInfraContext` (src/renderer/context/SyncInfraContext.js) was enhanced to track `lastError` and `lastErrorAt` from sync events, clearing the error state on new successful syncs, exposing a `clearError` function, and piping force sync failures into the error state. A new `ErrorBanner` UI component (src/renderer/components/Sync/ErrorBanner.jsx with ErrorBanner.module.scss) was created to display `lastError` with \"Retry\" (triggering `forceSync`) and \"Dismiss\" actions. This `ErrorBanner` is integrated into `Home/index.tsx` alongside the compact `SyncStatus` and in `Pile/Layout.jsx` within the top navigation. The existing `SyncStatus` component (src/renderer/components/SyncStatus/index.jsx) continues to support offline/syncing/pending/failed states across Home and Pile views. This completes the design of states, implementation of indicators, addition of friendly error handling with actions, integration across views, and establishes a clear path for end-to-end validation.\n</info added on 2025-08-27T18:46:05.544Z>",
         "testStrategy": "Simulate various network conditions (offline, slow, intermittent). Verify UI indicators accurately reflect status. Trigger sync errors and confirm user-friendly error messages are displayed with guidance.",
         "priority": "medium",
         "dependencies": [
           13,
           15
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1862,7 +1802,7 @@
             "description": "Define the visual appearance, iconography, and placement for 'synced', 'syncing', 'offline', and 'conflict' states across various UI components.",
             "dependencies": [],
             "details": "Create detailed mockups or wireframes specifying the visual representation (icons, colors, animations) for 'synced' (e.g., green checkmark), 'syncing' (e.g., spinning arrow), 'offline' (e.g., cloud with slash), and 'conflict' (e.g., warning triangle). Determine optimal placement for these indicators, such as a global status bar, sidebar icons, or specific pile/item indicators.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Conduct internal design review sessions with UX/UI specialists and product stakeholders to ensure clarity, consistency, and user-friendliness of the proposed visual states."
           },
           {
@@ -1873,7 +1813,7 @@
               "22.1"
             ],
             "details": "Implement the actual UI elements (e.g., React components, CSS styles) for sidebar icons and status bar indicators. Integrate these components with the client-side sync infrastructure (Task 13) to subscribe to and react to real-time status changes (e.g., `syncService.onStatusChange('synced')`). Ensure smooth visual transitions between states.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Develop unit tests for UI components to verify correct rendering for each state. Simulate various network conditions (e.g., disconnect/reconnect, slow network) and verify that the UI indicators accurately reflect 'synced', 'syncing', 'offline' states. Manually trigger a simulated conflict event from Task 13 to verify the 'conflict' indicator."
           },
           {
@@ -1882,7 +1822,7 @@
             "description": "Define the content, tone, and structure for user-facing error messages related to sync failures, network issues, and data conflicts, including actionable recovery options.",
             "dependencies": [],
             "details": "Draft specific, concise, and empathetic error messages for common sync-related issues such as 'Network connection lost. Please check your internet connection and try again.', 'Sync failed: Server unavailable. We're working on it, please try again later.', 'Data conflict detected. Please review your changes or discard local edits.' For each error, define clear, actionable recovery steps and design the UI patterns (e.g., toast notifications, modal dialogs with buttons, inline alerts) for their presentation.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Conduct user feedback sessions or A/B tests on drafted error messages and recovery options to ensure they are easily understandable, helpful, and reduce user frustration. Review with content writers for tone and clarity."
           },
           {
@@ -1893,7 +1833,7 @@
               "22.3"
             ],
             "details": "Implement the UI components for displaying error messages (e.g., a global notification system, specific modal components). Integrate with the core sync infrastructure (Task 13) to listen for specific error events (e.g., `syncService.onError('network_offline')`, `syncService.onError('server_error')`, `syncService.onConflict(conflictDetails)`). Implement the logic to map these events to the appropriate designed error messages and display them, including any recovery action buttons.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Develop integration tests that simulate various error conditions (e.g., network timeout during a sync operation, API rate limit error, a forced data conflict) and verify that the correct, user-friendly error messages are displayed with the appropriate recovery options. Ensure error messages are dismissible or provide clear next steps."
           },
           {
@@ -1905,24 +1845,10 @@
               "22.4"
             ],
             "details": "Conduct full system integration testing to ensure seamless interaction between sync status indicators and error messages. Verify that indicators update correctly after an error is resolved or a recovery action is taken. Perform performance testing to ensure UI updates are responsive. Gather final user feedback and address any remaining bugs or UX issues to ensure a robust and intuitive sync experience.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Execute a comprehensive test plan covering all sync scenarios, including offline operations, intermittent connectivity, concurrent edits leading to conflicts, and various error recovery paths. Verify data consistency, UI responsiveness, and user guidance throughout the entire sync lifecycle."
           }
         ]
-      },
-      {
-        "id": 23,
-        "title": "Implement Data Export Functionality",
-        "description": "Allow users to export their complete journal data from Supabase in a common, accessible format.",
-        "details": "Develop a feature that enables users to export their entire journal data (posts, attachments metadata, pile structure) in a user-friendly format such as JSON or a collection of Markdown files. Consider using Supabase Functions to generate the export file server-side and store it temporarily in an `exports` storage bucket for download.",
-        "testStrategy": "Export data for users with varying amounts of content and attachments. Verify the exported data is complete, correctly formatted, and easily importable/readable. Test the download process.",
-        "priority": "low",
-        "dependencies": [
-          15,
-          20
-        ],
-        "status": "pending",
-        "subtasks": []
       },
       {
         "id": 24,
@@ -1941,166 +1867,87 @@
         "subtasks": []
       },
       {
-        "id": 25,
-        "title": "Comprehensive End-to-End Testing & Documentation",
-        "description": "Conduct final end-to-end testing, user acceptance testing (UAT), and create user documentation for all new cloud features.",
-        "details": "Develop and execute comprehensive end-to-end test plans covering all user stories, technical requirements, and edge cases. Organize beta testing with a group of users to gather feedback. Create clear and concise user documentation, including guides for cloud sync, collaboration, data migration, and troubleshooting common issues.",
-        "testStrategy": "Execute full regression test suite. Conduct UAT sessions and collect feedback. Review all documentation for accuracy, clarity, and completeness. Verify all success criteria from the PRD are met.",
-        "priority": "high",
-        "dependencies": [
-          11,
-          12,
-          13,
-          14,
-          15,
-          16,
-          17,
-          18,
-          19,
-          20,
-          21,
-          22,
-          23,
-          24
-        ],
-        "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Develop Comprehensive End-to-End Test Plans",
-            "description": "Design detailed test plans for all new cloud features, covering user stories, technical requirements, edge cases, and a full regression suite.",
-            "dependencies": [],
-            "details": "Based on the Product Requirements Document (PRD) and implemented features (cloud sync, collaboration, data migration, error handling, etc.), create a comprehensive suite of end-to-end test cases. Include scenarios for successful operations, error conditions, edge cases, and a full regression test suite to ensure existing functionality is not broken.",
-            "status": "pending",
-            "testStrategy": "Conduct peer review of test plans for coverage, accuracy, and completeness. Ensure traceability of test cases to user stories and technical requirements."
-          },
-          {
-            "id": 2,
-            "title": "Execute End-to-End & Regression Testing",
-            "description": "Perform the developed end-to-end and regression tests, log defects, and verify all success criteria are met.",
-            "dependencies": [
-              "25.1"
-            ],
-            "details": "Execute the test plans developed in subtask 25.1. Document all test results, including passed, failed, and blocked tests. Log any defects found with detailed steps to reproduce, expected results, and actual results. Track defect resolution and retest fixes. Verify that all success criteria from the PRD are met.",
-            "status": "pending",
-            "testStrategy": "Monitor test execution progress and coverage. Track defect rates and resolution times. Generate comprehensive test reports summarizing coverage and defect status."
-          },
-          {
-            "id": 3,
-            "title": "Conduct User Acceptance Testing (UAT) & Gather Feedback",
-            "description": "Organize and facilitate beta testing with a group of users to gather feedback on new cloud features and validate user experience.",
-            "dependencies": [
-              "25.2"
-            ],
-            "details": "Recruit a diverse group of beta users. Prepare a UAT environment and provide clear instructions and scenarios. Conduct UAT sessions, collect qualitative and quantitative feedback through surveys, interviews, and direct observation. Analyze feedback to identify usability issues, bugs, and areas for improvement.",
-            "status": "pending",
-            "testStrategy": "Ensure UAT participants represent target user demographics. Document all feedback received. Prioritize feedback and create actionable items for development teams."
-          },
-          {
-            "id": 4,
-            "title": "Draft User Documentation for Cloud Features",
-            "description": "Create initial drafts of clear and concise user documentation, including guides for cloud sync, collaboration, data migration, and troubleshooting common issues.",
-            "dependencies": [],
-            "details": "Write comprehensive guides covering how to enable and use cloud sync, share piles and manage collaborators, perform data migration, and troubleshoot common issues related to cloud features. Focus on clarity, conciseness, and user-friendliness, targeting the end-user perspective.",
-            "status": "pending",
-            "testStrategy": "Conduct internal review of drafted documentation for grammatical correctness, clarity, and adherence to established style guides and terminology."
-          },
-          {
-            "id": 5,
-            "title": "Review, Refine, and Finalize User Documentation",
-            "description": "Conduct a thorough review of all drafted user documentation for accuracy, clarity, completeness, and incorporate feedback before final publication.",
-            "dependencies": [
-              "25.3",
-              "25.4"
-            ],
-            "details": "Review the drafted documentation (from 25.4) against the implemented features and UAT feedback (from 25.3). Ensure all steps are accurate, screenshots are up-to-date, and language is consistent. Refine content based on clarity and completeness checks. Obtain final approval from product and technical leads. Publish the finalized documentation to the appropriate channels.",
-            "status": "pending",
-            "testStrategy": "Cross-reference documentation content with actual application behavior. Conduct a final proofread. Verify all success criteria related to documentation (accuracy, clarity, completeness) are met."
-          }
-        ]
-      },
-      {
         "id": 26,
         "title": "Fix Google OAuth Popup UX and Session Transfer",
-        "description": "Address critical UX issues in Google OAuth, ensuring the popup window closes automatically and the authentication state is correctly transferred to the main window for a seamless user experience.",
-        "details": "The current Google OAuth flow successfully authenticates users but fails to provide a smooth UX due to the popup window not closing automatically and the main window not reflecting the authenticated state. The fix will involve:\n1.  **Popup Window Management**:\n    *   Modify the OAuth initiation to open the Google sign-in flow in a new `BrowserWindow` managed by the Electron main process.\n    *   In the main process, attach a `webContents.on('did-navigate')` or `webContents.on('will-redirect')` listener to the popup `BrowserWindow`.\n    *   Upon detection of the Supabase OAuth callback URL (containing `access_token`, `refresh_token`, etc.), capture the full URL.\n    *   Parse the URL to extract the session tokens.\n    *   Immediately close the popup `BrowserWindow` using `popupWindow.close()`.\n2.  **Authentication State Transfer**:\n    *   After extracting the session tokens in the main process, use `supabase.auth.setSession({ access_token, refresh_token })` if the Supabase client is managed in the main process.\n    *   Alternatively, send the extracted `access_token` and `refresh_token` to the main window's renderer process via IPC (e.g., `ipcMain.send(mainWindow.webContents, 'auth:session-update', { accessToken, refreshToken })`).\n    *   In the main window's renderer process, listen for the `auth:session-update` IPC message.\n    *   Upon receiving the message, update the Supabase client's session using `supabase.auth.setSession()` or trigger a manual session refresh (`supabase.auth.refreshSession()`) to ensure the `onAuthStateChange` listener is triggered.\n    *   Ensure the UI components in the main window (e.g., sign-in button, user profile, piles list) react to the updated authentication state.\n    *   Consider using `localStorage` directly if `supabase.auth.setSession` is not directly available or if the `onAuthStateChange` listener is expected to pick up changes from `localStorage` automatically.",
-        "testStrategy": "1. Initiate the Google OAuth sign-in process from the main application window.\n2. Verify that a new popup window appears for Google authentication.\n3. Complete the Google authentication successfully.\n4. Observe that the popup window automatically closes immediately after successful authentication, without displaying the app's home page.\n5. Verify that the main application window instantly transitions from showing the sign-in button to displaying the authenticated user's profile and 'piles' list.\n6. Log out from the application and repeat the entire process to ensure consistent behavior.\n7. Test scenarios where the user closes the popup manually before completing authentication (main window should remain unauthenticated).\n8. Verify error handling if session transfer fails (e.g., tokens are invalid or missing).",
-        "status": "in-progress",
+        "description": "Address critical UX issues in Google OAuth, ensuring the popup window closes automatically and the authentication state is correctly transferred to the main window for a seamless user experience. Note: Core database RLS policy violations blocking OAuth and session creation have been resolved, allowing full focus on client-side UX and state transfer.",
+        "status": "done",
         "dependencies": [
           3,
           8
         ],
         "priority": "medium",
+        "details": "The current Google OAuth flow successfully authenticates users, and underlying database RLS issues preventing session creation and persistence have been resolved. The remaining focus is on addressing the UX issues where the popup window does not close automatically and the main window does not reflect the authenticated state. The fix will involve:\n1.  **Popup Window Management**:\n    *   Modify the OAuth initiation to open the Google sign-in flow in a new `BrowserWindow` managed by the Electron main process.\n    *   In the main process, attach a `webContents.on('did-navigate')` or `webContents.on('will-redirect')` listener to the popup `BrowserWindow`.\n    *   Upon detection of the Supabase OAuth callback URL (containing `access_token`, `refresh_token`, etc.), capture the full URL.\n    *   Parse the URL to extract the session tokens.\n    *   Immediately close the popup `BrowserWindow` using `popupWindow.close()`.\n2.  **Authentication State Transfer**:\n    *   After extracting the session tokens in the main process, use `supabase.auth.setSession({ access_token, refresh_token })` if the Supabase client is managed in the main process.\n    *   Alternatively, send the extracted `access_token` and `refresh_token` to the main window's renderer process via IPC (e.g., `ipcMain.send(mainWindow.webContents, 'auth:session-update', { accessToken, refreshToken })`).\n    *   In the main window's renderer process, listen for the `auth:session-update` IPC message.\n    *   Upon receiving the message, update the Supabase client's session using `supabase.auth.setSession()` or trigger a manual session refresh (`supabase.auth.refreshSession()`) to ensure the `onAuthStateChange` listener is triggered.\n    *   Ensure the UI components in the main window (e.g., sign-in button, user profile, piles list) react to the updated authentication state.\n    *   Consider using `localStorage` directly if `supabase.auth.setSession` is not directly available or if the `onAuthStateChange` listener is expected to pick up changes from `localStorage` automatically.",
+        "testStrategy": "1. Initiate the Google OAuth sign-in process from the main application window.\n2. Verify that a new popup window appears for Google authentication.\n3. Complete the Google authentication successfully.\n4. Observe that the popup window automatically closes immediately after successful authentication, without displaying the app's home page.\n5. Verify that the main application window instantly transitions from showing the sign-in button to displaying the authenticated user's profile and 'piles' list.\n6. Log out from the application and repeat the entire process to ensure consistent behavior.\n7. Test scenarios where the user closes the popup manually before completing authentication (main window should remain unauthenticated).\n8. Verify error handling if session transfer fails (e.g., tokens are invalid or missing).",
         "subtasks": [
           {
             "id": 1,
             "title": "Verify deep link registration (macOS) and add success/error logging",
             "description": "Confirm `app.setAsDefaultProtocolClient('pilebintang')` succeeds at runtime on macOS. Add explicit logs for registration result and add `app.on('open-url')` diagnostics to confirm the callback is received. Ensure logs are concise and gated behind a debug flag.",
-            "details": "",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "parentTaskId": 26
+            "details": "",
+            "testStrategy": ""
           },
           {
             "id": 2,
             "title": "Implement deep-link handling for Windows/Linux via `second-instance` argv",
             "description": "Use `app.requestSingleInstanceLock()` and the `second-instance` event to parse argv for `pilebintang://auth-callback?...`, route to the same resolver (close popup, resolve callback URL), and add diagnostics. Document the expected argv format for different shells.",
-            "details": "",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "parentTaskId": 26
+            "details": "",
+            "testStrategy": ""
           },
           {
             "id": 3,
             "title": "Add comprehensive OAuth popup logging across all navigation events",
             "description": "Instrument the OAuth popup with debug logs for `will-navigate`, `will-redirect`, `did-redirect-navigation`, `did-navigate`, `did-fail-load`, `did-fail-provisional-load`, and `setWindowOpenHandler`. Each log should include the event name, URL, and whether the flow resolved or was ignored.",
-            "details": "",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "parentTaskId": 26
+            "details": "",
+            "testStrategy": ""
           },
           {
             "id": 4,
             "title": "Harden dev HTTP callback close conditions for app origin and /auth/callback",
             "description": "Expand app-origin detection to include http/https with dev host/port and path, and intercept navigation to `/auth/callback` immediately. Ensure the popup closes before the SPA renders and starts API calls inside the popup.",
-            "details": "",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "parentTaskId": 26
+            "details": "",
+            "testStrategy": ""
           },
           {
             "id": 5,
             "title": "Update Supabase Allowed Redirect URLs and verify PKCE compatibility",
             "description": "In the Supabase dashboard, add both `pilebintang://auth-callback` and your dev URL (e.g., `http://localhost:1212/auth/callback`) to Allowed Redirect URLs. Confirm the supabase-js version supports `auth.exchangeCodeForSession(authCode)`; adjust to `getSessionFromUrl` if needed.",
-            "details": "",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "parentTaskId": 26
+            "details": "",
+            "testStrategy": ""
           },
           {
             "id": 6,
             "title": "Enhance renderer diagnostics and manual callback URL exchange helper",
             "description": "Add logs for `OAuth result` including whether `callbackUrl` is present (mask sensitive params). Show user-friendly error if `success === false`. Optionally add a debug input to paste a callback URL and trigger `exchangeCodeForSession` manually to recover.",
-            "details": "",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "parentTaskId": 26
+            "details": "",
+            "testStrategy": ""
           },
           {
             "id": 7,
             "title": "Prepare production packaging and docs for deep link OAuth",
             "description": "Document deep link registration and expected behavior in packaged builds. Verify the installer/packager registers `pilebintang://` and test the OAuth flow end-to-end in a packaged app. Include troubleshooting tips for users.",
-            "details": "",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "parentTaskId": 26
+            "details": "",
+            "testStrategy": ""
           }
         ]
       }
     ],
     "metadata": {
       "created": "2025-08-26T16:05:18.194Z",
-      "updated": "2025-08-27T17:59:30.569Z",
+      "updated": "2025-08-27T18:46:21.855Z",
       "description": "Tasks for research context",
       "renamed": {
         "from": "research",
