@@ -386,7 +386,7 @@ export function SyncProvider({ children }) {
       const { data: piles, error: pilesError } = await supabase
         .from('piles')
         .select('*')
-        .eq('owner_id', user.id);
+        .eq('user_id', user.id);
 
       if (pilesError) throw pilesError;
 
@@ -446,7 +446,7 @@ export function SyncProvider({ children }) {
       const { data: updatedPiles, error: pilesError } = await supabase
         .from('piles')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('user_id', user.id)
         .gt('updated_at', sinceTime);
 
       if (pilesError) throw pilesError;
@@ -460,7 +460,7 @@ export function SyncProvider({ children }) {
       const { data: userPiles } = await supabase
         .from('piles')
         .select('id')
-        .eq('owner_id', user.id);
+        .eq('user_id', user.id);
 
       const { data: updatedPosts, error: postsError } = await supabase
         .from('posts')

@@ -440,3 +440,94 @@
 }
 
 /* Auth button styles removed - using unified .button class */
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  -webkit-app-region: none;
+}
+
+.modal {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 2rem;
+  min-width: 400px;
+  max-width: 90vw;
+  border: 1px solid var(--border);
+  
+  h2 {
+    margin: 0 0 1.5rem 0;
+    color: var(--primary);
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+}
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  
+  label {
+    color: var(--primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+  
+  input {
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--primary);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    
+    &:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(var(--brand-rgb), 0.1);
+    }
+    
+    &::placeholder {
+      color: var(--secondary);
+    }
+  }
+}
+
+.modalButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+  
+  .button {
+    /* Reuse existing button styles but override some properties */
+    min-width: 80px;
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      
+      &:hover {
+        background: var(--active);
+        transform: none;
+      }
+    }
+  }
+}
