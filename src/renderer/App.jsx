@@ -23,6 +23,8 @@ import DebugNotifications from './components/DebugNotifications';
 import AuthForm from './components/Auth/AuthForm';
 import OAuthCallback from './pages/Auth/OAuthCallback';
 import Profile from './pages/Profile';
+import ConflictBanner from './components/Conflicts/Banner';
+import ConflictsPage from './pages/Conflicts';
 import './lib/syncTest.js'; // Make test functions available globally
 
 if ('scrollRestoration' in history) {
@@ -74,6 +76,14 @@ export default function App() {
                                   location={location}
                                   key={location.pathname}
                                 >
+                                  <Route
+                                    path="/conflicts"
+                                    element={
+                                      <AnimatedPage _key="conflicts">
+                                        <ConflictsPage />
+                                      </AnimatedPage>
+                                    }
+                                  />
                                   <Route
                                     path="/"
                                     element={
@@ -132,8 +142,9 @@ export default function App() {
                                       }
                                     />
                                   </Route>
-                                </Routes>
+                              </Routes>
                               </AnimatePresence>
+                              <ConflictBanner />
                             </LinksContextProvider>
                           </TimelineContextProvider>
                         </TagsContextProvider>

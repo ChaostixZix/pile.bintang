@@ -21,6 +21,18 @@ export function SyncInfraContextProvider({ children }) {
     cacheStats: {}
   });
   const [networkLatency, setNetworkLatency] = useState(null);
+  const [lastError, setLastError] = useState(null);
+  const [lastErrorAt, setLastErrorAt] = useState(null);
+
+  // Refresh sync status (defined early to avoid TDZ issues in effects)
+  const refreshSyncStatus = useCallback(async () => {
+    try {
+      const status = await syncManager.getStatus();
+      setSyncStatus(status);
+    } catch (error) {
+      console.error('Failed to refresh sync status:', error);
+    }
+  }, []);
 
   // Initialize sync infrastructure
   useEffect(() => {
@@ -61,27 +73,25 @@ export function SyncInfraContextProvider({ children }) {
     });
 
     return unsubscribe;
-  }, []);
+  }, [refreshSyncStatus]);
 
   // Setup sync manager listener
   useEffect(() => {
     const unsubscribe = syncManager.addListener((event) => {
       console.log('Sync event:', event);
+      if (event?.event === 'sync_failed') {
+        setLastError(event?.error || 'Synchronization failed');
+        setLastErrorAt(new Date().toISOString());
+      }
+      if (event?.event === 'sync_started') {
+        // clear transient error on new attempt
+        setLastError(null);
+      }
       refreshSyncStatus();
     });
 
     return unsubscribe;
-  }, []);
-
-  // Refresh sync status
-  const refreshSyncStatus = useCallback(async () => {
-    try {
-      const status = await syncManager.getStatus();
-      setSyncStatus(status);
-    } catch (error) {
-      console.error('Failed to refresh sync status:', error);
-    }
-  }, []);
+  }, [refreshSyncStatus]);
 
   // Force sync
   const forceSync = useCallback(async () => {
@@ -89,6 +99,8 @@ export function SyncInfraContextProvider({ children }) {
       await syncManager.forceSync();
     } catch (error) {
       console.error('Force sync failed:', error);
+      setLastError(error?.message || String(error));
+      setLastErrorAt(new Date().toISOString());
     }
   }, []);
 
@@ -171,6 +183,11 @@ export function SyncInfraContextProvider({ children }) {
     lastSyncFormatted: syncStatus.lastSyncTime 
       ? new Date(syncStatus.lastSyncTime).toLocaleString()
       : 'Never',
+
+    // Error state
+    lastError,
+    lastErrorAt,
+    clearError: () => setLastError(null),
   };
 
   return (

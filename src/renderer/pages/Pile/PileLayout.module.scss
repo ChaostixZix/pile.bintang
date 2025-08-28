@@ -313,3 +313,17 @@
     padding-right: 130px;
   }
 }
+
+// Sync Status Bar
+.syncStatusBar {
+  padding: 8px 16px;
+  margin: 0 -8px;
+  background: var(--surface-background, rgba(255, 255, 255, 0.03));
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  backdrop-filter: blur(10px);
+  
+  @media only screen and (max-width: 909px) {
+    margin: 0;
+    padding: 8px;
+  }
+}

@@ -323,11 +323,13 @@ export function AIContextProvider({ children }) {
           return false;
         }
         
-        // Test the key with the API
-        if (window.electron?.gemini?.testApiKey) {
-          const result = await window.electron.gemini.testApiKey();
-          return result?.success && result?.isValid;
-        }
+        // Skip automatic API testing to prevent quota usage
+        // Only do real API testing when user explicitly tests in settings
+        // For Think Deeper button, just check if key exists
+        // if (window.electron?.gemini?.testApiKey) {
+        //   const result = await window.electron.gemini.testApiKey();
+        //   return result?.success && result?.isValid;
+        // }
         
         // Fallback to just checking if key exists
         return true;

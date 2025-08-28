@@ -82,7 +82,7 @@ const createWindow = async () => {
       nodeIntegrationInWorker: false,
       nodeIntegrationInSubFrames: false,
       sandbox: false, // Keep false to allow preload script
-      webSecurity: true,
+      webSecurity: true, // Keep enabled for security
       allowRunningInsecureContent: false,
       experimentalFeatures: false,
       preload: app.isPackaged
@@ -177,11 +177,28 @@ const handleOAuth = async (authUrl: string): Promise<string> => {
     const cleanup = () => {
       try {
         app.removeListener('open-url', onOpenUrl as any);
+        app.removeListener('second-instance', onSecondInstance as any);
       } catch {}
     };
 
-    // Register deep link handler (works on macOS)
-    app.on('open-url', onOpenUrl as any);
+    // Windows/Linux deep link handling via second-instance
+    const onSecondInstance = (_event: Electron.Event, argv: string[]) => {
+      // Look for pilebintang:// URL in command line arguments
+      const deepLinkUrl = argv.find(arg => arg.startsWith('pilebintang://'));
+      if (deepLinkUrl && !resolved) {
+        console.log('Received deep link via second-instance:', deepLinkUrl);
+        resolved = true;
+        try {
+          oauthWindow.close();
+        } catch {}
+        cleanup();
+        resolve(deepLinkUrl);
+      }
+    };
+    
+    // Register deep link handlers
+    app.on('open-url', onOpenUrl as any); // macOS
+    app.on('second-instance', onSecondInstance as any); // Windows/Linux
 
     const maybeHandleCallback = (
       event: Electron.Event | null,
@@ -189,6 +206,7 @@ const handleOAuth = async (authUrl: string): Promise<string> => {
     ) => {
       try {
         const parsedUrl = new URL(navigationUrl);
+        console.log('Checking callback URL:', navigationUrl, 'Parsed path:', parsedUrl.pathname);
 
         const isCallbackPath = parsedUrl.pathname === '/auth/callback';
         const isCustomScheme = parsedUrl.protocol === 'pilebintang:'; // deep link support
@@ -196,12 +214,21 @@ const handleOAuth = async (authUrl: string): Promise<string> => {
           parsedUrl.hash.includes('access_token') ||
           parsedUrl.search.includes('access_token=');
         const hasCode = parsedUrl.search.includes('code=');
+        const isHttpCallbackWithParams = isCallbackPath && (hasAccessToken || hasCode);
 
-        if (isCallbackPath || isCustomScheme || hasAccessToken || hasCode) {
+        console.log('Callback detection:', {
+          isCallbackPath,
+          isCustomScheme,
+          hasAccessToken,
+          hasCode,
+          isHttpCallbackWithParams
+        });
+
+        if (isHttpCallbackWithParams || isCustomScheme || hasAccessToken || hasCode) {
           console.log('OAuth callback detected, closing popup');
-          if (hasAccessToken || hasCode) {
-            lastAuthUrl = navigationUrl;
-          }
+          // Always capture the full URL with auth parameters
+          lastAuthUrl = navigationUrl;
+          
           if (event && typeof (event as any).preventDefault === 'function') {
             (event as any).preventDefault();
           }
@@ -213,10 +240,12 @@ const handleOAuth = async (authUrl: string): Promise<string> => {
             cleanup();
             resolve(navigationUrl);
           }
+          return true; // Indicate we handled this callback
         }
       } catch (err) {
-        // Ignore URL parse errors
+        console.log('URL parse error:', err);
       }
+      return false;
     };
 
     // Handle successful callback across multiple navigation events
@@ -243,7 +272,12 @@ const handleOAuth = async (authUrl: string): Promise<string> => {
         const isAppOrigin =
           parsedUrl.protocol === 'file:' ||
           parsedUrl.protocol === 'local:' ||
-          (parsedUrl.hostname === 'localhost' || parsedUrl.hostname === '127.0.0.1');
+          parsedUrl.hostname === 'localhost' ||
+          parsedUrl.hostname === '127.0.0.1' ||
+          // Check for development server ports commonly used by Electron
+          (parsedUrl.hostname === 'localhost' && (parsedUrl.port === '1212' || parsedUrl.port === '3000')) ||
+          // Check if origin matches development server
+          (parsedUrl.origin && parsedUrl.origin === process.env.ELECTRON_WEBPACK_WDS_HOST);
 
         if (isAppOrigin && !resolved) {
           console.log('Navigated to app origin in OAuth window; closing popup');
@@ -370,7 +404,7 @@ const handleOAuth = async (authUrl: string): Promise<string> => {
   });
 };
 
-// IPC handler for OAuth
+// IPC handler for OAuth (legacy popup method)
 ipcMain.handle('oauth-google', async (_, authUrl) => {
   try {
     const callbackUrl = await handleOAuth(authUrl);
@@ -380,6 +414,57 @@ ipcMain.handle('oauth-google', async (_, authUrl) => {
     return { success: false, error: (error as Error).message };
   }
 });
+
+// System browser OAuth callback handler
+const handleSystemBrowserOAuthCallback = async (url: string) => {
+  console.log('Processing system browser OAuth callback:', url);
+  
+  try {
+    // Parse the callback URL
+    const callbackUrl = new URL(url);
+    const searchParams = new URLSearchParams(callbackUrl.search);
+    const hashParams = new URLSearchParams(callbackUrl.hash.substring(1));
+    
+    const code = searchParams.get('code') || hashParams.get('code');
+    const error = searchParams.get('error') || hashParams.get('error');
+    const accessToken = hashParams.get('access_token');
+    
+    if (error) {
+      console.error('OAuth error in callback:', error);
+      return { success: false, error: error };
+    }
+    
+    if (code || accessToken) {
+      console.log('OAuth callback contains auth data, sending to renderer');
+      
+      // Send the callback data to the renderer process
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('oauth-callback', {
+          success: true,
+          data: {
+            callbackUrl: url,
+            code: code,
+            accessToken: accessToken,
+          }
+        });
+      }
+      
+      // Focus the main window to bring it to front
+      if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.focus();
+      }
+      
+      return { success: true, code, accessToken };
+    } else {
+      console.warn('No auth data found in callback URL');
+      return { success: false, error: 'No authentication data found' };
+    }
+  } catch (err) {
+    console.error('Error processing OAuth callback:', err);
+    return { success: false, error: (err as Error).message };
+  }
+};
 
 /**
  * Add event listeners...
@@ -393,6 +478,28 @@ app.on('window-all-closed', () => {
   }
 });
 
+// Single instance lock for deep link handling on Windows/Linux
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window instead.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+    
+    // Check for deep link in command line arguments (Windows/Linux)
+    const deepLinkUrl = commandLine.find(arg => arg.startsWith('pilebintang://'));
+    if (deepLinkUrl) {
+      console.log('Received Windows/Linux deep link via second-instance:', deepLinkUrl);
+      handleSystemBrowserOAuthCallback(deepLinkUrl);
+    }
+  });
+}
+
 app
   .whenReady()
   .then(() => {
@@ -403,8 +510,19 @@ app
 
     // Register custom protocol for OAuth callbacks
     if (!app.isDefaultProtocolClient('pilebintang')) {
-      app.setAsDefaultProtocolClient('pilebintang');
+      const registered = app.setAsDefaultProtocolClient('pilebintang');
+      console.log('Deep link protocol registration result:', registered);
     }
+
+    // Handle deep link OAuth callbacks (macOS)
+    app.on('open-url', (event, url) => {
+      event.preventDefault();
+      console.log('Received macOS deep link:', url);
+      
+      if (url.startsWith('pilebintang://auth-callback') || url.startsWith('pilebintang://')) {
+        handleSystemBrowserOAuthCallback(url);
+      }
+    });
 
     // Configure session-level CSP headers (header-only, dev/prod variants)
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {

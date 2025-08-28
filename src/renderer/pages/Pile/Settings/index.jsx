@@ -96,6 +96,10 @@ export default function Settings() {
 
   const handleCloudSyncToggle = (enabled) => {
     if (enabled && !isAuthenticated) {
+      // Store current location for redirect after auth
+      const currentPath = window.location.pathname;
+      window.electron?.store?.set('auth_return_url', currentPath);
+      
       // Redirect to authentication if not logged in
       window.location.href = '/auth';
       return;

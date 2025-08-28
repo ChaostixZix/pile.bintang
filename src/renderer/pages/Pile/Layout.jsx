@@ -12,7 +12,8 @@ import HighlightsDialog from './Highlights';
 import Toasts from './Toasts';
 import Search from './Search';
 import Sidebar from './Sidebar/Timeline/index';
-import SyncStatus from '../../components/Sync/SyncStatus';
+import SyncStatus from '../../components/SyncStatus';
+import ErrorBanner from '../../components/Sync/ErrorBanner';
 import PresenceIndicator from '../../components/PresenceIndicator';
 import styles from './PileLayout.module.scss';
 import InstallUpdate from './InstallUpdate';
@@ -92,6 +93,7 @@ export default function PileLayout({ children }) {
           className={`${styles.content} ${sidebarCollapsed ? styles.contentExpanded : ''}`}
         >
           <div className={styles.nav}>
+            <ErrorBanner />
             <div className={styles.left}>
               {pileName} <span style={{ padding: '6px' }}>·</span>
               <motion.span
@@ -116,6 +118,7 @@ export default function PileLayout({ children }) {
                   size="small"
                 />
               )}
+              <SyncStatus compact={true} showDetails={false} />
               <Chat />
               <Search />
               <Settings />
@@ -125,7 +128,6 @@ export default function PileLayout({ children }) {
               {/* <HighlightsDialog /> */}
             </div>
           </div>
-          <SyncStatus />
           {children}
         </div>
       </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { useSyncContext } from '../../context/SyncContext';
 import { usePilesContext } from '../../context/PilesContext';
 import styles from './SyncStatus.module.scss';
+import { RefreshIcon, CheckIcon, AlertTriangleIcon, ClockIcon } from 'renderer/icons';
 
 function SyncStatus() {
   const {
@@ -28,13 +29,13 @@ function SyncStatus() {
   const getSyncStatusIcon = () => {
     switch (syncStatus) {
       case 'syncing':
-        return '🔄';
+        return <RefreshIcon style={{ width: 14, height: 14 }} />;
       case 'complete':
-        return '✅';
+        return <CheckIcon style={{ width: 14, height: 14 }} />;
       case 'error':
-        return '⚠️';
+        return <AlertTriangleIcon style={{ width: 14, height: 14 }} />;
       default:
-        return '☁️';
+        return <ClockIcon style={{ width: 14, height: 14 }} />;
     }
   };
 
@@ -81,7 +82,7 @@ function SyncStatus() {
           disabled={syncStatus === 'syncing'}
           title="Manual sync"
         >
-          {syncStatus === 'syncing' ? '⏸' : '🔄'}
+          <RefreshIcon style={{ width: 14, height: 14 }} />
         </button>
 
         <button
@@ -89,7 +90,7 @@ function SyncStatus() {
           onClick={() => setAutoSyncEnabled(!autoSyncEnabled)}
           title={`Auto-sync: ${autoSyncEnabled ? 'ON' : 'OFF'}`}
         >
-          ⚡
+          <ClockIcon style={{ width: 14, height: 14 }} />
         </button>
       </div>
 
