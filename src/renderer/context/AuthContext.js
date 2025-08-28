@@ -171,7 +171,7 @@ export function AuthProvider({ children }) {
       // 3. Keeps Electron app secure (no webSecurity compromise)
       // 4. Uses deep link to return session to Electron
       
-      const redirectTarget = 'pilebintang://auth-callback';
+      const redirectTarget = 'pile-auth://callback';
       
       console.log('OAuth redirect target (deep link):', redirectTarget);
       

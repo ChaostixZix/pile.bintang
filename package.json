@@ -209,6 +209,12 @@
     "appId": "pile.un.ms",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
+    "protocols": [
+      {
+        "name": "Pile OAuth",
+        "schemes": ["pile-auth"]
+      }
+    ],
     "files": [
       "dist",
       "node_modules",

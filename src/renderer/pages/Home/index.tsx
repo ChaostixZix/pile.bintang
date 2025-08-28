@@ -10,6 +10,7 @@ import OpenPileFolder from './OpenPileFolder';
 // Sync indicator removed from Home; only shown in threads
 import ErrorBanner from '../../components/Sync/ErrorBanner';
 import { CloudIcon } from 'renderer/icons';
+import AuthCardModal from '../../components/Auth/AuthCardModal';
 
 const quotes = [
   'One moment at a time',
@@ -36,6 +37,8 @@ export default function Home() {
   const { user, profile, signOut, isAuthenticated, loading } = useAuth();
   const [folderExists, setFolderExists] = useState(false);
   const [quote, setQuote] = useState(quotes[0]);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('signin' as 'signin' | 'signup');
 
   useEffect(() => {
     const quote = quotes[Math.floor(Math.random() * quotes.length)];
@@ -173,12 +176,24 @@ export default function Home() {
 
             {!isAuthenticated && (
               <div className={styles.authButtonsRight}>
-                <Link to="/auth?mode=signin" className={styles.button}>
+                <button
+                  className={styles.button}
+                  onClick={() => {
+                    setAuthMode('signin');
+                    setAuthOpen(true);
+                  }}
+                >
                   Sign In
-                </Link>
-                <Link to="/auth?mode=signup" className={styles.button}>
+                </button>
+                <button
+                  className={styles.button}
+                  onClick={() => {
+                    setAuthMode('signup');
+                    setAuthOpen(true);
+                  }}
+                >
                   Sign Up
-                </Link>
+                </button>
               </div>
             )}
           </div>
@@ -218,6 +233,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <AuthCardModal open={authOpen} mode={authMode as any} onClose={() => setAuthOpen(false)} />
       </div>
     </div>
   );

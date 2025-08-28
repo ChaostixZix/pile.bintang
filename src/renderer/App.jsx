@@ -20,7 +20,7 @@ import { SyncInfraContextProvider } from './context/SyncInfraContext';
 import { CloudPostsProvider } from './context/CloudPostsContext';
 import { DebugProvider } from './context/DebugContext';
 import DebugNotifications from './components/DebugNotifications';
-import AuthForm from './components/Auth/AuthForm';
+// Auth now uses modal from Home; route removed
 import OAuthCallback from './pages/Auth/OAuthCallback';
 import Profile from './pages/Profile';
 import ConflictBanner from './components/Conflicts/Banner';
@@ -89,14 +89,6 @@ export default function App() {
                                     element={
                                       <AnimatedPage _key="home">
                                         <Home />
-                                      </AnimatedPage>
-                                    }
-                                  />
-                                  <Route
-                                    path="/auth"
-                                    element={
-                                      <AnimatedPage _key="auth">
-                                        <AuthForm />
                                       </AnimatedPage>
                                     }
                                   />

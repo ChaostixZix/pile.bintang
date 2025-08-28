@@ -21,6 +21,18 @@ Menu.setApplicationMenu(null);
 
 let mainWindow: BrowserWindow | null = null;
 
+// Set up custom protocol for deep linking (OAuth callbacks)
+const PROTOCOL_PREFIX = 'pile-auth';
+
+// On macOS and Linux, we need to register our app as the default handler for our custom protocol
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient(PROTOCOL_PREFIX, process.execPath, [path.resolve(process.argv[1])]);
+  }
+} else {
+  app.setAsDefaultProtocolClient(PROTOCOL_PREFIX);
+}
+
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
@@ -183,8 +195,8 @@ const handleOAuth = async (authUrl: string): Promise<string> => {
 
     // Windows/Linux deep link handling via second-instance
     const onSecondInstance = (_event: Electron.Event, argv: string[]) => {
-      // Look for pilebintang:// URL in command line arguments
-      const deepLinkUrl = argv.find(arg => arg.startsWith('pilebintang://'));
+      // Look for pile-auth:// URL in command line arguments
+      const deepLinkUrl = argv.find(arg => arg.startsWith('pile-auth://'));
       if (deepLinkUrl && !resolved) {
         console.log('Received deep link via second-instance:', deepLinkUrl);
         resolved = true;
@@ -307,7 +319,7 @@ const handleOAuth = async (authUrl: string): Promise<string> => {
           errorDescription,
           validatedURL,
         );
-        if (validatedURL && validatedURL.startsWith('pilebintang://')) {
+        if (validatedURL && validatedURL.startsWith('pile-auth://')) {
           if (!resolved) {
             console.log('Handling custom scheme on provisional fail, resolving');
             resolved = true;
@@ -325,7 +337,7 @@ const handleOAuth = async (authUrl: string): Promise<string> => {
 
     // Intercept attempts to open new windows for the deep link
     oauthWindow.webContents.setWindowOpenHandler(({ url }) => {
-      if (url.startsWith('pilebintang://')) {
+      if (url.startsWith('pile-auth://')) {
         console.log('OAuth setWindowOpenHandler caught deep link:', url);
         if (!resolved) {
           resolved = true;
@@ -376,7 +388,7 @@ const handleOAuth = async (authUrl: string): Promise<string> => {
         validatedURL,
       ) => {
         // If the failure was caused by our custom scheme, resolve.
-        if (validatedURL && validatedURL.startsWith('pilebintang://')) {
+        if (validatedURL && validatedURL.startsWith('pile-auth://')) {
           console.log(
             'OAuth did-fail-load on custom scheme; resolving via deep link:',
             validatedURL,
@@ -478,27 +490,7 @@ app.on('window-all-closed', () => {
   }
 });
 
-// Single instance lock for deep link handling on Windows/Linux
-const gotTheLock = app.requestSingleInstanceLock();
-
-if (!gotTheLock) {
-  app.quit();
-} else {
-  app.on('second-instance', (event, commandLine, workingDirectory) => {
-    // Someone tried to run a second instance, we should focus our window instead.
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.focus();
-    }
-    
-    // Check for deep link in command line arguments (Windows/Linux)
-    const deepLinkUrl = commandLine.find(arg => arg.startsWith('pilebintang://'));
-    if (deepLinkUrl) {
-      console.log('Received Windows/Linux deep link via second-instance:', deepLinkUrl);
-      handleSystemBrowserOAuthCallback(deepLinkUrl);
-    }
-  });
-}
+// Duplicate single instance lock removed - using the one at the end of file
 
 app
   .whenReady()
@@ -509,8 +501,8 @@ app
     });
 
     // Register custom protocol for OAuth callbacks
-    if (!app.isDefaultProtocolClient('pilebintang')) {
-      const registered = app.setAsDefaultProtocolClient('pilebintang');
+    if (!app.isDefaultProtocolClient('pile-auth')) {
+      const registered = app.setAsDefaultProtocolClient('pile-auth');
       console.log('Deep link protocol registration result:', registered);
     }
 
@@ -519,7 +511,7 @@ app
       event.preventDefault();
       console.log('Received macOS deep link:', url);
       
-      if (url.startsWith('pilebintang://auth-callback') || url.startsWith('pilebintang://')) {
+      if (url.startsWith('pile-auth://auth-callback') || url.startsWith('pile-auth://')) {
         handleSystemBrowserOAuthCallback(url);
       }
     });
@@ -570,3 +562,48 @@ app
     });
   })
   .catch(console.log);
+
+// Handle deep link protocol (OAuth callbacks)
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  console.log('Deep link received:', url);
+  
+  if (url.startsWith(`${PROTOCOL_PREFIX}://`)) {
+    handleSystemBrowserOAuthCallback(url);
+  }
+});
+
+// Handle deep link on Windows (command line arguments)
+app.on('second-instance', (event, commandLine, workingDirectory) => {
+  // Someone tried to run a second instance, focus our window instead
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+  
+  // Handle deep link URL from command line
+  const url = commandLine.find(arg => arg.startsWith(`${PROTOCOL_PREFIX}://`));
+  if (url) {
+    console.log('Deep link from second instance:', url);
+    handleSystemBrowserOAuthCallback(url);
+  }
+});
+
+// Prevent multiple instances
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  // Handle initial deep link if app was launched with one
+  if (process.argv.length >= 2) {
+    const url = process.argv.find(arg => arg.startsWith(`${PROTOCOL_PREFIX}://`));
+    if (url && mainWindow) {
+      console.log('Deep link on app launch:', url);
+      // Wait for window to be ready
+      mainWindow.webContents.once('did-finish-load', () => {
+        handleSystemBrowserOAuthCallback(url);
+      });
+    }
+  }
+}
