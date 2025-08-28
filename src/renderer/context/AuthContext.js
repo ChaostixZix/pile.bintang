@@ -23,23 +23,20 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
-    // Initialize auth state
+    // Initialize auth state from main process - run only once on mount
     const initializeAuth = async () => {
       try {
-        // Get current session
-        const {
-          data: { session: currentSession },
-          error: sessionError,
-        } = await getCurrentSession();
+        // Get current session from main process
+        const sessionData = await window.electron?.auth?.getSession();
+        
+        console.log('Auth initialization - session from main:', sessionData ? 'FOUND' : 'NULL');
 
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-        } else if (currentSession) {
-          setSession(currentSession);
-          setUser(currentSession.user);
+        if (sessionData && sessionData.session && sessionData.user) {
+          setSession(sessionData.session);
+          setUser(sessionData.user);
 
           // Load user profile
-          await loadUserProfile(currentSession.user.id);
+          await loadUserProfile(sessionData.user.id);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -50,64 +47,48 @@ export function AuthProvider({ children }) {
 
     initializeAuth();
 
-    // Listen for auth state changes
-    const {
-      data: { subscription },
-    } = onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-
-      setSession(session);
-      setUser(session?.user || null);
-
-      if (session?.user) {
-        // Load or create user profile
-        await loadUserProfile(session.user.id);
-      } else {
-        setProfile(null);
+    // Set up periodic session check (since we can't use Supabase auth state change listener from renderer)
+    const sessionCheckInterval = setInterval(async () => {
+      try {
+        const sessionData = await window.electron?.auth?.getSession();
+        
+        // Only update if session state changed
+        const hasSession = !!(sessionData && sessionData.session);
+        const currentHasSession = !!session;
+        
+        if (hasSession !== currentHasSession) {
+          console.log('Session state changed:', hasSession ? 'LOGGED_IN' : 'LOGGED_OUT');
+          
+          if (hasSession) {
+            setSession(sessionData.session);
+            setUser(sessionData.user);
+            await loadUserProfile(sessionData.user.id);
+          } else {
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+          }
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
       }
-
-      setLoading(false);
-    });
+    }, 30000); // Check every 30 seconds
 
     return () => {
-      subscription?.unsubscribe();
+      clearInterval(sessionCheckInterval);
     };
-  }, []);
+  }, []); // Run only once on mount, no dependencies
 
   const loadUserProfile = async (userId) => {
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error && error.code === 'PGRST116') {
-        // Profile doesn't exist, create it
-        console.log('Creating new user profile for:', userId);
-        const { data: newProfile, error: createError } = await supabase
-          .from('user_profiles')
-          .insert({
-            id: userId,
-            display_name:
-              user?.user_metadata?.full_name ||
-              user?.email?.split('@')[0] ||
-              'User',
-            preferences: {},
-            ai_settings: {},
-          })
-          .select()
-          .single();
-
-        if (createError) {
-          console.error('Error creating profile:', createError);
-        } else {
-          setProfile(newProfile);
-        }
-      } else if (error) {
-        console.error('Error loading profile:', error);
-      } else {
-        setProfile(data);
+      // Use IPC to load profile from main process (where session is authenticated)
+      const result = await window.electron?.auth?.getProfile(userId);
+      
+      if (result?.error) {
+        console.error('Error loading profile:', result.error);
+      } else if (result?.data) {
+        console.log('Profile loaded via IPC:', result.data.display_name);
+        setProfile(result.data);
       }
     } catch (error) {
       console.error('Profile loading error:', error);
@@ -160,114 +141,28 @@ export function AuthProvider({ children }) {
   };
 
   const signInWithGoogle = async () => {
-    console.log('signInWithGoogle called - using system browser approach');
+    console.log('signInWithGoogle called - using loopback OAuth server');
     try {
       setLoading(true);
       
-      // Use system browser integration to avoid Electron security conflicts
-      // This approach:
-      // 1. Opens user's default browser for OAuth (full JS support)
-      // 2. Maintains Supabase flow state (same browser context)  
-      // 3. Keeps Electron app secure (no webSecurity compromise)
-      // 4. Uses deep link to return session to Electron
+      // Use the new IPC-based OAuth with loopback server
+      // This approach solves the PKCE storage issue by keeping everything in the main process
+      const result = await window.electron?.auth?.signInWithGoogle();
       
-      const redirectTarget = 'pile-auth://callback';
-      
-      console.log('OAuth redirect target (deep link):', redirectTarget);
-      
-      // Get OAuth URL from Supabase using PKCE flow
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectTarget,
-          skipBrowserRedirect: true, // We'll handle browser opening manually
-          flowType: 'pkce',
-        },
-      });
-
-      if (error) {
-        console.error('Supabase OAuth error:', error);
-        throw error;
+      if (!result) {
+        throw new Error('OAuth not available - IPC call failed');
       }
-
-      console.log('Supabase OAuth response:', data);
-
-      if (data?.url && window.electron?.shell) {
-        console.log('Opening OAuth URL in system browser:', data.url);
-        
-        // Store the current page so we can return after auth
-        const returnUrl = window.location.pathname + window.location.search;
-        await window.electron?.store?.set('oauth_return_url', returnUrl);
-        
-        // Open the OAuth URL in the user's default browser
-        await window.electron.shell.openExternal(data.url);
-        
-        // Set up a promise that resolves when deep link callback is received
-        return new Promise(async (resolve, reject) => {
-          // Set up IPC listener for OAuth callback
-          const handleAuthCallback = async (event, callbackData) => {
-            console.log('OAuth callback received:', callbackData);
-            
-            try {
-              if (callbackData.success && callbackData.data) {
-                const { code, accessToken, callbackUrl } = callbackData.data;
-                
-                if (accessToken) {
-                  // Direct token (implicit flow)
-                  console.log('Processing implicit flow tokens');
-                  const url = new URL(callbackUrl);
-                  const hashParams = new URLSearchParams(url.hash.substring(1));
-                  const refreshToken = hashParams.get('refresh_token');
-                  
-                  const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-                    access_token: accessToken,
-                    refresh_token: refreshToken || '',
-                  });
-                  
-                  if (sessionError) {
-                    throw sessionError;
-                  }
-                  
-                  resolve({ data: sessionData, error: null });
-                } else if (code) {
-                  // Authorization code (PKCE flow)
-                  console.log('Processing PKCE flow - exchanging code for session');
-                  
-                  const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-                  
-                  if (exchangeError) {
-                    throw exchangeError;
-                  }
-                  
-                  resolve({ data: sessionData, error: null });
-                } else {
-                  throw new Error('No valid authentication data received');
-                }
-              } else {
-                throw new Error(callbackData.error || 'OAuth failed');
-              }
-            } catch (error) {
-              console.error('Error processing OAuth callback:', error);
-              reject(error);
-            }
-            
-            // Clean up listener
-            window.electron?.ipcRenderer?.removeListener('oauth-callback', handleAuthCallback);
-          };
-          
-          // Listen for the OAuth callback from main process
-          window.electron?.ipcRenderer?.on('oauth-callback', handleAuthCallback);
-          
-          // Set up timeout to avoid hanging indefinitely
-          setTimeout(() => {
-            window.electron?.ipcRenderer?.removeListener('oauth-callback', handleAuthCallback);
-            reject(new Error('OAuth timeout - no response from browser'));
-          }, 5 * 60 * 1000); // 5 minute timeout
-        });
-        
+      
+      console.log('OAuth result:', result.success ? 'SUCCESS' : 'FAILED');
+      
+      if (result.success) {
+        console.log('OAuth successful, user:', result.user?.email);
+        // The session will be automatically detected by auth state listener
+        // No need to manually set session here since it's handled in main process
+        return { data: { user: result.user, session: result.session }, error: null };
       } else {
-        console.error('No OAuth URL or shell API available');
-        throw new Error('OAuth not available - missing URL or shell API');
+        console.error('OAuth failed:', result.error);
+        return { data: null, error: { message: result.error } };
       }
     } catch (error) {
       console.error('Google sign in error:', error);
@@ -280,10 +175,12 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        throw error;
+      
+      // Use IPC to sign out from main process
+      const result = await window.electron?.auth?.signOut();
+      
+      if (result?.error) {
+        throw new Error(result.error);
       }
 
       // Clear local state
@@ -291,6 +188,7 @@ export function AuthProvider({ children }) {
       setSession(null);
       setProfile(null);
 
+      console.log('Sign out successful');
       return { error: null };
     } catch (error) {
       console.error('Sign out error:', error);

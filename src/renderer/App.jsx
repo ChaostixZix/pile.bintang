@@ -20,11 +20,11 @@ import { SyncInfraContextProvider } from './context/SyncInfraContext';
 import { CloudPostsProvider } from './context/CloudPostsContext';
 import { DebugProvider } from './context/DebugContext';
 import DebugNotifications from './components/DebugNotifications';
-// Auth now uses modal from Home; route removed
 import OAuthCallback from './pages/Auth/OAuthCallback';
 import Profile from './pages/Profile';
 import ConflictBanner from './components/Conflicts/Banner';
 import ConflictsPage from './pages/Conflicts';
+import AuthPage from './pages/Auth';
 import './lib/syncTest.js'; // Make test functions available globally
 
 if ('scrollRestoration' in history) {
@@ -89,6 +89,22 @@ export default function App() {
                                     element={
                                       <AnimatedPage _key="home">
                                         <Home />
+                                      </AnimatedPage>
+                                    }
+                                  />
+                                  <Route
+                                    path="/auth/signin"
+                                    element={
+                                      <AnimatedPage _key="auth-signin">
+                                        <AuthPage />
+                                      </AnimatedPage>
+                                    }
+                                  />
+                                  <Route
+                                    path="/auth/signup"
+                                    element={
+                                      <AnimatedPage _key="auth-signup">
+                                        <AuthPage />
                                       </AnimatedPage>
                                     }
                                   />

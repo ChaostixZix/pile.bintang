@@ -7,106 +7,71 @@ import styles from './OAuthCallback.module.scss';
 function OAuthCallback() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const [status, setStatus] = useState('Processing authentication...');
+  const [status, setStatus] = useState('OAuth callback processed by main process...');
 
   useEffect(() => {
+    console.log('OAuthCallback: OAuth handled by loopback server in main process');
+    console.log('Current URL:', window.location.href);
+    
+    // Since OAuth is handled by the loopback server in the main process,
+    // the renderer just needs to check if authentication was successful
     const handleCallback = async () => {
       try {
-        setStatus('Processing OAuth callback...');
+        setStatus('Checking authentication status...');
         
-        // Check if we have OAuth parameters in the URL
+        // Check URL for any error parameters
         const urlParams = new URLSearchParams(window.location.search);
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        
-        const code = urlParams.get('code') || hashParams.get('code');
         const error = urlParams.get('error') || hashParams.get('error');
-        const accessToken = hashParams.get('access_token');
-        
-        console.log('OAuth callback params:', {
-          hasCode: !!code,
-          hasError: !!error,
-          hasAccessToken: !!accessToken,
-          url: window.location.href
-        });
         
         if (error) {
-          console.error('OAuth error in callback:', error);
+          console.error('OAuth error in callback URL:', error);
           setStatus('Authentication failed: ' + error);
-          setTimeout(() => navigate('/auth'), 3000);
+          setTimeout(() => navigate('/auth/signin'), 3000);
           return;
         }
         
-        if (code || accessToken) {
-          setStatus('Exchanging authorization code for session...');
-          
-          // Let Supabase handle the callback - it should detect the URL automatically
-          const { supabase } = await import('../../lib/supabase');
-          
-          // Trigger session detection
-          const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-          
-          console.log('Session detection result:', { sessionData, sessionError });
-          
-          if (!sessionData?.session && code) {
-            // If session detection failed, try manual code exchange
-            console.log('Manual code exchange attempt...');
-            const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-            
-            if (exchangeError) {
-              console.error('Code exchange failed:', exchangeError);
-              setStatus('Authentication failed: ' + exchangeError.message);
-              setTimeout(() => navigate('/auth'), 3000);
-              return;
-            }
-            
-            console.log('Manual code exchange successful:', exchangeData);
-          }
-          
-          // Wait a moment for auth state to propagate
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-
-        // Check if we now have a user
-        if (user) {
+        // Wait a moment for the main process to finish OAuth processing
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Check if we now have a session via IPC
+        setStatus('Verifying session with main process...');
+        const sessionData = await window.electron?.auth?.getSession();
+        
+        if (sessionData && sessionData.session && sessionData.user) {
           setStatus('Authentication successful! Redirecting...');
+          console.log('OAuth callback successful, user:', sessionData.user.email);
           
-          // Check for stored return URL
-          const returnUrl = await window.electron?.store?.get('oauth_return_url');
-          const destination = returnUrl || '/';
-          
-          // Clear the stored return URL
-          if (returnUrl) {
-            await window.electron?.store?.delete('oauth_return_url');
-          }
-          
-          setTimeout(() => navigate(destination), 1500);
-        } else if (!loading) {
-          // Give it a bit more time if still loading
           setTimeout(async () => {
-            const currentUser = await import('../../lib/supabase').then(m => m.supabase.auth.getUser());
-            if (currentUser.data?.user) {
-              setStatus('Authentication successful! Redirecting...');
-              const returnUrl = await window.electron?.store?.get('oauth_return_url');
-              const destination = returnUrl || '/';
-              if (returnUrl) {
-                await window.electron?.store?.delete('oauth_return_url');
-              }
-              navigate(destination);
-            } else {
-              setStatus('Authentication failed. Redirecting...');
-              setTimeout(() => navigate('/auth'), 2000);
+            // Get the return URL and clean it up
+            const returnUrl = await window.electron?.store?.get('oauth_return_url');
+            const destination = returnUrl || '/';
+            
+            if (returnUrl) {
+              await window.electron?.store?.delete('oauth_return_url');
             }
-          }, 2000);
+            
+            navigate(destination);
+          }, 1500);
+          return;
         }
+        
+        // If no session is available after a reasonable wait, something went wrong
+        console.log('No session found after OAuth callback');
+        setStatus('Authentication incomplete. Please try signing in again.');
+        setTimeout(() => navigate('/auth/signin'), 3000);
+        
       } catch (error) {
         console.error('OAuth callback error:', error);
         setStatus('Authentication failed: ' + error.message);
-        setTimeout(() => navigate('/auth'), 3000);
+        setTimeout(() => navigate('/auth/signin'), 3000);
       }
     };
 
+    // Execute callback handler immediately
     handleCallback();
-  }, [user, loading, navigate]);
+  }, [navigate]); // Removed user and loading from dependencies to avoid re-runs
+
 
   return (
     <div className={styles.callbackContainer}>

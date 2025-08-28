@@ -16,19 +16,43 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
     // Use PKCE flow by default for security
     flowType: 'pkce',
-    // Storage options for Electron
+    // Use default localStorage-based storage for PKCE support
+    // (Supabase needs to store code verifier between OAuth start and callback)
+    persistSession: true,
     storage: {
       getItem: (key) => {
-        // Use electron-store for secure storage
-        return window.electron?.store?.get(key) || null;
+        try {
+          const value = localStorage.getItem(key);
+          console.log(`Supabase storage getItem: ${key} =`, value ? 'FOUND' : 'NULL');
+          return value;
+        } catch (error) {
+          console.error(`Storage getItem error for ${key}:`, error);
+          return null;
+        }
       },
       setItem: (key, value) => {
-        // Use electron-store for secure storage
-        window.electron?.store?.set(key, value);
+        try {
+          console.log(`Supabase storage setItem: ${key} =`, value ? 'STORING' : 'NULL');
+          localStorage.setItem(key, value);
+          // Also backup to electron-store if available
+          if (typeof window !== 'undefined' && window.electron?.store) {
+            window.electron.store.set(`supabase_${key}`, value).catch(console.error);
+          }
+        } catch (error) {
+          console.error(`Storage setItem error for ${key}:`, error);
+        }
       },
       removeItem: (key) => {
-        // Use electron-store for secure storage
-        window.electron?.store?.delete(key);
+        try {
+          console.log(`Supabase storage removeItem: ${key}`);
+          localStorage.removeItem(key);
+          // Also remove from electron-store backup
+          if (typeof window !== 'undefined' && window.electron?.store) {
+            window.electron.store.delete(`supabase_${key}`).catch(console.error);
+          }
+        } catch (error) {
+          console.error(`Storage removeItem error for ${key}:`, error);
+        }
       },
     },
   },
@@ -70,8 +94,8 @@ export const signInWithOAuth = async (provider) => {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      // Redirect URL for Electron app
-      redirectTo: 'http://localhost:1212/auth/callback',
+      // Redirect URL for Electron app with hash routing
+      redirectTo: 'http://localhost:1212/#/auth/callback',
     },
   });
   return { data, error };

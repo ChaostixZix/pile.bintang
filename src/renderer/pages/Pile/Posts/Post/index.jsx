@@ -24,6 +24,8 @@ import Ball from './Ball';
 import Reply from './Reply';
 import Editor from '../../Editor';
 import styles from './Post.module.scss';
+import StatusBadge from 'renderer/components/StatusBadge';
+import { isOpenTodo, isDone } from 'renderer/utils/todoTags';
 
 const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
   const { currentPile, getCurrentPilePath } = usePilesContext();
@@ -115,6 +117,9 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
   const highlightColor = post?.data?.highlight
     ? highlights.get(post.data.highlight).color
     : 'var(--border)';
+  const tags = post?.data?.tags || [];
+  const openTodo = isOpenTodo(tags);
+  const done = isDone(tags);
 
   const renderReplies = () => {
     return replies.map((reply, i) => {
@@ -175,6 +180,11 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
           <div className={styles.header}>
             <div className={styles.title}>{post.name}</div>
             <div className={styles.meta}>
+              {(openTodo || done) && (
+                <StatusBadge kind={done ? 'done' : 'todo'}>
+                  {done ? 'Done' : 'Todo'}
+                </StatusBadge>
+              )}
               <button className={styles.time} onClick={toggleEditable}>
                 {created.toRelative()}
               </button>

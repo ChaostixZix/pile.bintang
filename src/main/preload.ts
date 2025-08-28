@@ -180,9 +180,15 @@ const electronHandler = {
     openPath: (path: string) => shell.openPath(path),
   },
 
-  // OAuth functionality
-  oauth: {
-    google: (authUrl: string) => ipcRenderer.invoke('oauth-google', authUrl),
+  // Authentication functionality using loopback OAuth
+  auth: {
+    signInWithGoogle: () => ipcRenderer.invoke('auth:google-signin'),
+    getSession: () => ipcRenderer.invoke('auth:get-session'),
+    signOut: () => ipcRenderer.invoke('auth:signout'),
+    getProfile: (userId: string) => ipcRenderer.invoke('auth:get-profile', userId),
+    getPiles: () => ipcRenderer.invoke('auth:get-piles'),
+    createPile: (name: string, description?: string, isPrivate?: boolean) => 
+      ipcRenderer.invoke('auth:create-pile', name, description, isPrivate),
   },
 };
 

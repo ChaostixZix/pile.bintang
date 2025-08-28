@@ -99,18 +99,16 @@ export function PilesContextProvider({ children }) {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('piles')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      // Use IPC to load piles from main process (where session is authenticated)
+      const result = await window.electron?.auth?.getPiles();
 
-      if (error) {
-        console.error('Error loading cloud piles:', error);
+      if (result?.error) {
+        console.error('Error loading cloud piles:', result.error);
         return;
       }
 
-      setCloudPiles(data || []);
+      console.log('Loaded', result?.data?.length || 0, 'cloud piles via IPC');
+      setCloudPiles(result?.data || []);
       setSyncEnabled(true);
     } catch (error) {
       console.error('Error loading cloud piles:', error);

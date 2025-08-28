@@ -6,7 +6,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Typography from '@tiptap/extension-typography';
 import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
-import { DiscIcon, PhotoIcon, TrashIcon, TagIcon, AlertTriangleIcon, CloudIcon } from 'renderer/icons';
+import { DiscIcon, PhotoIcon, TrashIcon, TagIcon, AlertTriangleIcon, CloudIcon, CheckIcon, SlashIcon } from 'renderer/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams } from 'react-router-dom';
 import useCloudPost from 'renderer/hooks/useCloudPost';
@@ -18,6 +18,8 @@ import { useCloudPostsContext } from 'renderer/context/CloudPostsContext';
 import CursorOverlay from 'renderer/components/CursorOverlay';
 import styles from '../Editor/Editor.module.scss';
 import cloudStyles from './CloudEditor.module.scss';
+import StatusBadge from 'renderer/components/StatusBadge';
+import { isOpenTodo, isDone, DONE_TAG } from 'renderer/utils/todoTags';
 
 const CloudEditor = memo(
   ({
@@ -320,6 +322,10 @@ const CloudEditor = memo(
       }
     }, [handleCursorMove, isRealtimeConnected]);
 
+    const tags = post?.data?.tags || [];
+    const openTodo = isOpenTodo(tags);
+    const done = isDone(tags);
+
     return (
       <div className={`${styles.editor} ${focused ? styles.focused : ''}`}>
         <div 
@@ -348,6 +354,14 @@ const CloudEditor = memo(
             </div>
           )}
         </div>
+
+        {(openTodo || done) && (
+          <div style={{ marginTop: 8 }}>
+            <StatusBadge kind={done ? 'done' : 'todo'}>
+              {done ? 'Done' : 'Todo'}
+            </StatusBadge>
+          </div>
+        )}
 
         {/* Actions */}
         {editable && (
@@ -378,6 +392,25 @@ const CloudEditor = memo(
             </div>
 
             <div className={styles.right}>
+              {/* Todo/Done toggle */}
+              {openTodo && (
+                <button
+                  className={styles.saveButton}
+                  onClick={() => addTag(DONE_TAG)}
+                  title="Mark done"
+                >
+                  <CheckIcon />
+                </button>
+              )}
+              {done && (
+                <button
+                  className={styles.saveButton}
+                  onClick={() => removeTag(DONE_TAG)}
+                  title="Undo done"
+                >
+                  <SlashIcon />
+                </button>
+              )}
               {!isNew && (
                 <button
                   className={styles.deleteButton}

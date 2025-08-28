@@ -10,7 +10,6 @@ import OpenPileFolder from './OpenPileFolder';
 // Sync indicator removed from Home; only shown in threads
 import ErrorBanner from '../../components/Sync/ErrorBanner';
 import { CloudIcon } from 'renderer/icons';
-import AuthCardModal from '../../components/Auth/AuthCardModal';
 
 const quotes = [
   'One moment at a time',
@@ -37,13 +36,23 @@ export default function Home() {
   const { user, profile, signOut, isAuthenticated, loading } = useAuth();
   const [folderExists, setFolderExists] = useState(false);
   const [quote, setQuote] = useState(quotes[0]);
-  const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState('signin' as 'signin' | 'signup');
+  const [showCreateCloudModal, setShowCreateCloudModal] = useState(false);
+  const [cloudPileName, setCloudPileName] = useState('');
+  const [cloudPileDescription, setCloudPileDescription] = useState('');
 
   useEffect(() => {
     const quote = quotes[Math.floor(Math.random() * quotes.length)];
     setQuote(quote);
   }, []);
+
+  const handleCreateCloudPile = async () => {
+    if (!cloudPileName.trim()) return;
+    
+    await createCloudPile(cloudPileName.trim(), cloudPileDescription.trim());
+    setShowCreateCloudModal(false);
+    setCloudPileName('');
+    setCloudPileDescription('');
+  };
 
   const renderPiles = () => {
     const displayPiles = isAuthenticated ? allPiles : piles;
@@ -158,14 +167,7 @@ export default function Home() {
             {isAuthenticated && (
               <button
                 className={styles.button}
-                onClick={async () => {
-                  const name = prompt('Enter pile name:');
-                  if (name?.trim()) {
-                    const description =
-                      prompt('Enter description (optional):') || '';
-                    await createCloudPile(name.trim(), description.trim());
-                  }
-                }}
+                onClick={() => setShowCreateCloudModal(true)}
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   <CloudIcon className={styles.cloudBadge} />
@@ -176,24 +178,12 @@ export default function Home() {
 
             {!isAuthenticated && (
               <div className={styles.authButtonsRight}>
-                <button
-                  className={styles.button}
-                  onClick={() => {
-                    setAuthMode('signin');
-                    setAuthOpen(true);
-                  }}
-                >
+                <Link to="/auth/signin" className={styles.button}>
                   Sign In
-                </button>
-                <button
-                  className={styles.button}
-                  onClick={() => {
-                    setAuthMode('signup');
-                    setAuthOpen(true);
-                  }}
-                >
+                </Link>
+                <Link to="/auth/signup" className={styles.button}>
                   Sign Up
-                </button>
+                </Link>
               </div>
             )}
           </div>
@@ -233,8 +223,52 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <AuthCardModal open={authOpen} mode={authMode as any} onClose={() => setAuthOpen(false)} />
       </div>
+
+      {/* Create Cloud Pile Modal */}
+      {showCreateCloudModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowCreateCloudModal(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h2>Create Cloud Pile</h2>
+            <div className={styles.modalContent}>
+              <div className={styles.inputGroup}>
+                <label>Pile Name</label>
+                <input
+                  type="text"
+                  value={cloudPileName}
+                  onChange={(e) => setCloudPileName(e.target.value)}
+                  placeholder="Enter pile name..."
+                  autoFocus
+                />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>Description (optional)</label>
+                <input
+                  type="text"
+                  value={cloudPileDescription}
+                  onChange={(e) => setCloudPileDescription(e.target.value)}
+                  placeholder="Enter description..."
+                />
+              </div>
+              <div className={styles.modalButtons}>
+                <button 
+                  className={styles.button}
+                  onClick={() => setShowCreateCloudModal(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className={styles.button}
+                  onClick={handleCreateCloudPile}
+                  disabled={!cloudPileName.trim()}
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
