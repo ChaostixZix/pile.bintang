@@ -4,11 +4,13 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import styles from './AuthForm.module.scss';
 
-function AuthForm({ onSuccess }) {
+function AuthForm({ onSuccess, initialMode: initialModeProp = undefined, embedded = false }) {
   const { signIn, signUp, signInWithGoogle, loading } = useAuth();
   const [searchParams] = useSearchParams();
-  const initialMode = searchParams.get('mode') === 'signup' ? true : false;
-  const [isSignUp, setIsSignUp] = useState(initialMode);
+  const initialFromQuery = searchParams.get('mode') === 'signup' ? true : false;
+  const [isSignUp, setIsSignUp] = useState(
+    typeof initialModeProp === 'boolean' ? initialModeProp : initialFromQuery,
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -87,20 +89,23 @@ function AuthForm({ onSuccess }) {
     setConfirmPassword('');
   };
 
-  return (
-    <div className={styles.authForm} data-mode={isSignUp ? 'signup' : 'signin'}>
-      <div className={styles.backdrop} />
-      <motion.div
-        className={styles.container}
+  const CardTag = embedded ? 'div' : motion.div;
+  const motionProps = embedded
+    ? {}
+    : { initial: { opacity: 0, scale: 0.96, y: 10 }, animate: { opacity: 1, scale: 1, y: 0 }, transition: { type: 'spring', stiffness: 260, damping: 22 } };
+
+  const card = (
+      <CardTag
+        className={`${styles.container} ${embedded ? styles.embedded : ''}`}
         data-mode={isSignUp ? 'signup' : 'signin'}
-        initial={{ opacity: 0, scale: 0.96, y: 10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+        {...motionProps}
       >
         <div className={styles.topRow}>
-          <Link to="/" className={styles.backButton}>
-            ← Back to Home
-          </Link>
+          {!embedded && (
+            <Link to="/" className={styles.backButton}>
+              ← Back to Home
+            </Link>
+          )}
         </div>
         <div className={styles.header}>
           <h1>{isSignUp ? 'Create Account' : 'Sign In'}</h1>
@@ -235,7 +240,15 @@ function AuthForm({ onSuccess }) {
         </button>
 
         {/* Footer text removed in favor of segmented control above */}
-      </motion.div>
+      </CardTag>
+  );
+
+  if (embedded) return card;
+
+  return (
+    <div className={styles.authForm} data-mode={isSignUp ? 'signup' : 'signin'}>
+      <div className={styles.backdrop} />
+      {card}
     </div>
   );
 }

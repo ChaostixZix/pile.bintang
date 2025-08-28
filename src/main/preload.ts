@@ -174,6 +174,12 @@ const electronHandler = {
     },
   },
 
+  // Shell functionality for opening external URLs
+  shell: {
+    openExternal: (url: string) => shell.openExternal(url),
+    openPath: (path: string) => shell.openPath(path),
+  },
+
   // OAuth functionality
   oauth: {
     google: (authUrl: string) => ipcRenderer.invoke('oauth-google', authUrl),
