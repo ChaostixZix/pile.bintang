@@ -5,11 +5,18 @@
   padding: 4px 8px;
   border-radius: 999px;
   font-size: 12px;
-  background: #1f1f1f;
+  background: var(--bg-secondary);
+  color: var(--secondary);
+  border: 1px solid var(--border);
 }
 
 .count {
   font-weight: 600;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--primary);
+  border: 1px solid var(--border);
 }
 
 .muted {
@@ -19,4 +26,3 @@
 .warning {
   color: orange;
 }
-

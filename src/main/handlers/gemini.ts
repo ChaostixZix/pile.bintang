@@ -145,7 +145,7 @@ ipcMain.handle(
           'Starting Gemini stream with model:',
           selectedModel || 'default',
         );
-        for await (const chunk of stream(sanitizedPrompt, selectedModel, images)) {
+        for await (const chunk of stream(sanitizedPrompt, selectedModel)) {
           event.sender.send('gemini:stream', {
             type: 'chunk',
             streamId,
@@ -203,7 +203,7 @@ ipcMain.handle(
     event,
     prompt: string,
     template: keyof typeof JSON_TEMPLATES = 'summary',
-    images?: string[],
+    rawImages?: string[],
   ): Promise<GeminiResponse> => {
     try {
       // Validate sender frame URL
@@ -241,7 +241,8 @@ ipcMain.handle(
       }
 
       // Generate structured JSON response (optionally with images for OCR)
-      const response = await json(sanitizedPrompt, template, undefined, images);
+      const imgs = Array.isArray(rawImages) ? rawImages : [];
+      const response = await json(sanitizedPrompt, template, undefined, imgs);
 
       // The json() function already handles safe parsing internally
       // But we can check if it's using fallback values by validating completeness
@@ -302,6 +303,69 @@ ipcMain.handle(
         error: error instanceof Error ? error.message : 'Unknown error occurred',
         timestamp: new Date().toISOString(),
       };
+    }
+  },
+);
+/**
+ * IPC handler for Gemini streaming generation with OCR images
+ */
+ipcMain.handle(
+  'gemini:stream-ocr',
+  async (
+    event,
+    prompt: string,
+    selectedModel?: string,
+    images?: string[],
+  ): Promise<GeminiStreamResponse> => {
+    try {
+      if (!validateSender(event)) {
+        throw new Error('Invalid sender: only file:// protocol allowed');
+      }
+      const keyValid = await testApiKey();
+      if (!keyValid) {
+        throw new Error('Invalid or missing Gemini API key. Please check your API key in settings.');
+      }
+      if (!prompt || typeof prompt !== 'string') {
+        throw new Error('Invalid prompt: must be a non-empty string');
+      }
+      const sanitizedPrompt = prompt.replace(/[<>]/g, '').trim();
+      if (sanitizedPrompt.length === 0) {
+        throw new Error('Invalid prompt: cannot be empty after sanitization');
+      }
+      if (sanitizedPrompt.length > 10000) {
+        throw new Error('Prompt too long: maximum 10000 characters allowed');
+      }
+      const senderWindow = BrowserWindow.fromWebContents(event.sender);
+      if (!senderWindow) {
+        throw new Error('Cannot identify sender window');
+      }
+
+      const streamId = `stream-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      event.sender.send('gemini:stream', { type: 'start', streamId, timestamp: new Date().toISOString() });
+      try {
+        const imgs = Array.isArray(images) ? images : [];
+        for await (const chunk of stream(sanitizedPrompt, selectedModel, imgs)) {
+          event.sender.send('gemini:stream', {
+            type: 'chunk',
+            streamId,
+            data: chunk,
+            timestamp: new Date().toISOString(),
+          });
+        }
+        event.sender.send('gemini:stream', { type: 'end', streamId, timestamp: new Date().toISOString() });
+        return { success: true, streamId, timestamp: new Date().toISOString() };
+      } catch (streamError) {
+        event.sender.send('gemini:stream', {
+          type: 'error',
+          streamId,
+          error: streamError instanceof Error ? streamError.message : 'Stream error occurred',
+          timestamp: new Date().toISOString(),
+        });
+        throw streamError;
+      }
+    } catch (error) {
+      console.error('Gemini streaming OCR IPC handler error:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred', timestamp: new Date().toISOString() };
     }
   },
 );

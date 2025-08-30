@@ -108,7 +108,9 @@ const createWindow = async () => {
     titleBarStyle: 'hidden',
     trafficLightPosition: { x: -100, y: -100 }, // Hide traffic lights by moving them off-screen
     transparent: process.platform === 'darwin',
+    backgroundColor: '#00000000',
     vibrancy: 'sidebar',
+    visualEffectState: 'active',
     titleBarOverlay: {
       color: '#00000000',
       symbolColor: nativeTheme.shouldUseDarkColors ? 'white' : 'black',
