@@ -184,6 +184,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "mini-css-extract-plugin": "^2.7.6",
     "patch-package": "^8.0.0",
+    "playwright": "^1.55.0",
     "postcss": "^8.4.31",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.0.3",
