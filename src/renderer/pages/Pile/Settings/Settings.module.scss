@@ -53,7 +53,8 @@ input {
 .DialogContent {
   z-index: 50;
   background-color: var(--bg);
-  border-radius: 22px;
+  border-radius: 0;
+  border: 1px solid var(--border);
   position: fixed;
   top: 50%;
   left: 50%;
@@ -64,6 +65,7 @@ input {
   padding: 18px;
   animation: contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
   overflow-y: overlay;
+  box-shadow: none;
 }
 
 .DialogContent:focus {
@@ -74,9 +76,10 @@ input {
   margin: 0;
   padding: 0;
   line-height: 1;
-  font-family: var(--font-heading);
+  font-family: var(--font-sans);
   font-size: 1.4em;
   color: var(--primary);
+  text-transform: lowercase;
 }
 
 .DialogDescription {
@@ -91,14 +94,14 @@ input {
   align-items: center;
   justify-content: center;
   height: 32px;
-  background: var(--base);
-  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0;
   transition: all ease-in-out 120ms;
   padding: 0 14px;
   line-height: 28px;
-  color: var(--base-text);
+  color: var(--primary);
   font-size: 0.85em;
-  border-radius: 90px;
   user-select: none;
 
   .icon {
@@ -110,23 +113,17 @@ input {
     background: var(--bg-secondary);
   }
 
-  &:focus {
-    box-shadow: 0 0 0 2px var(--primary);
-  }
+  &:focus { outline: 2px solid var(--active); outline-offset: 0; }
 
-  &:hover {
-    cursor: pointer;
-    background: var(--base-hover);
-  }
+  &:hover { cursor: pointer; background: var(--bg-secondary); }
 
-  &:active {
-    background: var(--base);
-  }
+  &:active { background: var(--bg-tertiary); }
 }
 
 .IconButton {
   font-family: inherit;
-  border-radius: 100%;
+  border-radius: 0;
+  border: 1px solid var(--border);
   height: 28px;
   width: 28px;
   display: inline-flex;
@@ -171,8 +168,9 @@ input {
 .switch {
   margin-top: 14px;
   padding: 9px 12px;
-  border-radius: 12px;
-  background-color: var(--bg-tertiary);
+  border-radius: 0;
+  border: 1px solid var(--border);
+  background-color: var(--bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -216,7 +214,8 @@ input {
       background-color: var(--bg);
       -webkit-transition: 0.4s;
       transition: 0.4s;
-      border-radius: 34px;
+      border-radius: 0;
+      border: 1px solid var(--border);
     }
 
     .slider:before {
@@ -226,19 +225,17 @@ input {
       width: 20px;
       left: 4px;
       bottom: 4px;
-      background-color: white;
+      background-color: var(--primary);
       -webkit-transition: 0.4s;
       transition: 0.4s;
-      border-radius: 50%;
+      border-radius: 0;
     }
 
     input:checked + .slider {
       background-color: var(--active);
     }
 
-    input:focus + .slider {
-      box-shadow: 0 0 1px var(--active-hover);
-    }
+    input:focus + .slider { outline: 2px solid var(--active); outline-offset: 0; }
 
     input:checked + .slider:before {
       -webkit-transform: translateX(20px);
@@ -268,6 +265,7 @@ input {
   font-size: 12px;
   color: var(--secondary);
   margin-bottom: 8px;
+  text-transform: lowercase;
 }
 
 .Input {
@@ -275,19 +273,17 @@ input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 7px;
+  border-radius: 0;
   padding: 8px 10px;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1;
   color: var(--primary);
-  background: var(--bg-tertiary);
-  border: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
   outline: none;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
 
-  &:focus {
-    box-shadow: 0 0 0 2px var(--base);
-  }
+  &:focus { outline: 2px solid var(--active); }
 }
 
 .Textarea {
@@ -295,22 +291,20 @@ input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 7px;
+  border-radius: 0;
   padding: 8px 10px;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.35;
   min-height: 150px;
   width: 100%; /* Ensure the width is 100%, no less, no more */
   resize: none; /* Prevent resizing */
   color: var(--primary);
-  background: var(--bg-tertiary);
-  border: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
   outline: none;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
 
-  &:focus {
-    box-shadow: 0 0 0 2px var(--base);
-  }
+  &:focus { outline: 2px solid var(--active); }
 }
 
 .themes {
@@ -324,13 +318,14 @@ input {
     justify-content: space-between;
     height: 32px;
     width: 30px;
-    background: var(--bg-secondary);
+    background: var(--bg);
     margin: 5px;
-    border-radius: 12px;
+    border-radius: 0;
+    border: 1px solid var(--border);
 
     .color1 {
       flex: 1 0 auto;
-      border-radius: 10px;
+      border-radius: 0;
       margin: 2px;
       // margin-bottom: 0;
     }
@@ -342,14 +337,9 @@ input {
       margin-top: 0;
     }
 
-    &:hover {
-      cursor: pointer;
-      background: var(--bg-tertiary);
-    }
+    &:hover { cursor: pointer; background: var(--bg-secondary); }
 
-    &.current {
-      background: var(--primary);
-    }
+    &.current { background: var(--bg-secondary); }
   }
 }
 

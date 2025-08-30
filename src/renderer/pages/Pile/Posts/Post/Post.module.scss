@@ -14,22 +14,22 @@
 .post {
   display: flex;
   position: relative;
-  padding: 0 18px;
+  padding: 0 var(--thread-pad-x);
 
   .left {
     display: flex;
     flex-direction: column;
-    width: 20px;
-    margin-right: 12px;
+    width: var(--thread-left-col);
+    margin-right: var(--thread-left-gap);
     user-select: none;
     align-items: center;
 
     .ball {
-      flex: 0 0 20px;
-      height: 20px;
-      width: 20px;
+      flex: 0 0 var(--thread-left-col);
+      height: var(--thread-left-col);
+      width: var(--thread-left-col);
       background: var(--border);
-      border-radius: 90px;
+      border-radius: 0; /* flat, square bullet for consistency */
       user-select: none;
       position: relative;
       z-index: 1;
@@ -106,7 +106,7 @@
   }
 
   .right {
-    margin: 4px 0;
+    margin: 8px 0;
     width: 100%;
 
     &.hasReplies {
@@ -122,9 +122,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 4px 18px;
+    padding: 4px var(--thread-pad-x);
     z-index: 2;
-    pointer-events: none; /* prevent header box from blocking clicks underneath on narrow widths */
+    pointer-events: none; /* container ignores events */
 
     .title {
       pointer-events: auto; /* allow selecting or interacting with title if needed */
@@ -141,7 +141,7 @@
       .time {
         position: relative;
         z-index: 2;
-        pointer-events: auto; /* keep time button clickable while header container ignores events */
+        pointer-events: auto; /* clickable */
         color: var(--secondary);
         font-size: 0.9em;
         padding: 3px 5px;
@@ -172,6 +172,11 @@
     }
   }
 
+  /* push content below absolute header */
+  .right { padding-top: 28px; }
+  /* align left column (bullet) vertically with content start */
+  .left { margin-top: 28px; }
+
   .editor {
     width: 100%;
 
@@ -183,6 +188,7 @@
 
 .reply {
   .left {
+    margin-top: 0; /* do not offset bullets for replies */
     .connector {
       margin-top: -30px;
       height: 48px;
@@ -199,7 +205,7 @@
   }
 
   .right {
-    margin-top: 22px;
+    margin-top: 8px; /* header is now relative; smaller offset */
   }
 }
 
@@ -207,17 +213,36 @@
   display: flex;
   height: auto; /* allow wrapping rows to grow */
   min-height: 40px;
-  margin-top: 8px; /* extra room under absolute header to avoid overlap */
+  margin-top: 12px; /* spacing from thread above */
+  margin-bottom: 14px; /* spacing from thread below */
   position: relative;
   z-index: 50; // Lift above nearby UI when window is narrow
-  pointer-events: none; // don't block clicks beneath when actions hidden
+  pointer-events: auto; // allow wheel/gesture events for horizontal scroll
+}
+
+/* when summary is visible and conversation is shown, indent conversation content further */
+.withSummary {
+  .right { padding-left: var(--summary-indent); }
+  .left { margin-left: var(--summary-indent); }
+  position: relative;
+}
+
+/* when summary thread is active, apply consistent gap and indent to replies as well */
+.withSummaryThread {
+  position: relative;
+
+  .post.reply {
+    .right { padding-left: var(--summary-indent); padding-top: 28px; }
+    .left { margin-left: var(--summary-indent); margin-top: 28px; }
+  }
 }
 
 .actions {
   display: flex;
   align-items: center;
   vertical-align: middle;
-  padding: 0 16px 0 51px;
+  width: 100%; /* occupy full row width so overflow is within this element */
+  padding: 0 16px 0 var(--thread-left-gutter); /* align left dynamically */
   margin: 0 -5px;
   position: relative;
   z-index: 5; // keep below tags/popovers (tags use z>=20)
@@ -226,11 +251,22 @@
   overflow-x: auto; // enable horizontal scrolling on overflow
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch; // smooth scroll on iOS
-  gap: 6px 8px;
+  overscroll-behavior-x: contain; // keep horizontal gestures on this scroller
+  touch-action: pan-x; // allow horizontal panning with touch/trackpad
+  gap: 4px 6px;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
 
   @media (max-width: 640px) {
-    padding-left: 40px;
+    padding-left: var(--thread-left-gutter);
   }
+
+  /* prevent children from shrinking so row can overflow */
+  & > * { flex: 0 0 auto; }
+
+  /* subtle separators between adjacent buttons for visual continuity */
+  .openReply + .openReply { border-left: 1px solid var(--border); padding-left: 8px; }
 
   .sep {
     margin: 0 5px 0 4px;

@@ -68,7 +68,7 @@ export default function Reply({
       onMouseLeave={handleMouseLeave}
       style={{ position: 'relative' }}
     >
-      <div className={styles.post}>
+      <div className={`${styles.post} ${styles.reply}`}>
         <div className={styles.left}>
           <div className={`${styles.connector} ${isFirst && styles.first}`} />
 

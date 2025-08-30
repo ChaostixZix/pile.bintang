@@ -8,8 +8,10 @@
 /* Root variables for app theme, dark and light mode */
 :root {
   /* Font tokens (reverted to original) */
-  --font-sans: 'Inter', sans-serif;
-  --font-serif: 'Inter', sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Option A: serif for reading content. If 'Source Serif 4' isn't available on the system,
+     it will fall back to Georgia/serif. We can bundle the font later if desired. */
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   --font-heading: 'Porpora', serif;
   --brand: #00ff29;
   --translucent: rgba(193, 193, 193, 0.5);
@@ -39,6 +41,17 @@
   --bg-secondary: rgb(246, 246, 246);
   --bg-tertiary: #dedede;
   --bg-color-secondary-hover: rgb(226, 226, 226);
+
+  /* thread layout metrics (dynamic gutter) */
+  --thread-pad-x: 24px; /* horizontal page padding (more breathing room) */
+  --thread-left-col: 20px; /* left column width (ball) */
+  --thread-left-gap: 12px; /* gap between left col and content */
+  --thread-left-gutter: calc(
+    var(--thread-pad-x) + var(--thread-left-col) + var(--thread-left-gap)
+  );
+  /* type scale */
+  --font-size-base: 16px; /* default body size for readability */
+  --summary-indent: 14px; /* indentation for conversation under summary */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -67,6 +80,8 @@
     --bg-tertiary: #575757;
     --bg-color-secondary-hover: rgb(108, 108, 108);
 
+    /* keep same defaults in dark; override via media as needed */
+  
     /* Theme 1 */
     /* --translucent: rgba(13, 10, 35, 0.5);
     --sidebar-width: 250px;
@@ -122,6 +137,15 @@
     --bg-translucent: rgba(10, 15, 35, 0.45); */
 
     color-scheme: dark;
+  }
+}
+
+/* responsive tweaks for thread gutter */
+@media (max-width: 720px) {
+  :root {
+    --thread-pad-x: 14px;
+    --thread-left-gap: 8px;
+    --font-size-base: 15px; /* slightly smaller on narrow screens */
   }
 }
 
@@ -350,6 +374,7 @@ body {
   padding: 0;
   overflow: hidden;
   font-family: var(--font-sans);
+  font-size: var(--font-size-base);
   color: var(--primary);
   /* Use theme variable for background rather than fixed dark color */
   background: var(--bg);
@@ -368,29 +393,9 @@ body {
   width: 100vw;
 }
 
+/* flat style: remove glow background */
 #root::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  /* Softer glow on light theme */
-  background-image: radial-gradient(
-    circle 500px at 50% 300px,
-    rgba(16, 185, 129, 0.18),
-    transparent
-  );
-}
-
-@media (prefers-color-scheme: dark) {
-  #root::before {
-    /* Stronger glow for dark backgrounds */
-    background-image: radial-gradient(
-      circle 500px at 50% 300px,
-      rgba(16, 185, 129, 0.35),
-      transparent
-    );
-  }
+  content: none;
 }
 
 /* Ensure app content renders above the glow */
@@ -412,4 +417,122 @@ a {
 a:hover {
   opacity: 1;
   text-decoration: none;
+}
+
+/*
+  flat + edgy ui theme
+  - all ui chrome text is lowercase
+  - sharp corners, 1px borders, no shadows
+  - do NOT affect user content (editor/posts)
+*/
+.uiChrome {
+  /* tone down roundness everywhere by default */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+
+  /* lowercase for common ui strings */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  nav,
+  button,
+  label,
+  a,
+  span,
+  small,
+  strong,
+  b,
+  em,
+  th,
+  td,
+  li,
+  .pill,
+  .chip,
+  [role='button'] {
+    text-transform: lowercase;
+    letter-spacing: 0.2px;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    text-transform: lowercase;
+  }
+}
+
+.flatEdgy {
+  /* hard edges and flat surfaces */
+  button,
+  .button,
+  a,
+  input,
+  select,
+  textarea,
+  .card,
+  .menu,
+  .Dialog,
+  .pill,
+  .chip {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  button:hover,
+  .button:hover,
+  a:hover,
+  input:hover,
+  select:hover,
+  textarea:hover {
+    background: var(--bg-secondary);
+  }
+
+  button:focus,
+  .button:focus,
+  a:focus,
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 2px solid var(--active);
+    outline-offset: 0;
+  }
+
+  /* exclude user content from forced lowercase */
+  .ProseMirror,
+  .tiptap,
+  .editor,
+  .postContent {
+    text-transform: none !important;
+  }
+
+  /* remove gradients, shadows, roundness in common areas */
+  .container {
+    background: var(--bg) !important;
+  }
+
+  .nav {
+    background: var(--bg) !important;
+  }
+
+  .logoWrapper,
+  .iconHolder,
+  .toggleButton,
+  .count span,
+  .primaryButton,
+  .secondaryButton {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    border: 1px solid var(--border) !important;
+    background: var(--bg) !important;
+    color: var(--primary) !important;
+    transform: none !important;
+  }
 }

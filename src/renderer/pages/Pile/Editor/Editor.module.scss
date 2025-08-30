@@ -1,6 +1,6 @@
 .frame {
   display: block;
-  margin-left: 1px;
+  margin-left: 0;
   backdrop-filter: blur(10px);
 
   &.isNew {
@@ -15,11 +15,15 @@
 .editor {
   display: block;
   width: 100%;
-  width: calc(100% - 120px);
-  max-width: 600px;
+  font-family: var(--font-serif);
+  font-size: 16px; /* match summary font size */
+  /* fill container; alignment handled by parent layout */
 
   p {
-    line-height: 1.45;
+    line-height: 1.6; /* match summary line height */
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
 
     &:first-child {
       margin-top: 0;
@@ -104,6 +108,9 @@
     padding-left: 40px;
     padding-bottom: 12px;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* smooth horizontal scroll on mac/ios */
+    overscroll-behavior-x: contain; /* keep horizontal scroll gestures here */
+    touch-action: pan-x; /* enable horizontal panning */
 
     &.new {
       left: -19px;
