@@ -2,10 +2,7 @@
   display: block;
   z-index: 2;
   background: transparent; /* let global glow show behind composer */
-  margin-left: 1px;
-  margin: 18px;
-  padding-top: 58px;
-  padding-bottom: 20px;
+  padding: 58px var(--thread-pad-x) 20px var(--thread-left-gutter); /* dynamic alignment */
   margin-top: 6px;
   margin-bottom: 6px;
   // border-bottom: 1px solid var(--border);

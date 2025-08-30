@@ -1,6 +1,6 @@
 .frame {
   display: block;
-  margin-left: 1px;
+  margin-left: 0;
   backdrop-filter: blur(10px);
 
   &.isNew {
@@ -15,12 +15,12 @@
 .editor {
   display: block;
   width: 100%;
-  max-width: 720px; /* center for symmetric margins */
-  margin-left: auto;
-  margin-right: auto;
+  font-family: var(--font-serif);
+  font-size: 16px; /* match summary font size */
+  /* fill container; alignment handled by parent layout */
 
   p {
-    line-height: 1.45;
+    line-height: 1.6; /* match summary line height */
     text-align: justify;
     text-justify: inter-word;
     hyphens: auto;

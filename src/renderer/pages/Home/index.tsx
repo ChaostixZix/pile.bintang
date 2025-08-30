@@ -244,7 +244,7 @@ export default function Home() {
                   Tutorial
                 </a>
                 <a
-                  href="https://github.com/udarajay/pile"
+                  href="https://github.com/ChaostixZix/PileBintang"
                   target="_blank"
                   className={styles.footerLink}
                   rel="noreferrer"

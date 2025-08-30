@@ -280,12 +280,14 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
     }
   };
 
+  const withSummaryThread = isSummarized && showConversation;
+
   return (
     <div
       ref={containerRef}
       className={`${styles.root} ${
         (replying || isAiReplying) && styles.focused
-      }`}
+      } ${withSummaryThread ? styles.withSummaryThread : ''}`}
       tabIndex="0"
       onMouseEnter={handleRootMouseEnter}
       onMouseLeave={handleRootMouseLeave}
@@ -296,7 +298,7 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
         <OutlineView summary={summary} stale={summaryStale} />
       )}
       {(!isSummarized || showConversation) && (
-        <div className={styles.post}>
+        <div className={`${styles.post} ${isSummarized && showConversation ? styles.withSummary : ''}`}>
           <div className={styles.left}>
             {post.data.isReply && <div className={styles.connector} />}
             <Ball
@@ -346,12 +348,12 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
         <AnimatePresence>
           {(replying || hovering) && !isReply && (
             <motion.div
+              className={styles.actions}
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <div className={styles.actions}>
                 <button className={styles.openReply} onClick={toggleReplying}>
                   <NeedleIcon className={styles.icon} />
                   Add another entry
@@ -419,7 +421,6 @@ const Post = memo(({ postPath, searchTerm = null, repliesCount = 0 }) => {
                   <TrashIcon className={styles.icon2} />
                   {deleteConfirm ? 'Confirm Delete Thread' : 'Delete Thread'}
                 </button>
-              </div>
             </motion.div>
           )}
         </AnimatePresence>
