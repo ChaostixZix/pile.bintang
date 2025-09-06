@@ -110,7 +110,10 @@ const electronHandler = {
           new Error('Prompt too long: maximum 10000 characters allowed'),
         );
       }
-      return ipcRenderer.invoke('gemini:stream', prompt, selectedModel, images);
+      if (Array.isArray(images) && images.length > 0) {
+        return ipcRenderer.invoke('gemini:stream-ocr', prompt, selectedModel, images);
+      }
+      return ipcRenderer.invoke('gemini:stream', prompt, selectedModel);
     },
 
     // Listen to streaming responses

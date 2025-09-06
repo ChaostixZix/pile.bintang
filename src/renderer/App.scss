@@ -52,6 +52,8 @@
   /* type scale */
   --font-size-base: 16px; /* default body size for readability */
   --summary-indent: 14px; /* indentation for conversation under summary */
+  /* translucent panel backgrounds */
+  --panel-translucent: rgba(255, 255, 255, 0.65);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -81,6 +83,7 @@
     --bg-color-secondary-hover: rgb(108, 108, 108);
 
     /* keep same defaults in dark; override via media as needed */
+    --panel-translucent: rgba(23, 23, 23, 0.6);
   
     /* Theme 1 */
     /* --translucent: rgba(13, 10, 35, 0.5);
@@ -376,8 +379,8 @@ body {
   font-family: var(--font-sans);
   font-size: var(--font-size-base);
   color: var(--primary);
-  /* Use theme variable for background rather than fixed dark color */
-  background: var(--bg);
+  /* Transparent body to allow macOS vibrancy when window is transparent */
+  background: transparent;
 }
 
 /* Optional: terminal-like font override. Add class 'terminalFont' on body or root container */
@@ -534,5 +537,48 @@ a:hover {
     background: var(--bg) !important;
     color: var(--primary) !important;
     transform: none !important;
+  }
+}
+
+/* Light-mode refinements to avoid harsh outlines */
+@media (prefers-color-scheme: light) {
+  .flatEdgy {
+    button,
+    .button,
+    input,
+    select,
+    textarea,
+    .card,
+    .menu,
+    .pill,
+    .chip {
+      border-radius: 4px !important; /* slightly softer for light mode */
+      background: var(--bg-secondary) !important; /* tone-on-tone fill */
+      border-color: #e8e8e8 !important; /* lower-contrast border */
+      box-shadow: 0 1px 1px rgba(0,0,0,0.06) !important; /* faint elevation */
+    }
+
+    button:hover,
+    .button:hover,
+    input:hover,
+    select:hover,
+    textarea:hover {
+      background: var(--bg-color-secondary-hover) !important;
+    }
+
+    .DialogContent,
+    .dialogContent {
+      border-radius: 6px !important;
+      background: var(--bg) !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06) !important;
+      border-color: #e8e8e8 !important;
+    }
+
+    .primaryButton,
+    .secondaryButton {
+      background: var(--bg-secondary) !important;
+      border-color: #e8e8e8 !important;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.06) !important;
+    }
   }
 }

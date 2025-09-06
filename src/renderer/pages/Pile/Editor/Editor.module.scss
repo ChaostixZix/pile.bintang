@@ -144,41 +144,36 @@
     align-items: center;
 
     .button {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      height: 26px;
-      width: 26px;
-      background: var(--bg-secondary);
-      color: var(--secondary);
-      border-radius: 9px;
-      transition: all ease-in-out 120ms;
-      margin-right: 7px;
+      height: auto;
+      width: auto;
+      background: transparent !important;
+      color: var(--base);
+      border-radius: 0;
+      transition: color 120ms ease;
+      margin-right: 8px;
       z-index: 1;
+      border: none !important;
 
-      .icon {
-        height: 23px;
-        width: 23px;
-        fill: var(--secondary);
-        transition: all ease-in-out 120ms;
-      }
+      .icon { height: 18px; width: 18px; fill: currentColor; transition: color 120ms ease; }
 
       &:hover {
         cursor: pointer;
-        background: var(--bg-tertiary);
-        color: var(--primary);
+        color: var(--base-hover);
 
         .icon {
-          fill: var(--primary);
+          fill: currentColor;
         }
       }
 
       &.active {
-        background: var(--bg-secondary);
+        background: transparent;
       }
 
       &:active {
-        background: var(--bg-secondary);
+        background: transparent;
       }
     }
 
@@ -212,69 +207,53 @@
     position: relative;
 
     .button {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      height: 28px;
-      background: var(--base);
-      border-radius: 8px;
-      transition: all ease-in-out 120ms;
-      padding: 0 18px;
-      line-height: 28px;
-      color: var(--base-text);
-      font-size: 0.9em;
-      border-radius: 90px;
+      height: auto;
+      background: transparent !important;
+      transition: color 120ms ease;
+      padding: 0 6px;
+      line-height: 1.2;
+      color: var(--base);
+      font-size: 0.95em;
       user-select: none;
       font-weight: 500;
+      border: none !important;
 
-      .icon {
-        height: 18px;
-        width: 18px;
-      }
+      .icon { display: inline-block; height: 16px; width: 16px; margin-right: 6px; fill: currentColor; }
 
       &.active {
-        background: var(--bg-secondary);
+        background: transparent;
       }
 
-      &:hover {
-        cursor: pointer;
-        background: var(--base-hover);
-      }
+      &:hover { cursor: pointer; color: var(--base-hover); text-decoration: underline; }
 
-      &:active {
-        background: var(--base);
-      }
+      &:active { background: transparent !important; }
     }
 
     .deleteButton {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      height: 28px;
-      background: var(--bg);
-      border-radius: 8px;
-      transition: all ease-in-out 120ms;
-      padding: 0 14px;
-      line-height: 28px;
+      height: auto;
+      background: transparent !important;
+      transition: color 120ms ease;
+      padding: 0 6px;
+      line-height: 1.2;
       color: var(--base-red);
-      font-size: 0.9em;
-      border-radius: 90px;
+      font-size: 0.95em;
       user-select: none;
-      margin-right: 6px;
+      margin-right: 8px;
+      border: none !important;
 
-      .icon {
-        height: 18px;
-        width: 18px;
-      }
+      .icon { display: inline-block; height: 16px; width: 16px; margin-right: 6px; fill: currentColor; }
 
       &:active {
-        filter: brightness(0.9);
+        filter: none;
       }
 
-      &:hover {
-        cursor: pointer;
-        background: var(--base-red-light);
-      }
+      &:hover { cursor: pointer; text-decoration: underline; background: transparent !important; }
     }
   }
 }

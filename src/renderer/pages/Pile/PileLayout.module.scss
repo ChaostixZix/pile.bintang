@@ -159,6 +159,9 @@
     width: var(--sidebar-width);
     flex: 0 0 var(--sidebar-width);
     border-right: none; /* remove visual divider */
+    background: var(--panel-translucent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 
     @media only screen and (max-width: 909px) {
       display: none;

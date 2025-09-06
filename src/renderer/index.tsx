@@ -6,7 +6,7 @@ const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);
 
 const wrapperStyle = {
-  background: window.electron?.isMac ? 'var(--bg-translucent)' : 'var(--bg)',
+  background: window.electron?.isMac ? 'transparent' : 'var(--bg)',
 };
 
 root.render(

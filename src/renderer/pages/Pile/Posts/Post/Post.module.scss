@@ -265,8 +265,8 @@
   /* prevent children from shrinking so row can overflow */
   & > * { flex: 0 0 auto; }
 
-  /* subtle separators between adjacent buttons for visual continuity */
-  .openReply + .openReply { border-left: 1px solid var(--border); padding-left: 8px; }
+  /* text-only actions: no separators between buttons */
+  .openReply + .openReply { border-left: none; padding-left: 0; }
 
   .sep {
     margin: 0 5px 0 4px;
@@ -275,33 +275,26 @@
   }
 
   .openReply {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     font-size: 0.95em;
     user-select: none;
-    padding: 2px 10px 2px 3px;
-    transition: all ease-in-out 80ms;
-    border-radius: 90px;
+    padding: 0 6px;
+    margin: 0 2px;
+    transition: color 120ms ease;
+    border-radius: 0;
+    background: transparent !important;
     color: var(--base);
-    line-height: 1;
+    line-height: 1.2;
     white-space: nowrap;
+    border: none !important;
 
-    &:hover {
-      cursor: pointer;
-      filter: contrast(1.15);
-      color: var(--base-hover);
-      background: var(--bg-secondary);
-    }
-
+    &:hover,
     &:focus {
       cursor: pointer;
-      filter: contrast(1.15);
       color: var(--base-hover);
-      background: var(--bg-secondary);
-    }
-
-    &:active {
-      filter: contrast(0.85);
+      text-decoration: underline;
+      background: transparent !important;
     }
 
     &:disabled {
@@ -311,66 +304,19 @@
       opacity: 0.5; // Reduce opacity to visually indicate it's disabled
     }
 
-    .icon {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 23px;
-      width: 23px;
-      margin-right: 4px;
-      fill: currentColor;
-      transition: all ease-in-out 120ms;
-    }
-
+    .icon,
     .icon2 {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 20px;
-      width: 20px;
-      margin: 2px 0;
+      display: inline-block; /* keep icons visible */
+      height: 16px;
+      width: 16px;
       margin-right: 6px;
-      margin-left: 5px;
-      // margin-top: -1px;
       fill: currentColor;
-      transition: all ease-in-out 120ms;
     }
 
-    &.confirmDelete {
-      background: var(--base-red);
-      color: white;
-      
-      &:hover {
-        background: var(--base-red);
-        filter: brightness(1.1);
-        color: white;
-      }
-      
-      &:focus {
-        background: var(--base-red);
-        filter: brightness(1.1);
-        color: white;
-      }
-    }
+    &.confirmDelete { color: var(--base-red); text-decoration: underline; background: transparent !important; }
 
-    &.loading {
-      position: relative;
-      padding-left: 26px;
-    }
-
-    &.loading::before {
-      content: '';
-      position: absolute;
-      left: 6px;
-      top: 50%;
-      width: 12px;
-      height: 12px;
-      margin-top: -6px;
-      border-radius: 50%;
-      border: 2px solid var(--secondary);
-      border-top-color: transparent;
-      animation: spin 0.8s linear infinite;
-    }
+    &.loading { position: relative; }
+    &.loading::before { content: none; }
   }
 }
 
